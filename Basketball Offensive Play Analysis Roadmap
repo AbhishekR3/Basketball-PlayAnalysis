@@ -1,0 +1,61 @@
+######################### Upcoming Implementations #########################
+
+
+
+######################### Planned implementations #########################
+Object Detection
+- NMS (Non-Max Supression)
+- mAP (Mean Average Precision)
+- Region Proposal Network
+
+Object Tracking
+- Deep Sort (helps considering occuluion)
+
+Occulusion?
+- 
+
+Detecting the lines on the court?
+- Hough Transform
+
+
+3D CNN model (Temporal Action Localization?)
+- C3D
+
+
+
+Optimization
+- Adam (Adaptive Moment Estimation)
+- SGD + Momentum
+- Nesterov Accelerated Gradient (NAG)
+- Adagrad
+
+
+Optimize learning rate
+- Cosine 
+- /10 after every 20 epochs
+
+
+'Basketball Game Simulation' - Resolve issue moving ball to another side of the player
+
+
+Change players to have a white borderline
+
+
+Clippervision data
+- Background Subtraction
+--> MOG2
+--> KNN
+- PCA
+--> Help with background subtraction
+
+
+######################### Optimization #########################
+'''
+1. Convert all float to numpy float
+
+2. Optimize the FPS 
+- Helps optimizing computation load
+
+
+'''
+
