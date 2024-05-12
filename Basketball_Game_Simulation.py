@@ -533,6 +533,8 @@ def initialize_simulation():
 
 #%%
 
+""" Set Simulation Parameters """
+
 # Import Basketball Court image
 
 #Screen Dimensions
@@ -589,7 +591,7 @@ simulation_limit = 3 # stop simulation after x minutes
 
 #%%
 
-#Simulate the game
+""" Simulate Basketball Game """
 
 initialize_simulation()
 
@@ -597,7 +599,8 @@ start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
 video_format = cv2.VideoWriter_fourcc(*'X264') # Using x264
-out = cv2.VideoWriter('/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/NBA Analysis Project/simulation.mp4', video_format, FPS, SCREEN_DIMENSIONS)
+video_location = os.path.join(script_directory, 'simulation.mp4')
+out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
 simulation_capture_max_time = 45 # x seconds the simulation will run to capture recordings
@@ -724,8 +727,6 @@ while simulating and (frames_captured < max_frames_caputured):
     # Write the frame
     out.write(frame)
     frames_captured += 1
-    
-    print(frames_captured)
     
 out.release()
 pygame.quit()
