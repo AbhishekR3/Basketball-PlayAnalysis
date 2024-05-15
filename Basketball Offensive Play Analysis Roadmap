@@ -1,61 +1,43 @@
-######################### Upcoming Implementations #########################
-
-
-
-######################### Planned implementations #########################
-Object Detection
-- NMS (Non-Max Supression)
-- mAP (Mean Average Precision)
-- Region Proposal Network
-
+######################### Future Road Map #########################
 Object Tracking
 - Deep Sort (helps considering occuluion)
 
-Occulusion?
-- 
-
-Detecting the lines on the court?
-- Hough Transform
-
-
-3D CNN model (Temporal Action Localization?)
+3D CNN model (?Temporal Action Localization?)
 - C3D
+- LSTM 
+- RNN - many to many based model
 
-
-
-Optimization
+Optimizers
 - Adam (Adaptive Moment Estimation)
 - SGD + Momentum
 - Nesterov Accelerated Gradient (NAG)
 - Adagrad
-
 
 Optimize learning rate
 - Cosine 
 - /10 after every 20 epochs
 
 
-'Basketball Game Simulation' - Resolve issue moving ball to another side of the player
+Create simulations for new plays
+- Screens
+
+######################### Optimization #########################
+1. Research -> Optimize the FPS
 
 
-Change players to have a white borderline
+2. Create function to prevent occlusion of players constantly in simulation
 
 
-Clippervision data
+3. Resolve issue moving ball to another side of the player
+- In the 'Basketball Game Simulation' file
+
+
+4. CourtVision
 - Background Subtraction
 --> MOG2
 --> KNN
-- PCA
---> Help with background subtraction
+--> PCA
 
-
-######################### Optimization #########################
-'''
-1. Convert all float to numpy float
-
-2. Optimize the FPS 
-- Helps optimizing computation load
-
-
-'''
-
+5. Does matching the object detection tracker circle matter
+In Basketball_Object_Tracking.py, check the color_detection()
+Switching value from RGB to BGR so it matches the color of the  BGR to RGB value
