@@ -2,10 +2,10 @@
 
 This project aims to analyze and classify the type of offensive and defensive plays executed by NBA teams using simulations and object tracking techniques. It creates simulations similar to CourtVision Clippers to generate training data for a time-spatial temporal-based classification model.
 
-![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/NBA%20CourtVision.png)
-![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/NBA%20Simulation%20Image.png)
-
-
+<p align="center">
+  <img src="https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/NBA%20CourtVision.png" alt="CourtVision Sample Frame" width="400">
+  <img src="https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/NBA%20Simulation%20Image.png" alt="Simulation Sample Frame" width="400">
+</p>
 ## Table of Contents
 - [Installation](#installation)
 - [Project Description](#project-description)
