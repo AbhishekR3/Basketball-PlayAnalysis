@@ -1,5 +1,5 @@
-# Offensive Basketball plays Object Tracking
-# 
+# Basketball Object Tracking
+
 # Utilizing OpenCV, track players and basketball.
 
 #%%
@@ -28,12 +28,12 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
     """
 
     # Convert the image to grey scale for better OpenCV processing
-    if greyed == True:
+    if greyed is True:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Apply blur to reduce noise
     if blur == 'median':
-        frame = cv2.medianBlur(frame, 5) 
+        frame = cv2.medianBlur(frame, 5)
     elif blur == 'gaussian':
         frame = cv2.GaussianBlur(frame, (5,5), 1.5)
 
@@ -62,14 +62,14 @@ def circle_detection(p1, p2, results, frame_with_color):
     frame_greyed = preprocess_frame(frame_with_color)
 
     frame_hsv = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2HSV)
-    
+
     circles_detected = cv2.HoughCircles(frame_greyed, cv2.HOUGH_GRADIENT, 1, minDist = 3, param1 = p1, param2 = p2, minRadius = 10, maxRadius = 20)
 
     # If no circles were detected, set circle_count to 0
     if circles_detected is None:
         circle_count = 0
-    
-    # If circles were detected, create border and a center dot around the detected circle 
+
+    # If circles were detected, create border and a center dot around the detected circle
     else:
         circles_detected = np.uint16(np.around(circles_detected))
         circle_count = len(circles_detected[0])
@@ -132,13 +132,14 @@ def color_detection(color_hue):
 
     return color_detected
 
+
 #%%
-""" Initialize Simulation Variables """
+" Initialize Simulation Variables "
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
-video_path = os.path.join(script_directory, 'simulation.mp4')
-basketball_court_diagram = os.path.join(script_directory, 'NBA Court Diagram.jpg')
+video_path = os.path.join(script_directory, 'assets/simulation.mp4')
+basketball_court_diagram = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
 
 # Open the video file
 cap = cv2.VideoCapture(video_path)
@@ -170,7 +171,7 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(script_directory, 'output_video.mp4')
+output_path = os.path.join(script_directory, 'assets/output_video.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'X264') # Using x264
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
@@ -180,7 +181,7 @@ out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 start_time = time.time()
 
 """ Main Simulation - Object Tracking """
-try: 
+try:
     # Loop through each frame in the video
     while cap.isOpened():
         # Read a frame from the video
@@ -210,11 +211,6 @@ try:
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
-            
-        # Process only part of the file
-        if n_frames > 100:
-            break
-    
 
     # Print summary of results
     print("Total time taken:", time.time()-start_time, "seconds")

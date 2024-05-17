@@ -1,9 +1,6 @@
-# NBA Game Simulation
-# 
-# Utilizing pygame, simulating NBA offensive plays executed.
-# The simulation was based on the structure of ClipperVision.
-# 
-# This project and its developers do not claim ownership of Clipper Vision videos. The videos and this project is non-commerical and used for educational purposes.
+# Basketball Game Simulation
+
+# Utilizing pygame, simulating basketball plays executed.
 
 #%% 
 "Import Libraries"
@@ -16,13 +13,14 @@ import datetime
 import numpy as np
 import os
 import cv2
+import secrets
 
 
 #%%
 
 class Player:
     "Class for players" 
-    
+
     def __init__(self, x, y, radius, color):
         """
         Objective:
@@ -159,8 +157,17 @@ class Basketball:
         self.offset = amplitude * math.sin(frequency * elapsed_time)
 
         # Update basketball's position
-        self.x, self.y, self.change_displacement, dribbling_player.angle_update, self.displacement_randomness = update_basketball_position(self, dribbling_player, basketball_displacement)
-
+        (
+            self.x,
+            self.y,
+            self.change_displacement,
+            dribbling_player.angle_update,
+            self.displacement_randomness
+        ) = update_basketball_position(
+            self, 
+            dribbling_player, 
+            basketball_displacement
+        )
         
     def draw(self):
         """
@@ -193,11 +200,19 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
     [bool]   displacement_randomness - new basketball displacement value is True/False resulting in different side of which the basketball is being dribbled
     """
     
-    #Ball should change location if and change displacement player hasnt changed direction 
-    if dribbling_player.angle_update == False and ball.change_displacement == False:
+    #Ball should change location if and change displacement player hasnt changed direction
+    if dribbling_player.angle_update is False and ball.change_displacement is False:
         
-        x_coordinate, y_coordinate = new_relative_basketball_position(ball.x, ball.y, ball.displacement_randomness, ball.offset, ball.angle, dribbling_player, basketball_displacement)
-    
+        x_coordinate, y_coordinate = new_relative_basketball_position(
+            ball.x,
+            ball.y,
+            ball.displacement_randomness,
+            ball.offset,
+            ball.angle,
+            dribbling_player,
+            basketball_displacement
+        )
+
         change_displacement_value = True
         angle_update_value = True
         displacement_randomness = random.choice([True, False])
@@ -241,7 +256,7 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
 
     # Calculate new position based on the conditions provided
     if right_side and left_side:
-        if ball_displacement_randomness == True:
+        if ball_displacement_randomness is True:
             x_coordinate = current_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
             y_coordinate = ball_y
         else:
@@ -249,21 +264,21 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
             y_coordinate = ball_y
 
     elif right_side and not left_side:
-        if ball_displacement_randomness == True:
+        if ball_displacement_randomness is True:
             x_coordinate = ball_x
             y_coordinate = current_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
         else:
             x_coordinate = ball_x
             y_coordinate = current_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
     elif not right_side and left_side:
-        if ball_displacement_randomness == True:
+        if ball_displacement_randomness is True:
             x_coordinate = ball_x
             y_coordinate = current_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
         else:
             x_coordinate = ball_x
             y_coordinate = current_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
     else:
-        if ball_displacement_randomness == True:
+        if ball_displacement_randomness is True:
             x_coordinate = current_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
             y_coordinate = ball_y
         else:
@@ -284,7 +299,7 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
     [Class] ball - basketball
     [float] target_x - x coordinate of the end location
     [float] target_y - y coordinate of the end location
-    [List]  avoiding_players - List of all the players except the 2 players being passed between. This is to avoid the basketball from overlapping with other players.
+    [List]  avoiding_players - List of all the players except the 2 players being passed between
     [List]  exclusion_list - Exclusion list includes the current player and the player being passed to
     
     Returns:
@@ -326,16 +341,16 @@ def ball_reached_player(ball, target, speed):
     """
     Objective:
     Return a boolean value whether or not the basketball reached the player
-    
+
     Parameters:
     [Class] ball - basketball
     [Class] target - Player receiving the basketball (current_player)
     [float] speed - speed the basketball is moving to another player
-    
+
     Returns:
     [bool] if the ball reached the player or not
     """
-    
+
     # Stop loop if distance between player and basketball is less than the ball speed
     if pygame.math.Vector2(target.x - ball.x, target.y - ball.y).length() <= speed:
         if ((abs(ball.y - target.y) <= 5) and (abs(ball.x - target.x) <= 5)):
@@ -343,21 +358,21 @@ def ball_reached_player(ball, target, speed):
     else:
         return False
 
-    
+
 def ball_reached_position(ball, target_x, target_y):
     """
     Objective:
     Return a boolean value whether the basketball has reached within the distance of the specific position
-    
+
     Parameters:
     [Class] ball - basketball
     [float] target_x - x coordinate of the end location
     [float] target_y - y coordinate of the end location
-    
+
     Returns:
     [bool] if the ball reached the end location or not
-    """    
-    
+    """
+
     # Stop loop if distance between player and basketball is less than 5 pixels
     ball_coordinate = (ball.x, ball.y)
     target_coordinate = (target_x, target_y)
@@ -456,6 +471,10 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         
     attempts = 0
     while attempts < 1000:  # Limit attempts to prevent infinite loop
+        lower_bound = radius
+        upper_bound = simulation_width - (2 * radius)
+        secure_random_int = lower_bound + secrets.randbelow(upper_bound - lower_bound + 1)
+
         new_player = Player(random.randint(radius, simulation_width - (2*radius)),
                             random.randint(radius, simulation_height - (2*radius)),
                             radius, 
@@ -533,23 +552,21 @@ def initialize_simulation():
 
 #%%
 
-""" Set Simulation Parameters """
+" Set Simulation Parameters "
 
 # Import Basketball Court image
 
 #Screen Dimensions
-global SCREEN_DIMENSIONS, SCREEN_WIDTH, SCREEN_HEIGHT
 
 SCREEN_DIMENSIONS = (500, 500)
 SCREEN_WIDTH = SCREEN_DIMENSIONS[0]
 SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 
 #Load and scale the image of the basketball court
-global background_image
 
 # Load and transform NBA court diagram
 script_directory = os.getcwd()
-image_location = os.path.join(script_directory, 'NBA Court Diagram.jpg')
+image_location = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
 
 try:
     background_image = pygame.image.load(image_location)
@@ -559,7 +576,6 @@ except Exception as e:
 
     
 # Simulation Constants
-global NUM_PLAYERS, PLAYER_RADIUS, BALL_RADIUS, COLOR_BLUE, COLOR_RED, COLOR_ORANGE, COLOR_WHITE, FPS, MOVE_SPEED
 NUM_PLAYERS = 10
 PLAYER_RADIUS = 20
 BALL_RADIUS = 10
@@ -571,7 +587,6 @@ FPS = 30
 MOVE_SPEED = np.random.normal(5.6, 1) #Speed at which basketball moves to the next player
 
 # Simulation Variables
-global clock, pass_timer, pass_interval, reached_player, basketball_relative_x, basketball_relative_y, basketball_player_overlap, first_overlap, last_update_time
 clock = pygame.time.Clock()
 pass_timer = -1
 pass_interval = random.uniform(4, 5)  #How many seconds before the player passes the ball
@@ -579,7 +594,7 @@ reached_player = True #When basketball is with a player
 basketball_relative_x = 5 #X-axis displacemnt of the basketball compared to the player
 basketball_relative_y = 5 #Y-axis displacemnt of the basketball compared to the player
 basketball_player_overlap = 0.4 #When basketball and player overlap, set the relative distance between the two to prevent constant change
-first_overlap = False #Calculate the basketball's relative x, y coordinate to the circle 
+first_overlap = False #Calculate the basketball's relative x, y coordinate to the circle
 last_update_time = datetime.datetime.now() #set update time
 dribble_timer = time.time()
 dribble_switch_timer = time.time() - dribble_timer
@@ -591,7 +606,7 @@ simulation_limit = 3 # stop simulation after x minutes
 
 #%%
 
-""" Simulate Basketball Game """
+" Simulate Basketball Game "
 
 initialize_simulation()
 
@@ -599,7 +614,7 @@ start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
 video_format = cv2.VideoWriter_fourcc(*'X264') # Using x264
-video_location = os.path.join(script_directory, 'simulation.mp4')
+video_location = os.path.join(script_directory, 'assets/simulation.mp4')
 out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
@@ -626,7 +641,7 @@ while simulating and (frames_captured < max_frames_caputured):
     time_elapsed = time.time() - oscillation_start_time # Time elapsed since ball reached the player
 
     # Move basketball towards the current player
-    if reached_player == False: 
+    if reached_player is False: 
         
         #Restart the following variables
         current_player.angle_update = False
@@ -638,12 +653,18 @@ while simulating and (frames_captured < max_frames_caputured):
         new_random_player = random.choice(team_players_excluding_current)
         
         pass_players = [current_player, new_random_player] #Both players the ball is being passed between
-        basketball.x, basketball.y = move_basketball_to_location(basketball, current_player.x, current_player.y, players, pass_players) #Move basketball closer to player
+        basketball.x, basketball.y = move_basketball_to_location(
+            basketball,
+            current_player.x,
+            current_player.y,
+            players,
+            pass_players
+        )  # Move basketball closer to player
         reached_player = ball_reached_player(basketball, current_player, MOVE_SPEED) #Stop if ball reached player
         
         #Calculate the distance between the basketball and the receiving player.
         #This dictates which relative position the basketball should be from the player
-        if first_overlap == False:
+        if first_overlap is False:
             if circles_overlap(basketball, current_player, basketball_player_overlap):
                 
                 #Calculate x, y displacement relative to player
@@ -659,43 +680,20 @@ while simulating and (frames_captured < max_frames_caputured):
     else: 
         MOVE_SPEED = np.random.normal(5.6, 1) #Update move_speed
         player_pass_time = player.last_update_time + player.change_ball_time_limit
-        
-        #Check if ball needs to move to other side of player
-        '''
-        #Need to fix basketball switching to the other side function
-        if (player_pass_time - 0.1) < time.time():
-            basketball.dribble_switch = True
-        '''
-        
+
         # Check if basketball should switch to another side of the player
-        if basketball.dribble_switch == False:
+        if basketball.dribble_switch is False:
             basketball.update_position(current_player, time_elapsed)
             basketball.speed = current_player.speed
             basketball.angle = current_player.angle
             basketball.stabalize_dribble_switch_check = False #Restart the stabalizing dribble switch check
-            
-        '''
-        #Need to fix basketball switching to the other side function
-        else:
-            1. Before proceeding, the following should have been already calculated:
-            - What coordinate should the basketball start at when starting it's new movement
-            
-            2. Start movement to starting position
-            - After basketball.dribble_switch = True, move ball towards the starting position.
-            - The properties of the basketball (angle, offset) should not be updated until the new basketball dribbling motion starts
-            #Create list the basketball properties that could affect this function
-            - Need to compile list of timing variables that could affect this function
-            
-            3. Once ball reaches starting position and current_player.next_angle changes value:
-            then you can start updating the basketball properties
-        '''
-        
+
         # Start timer once basketball reaches player
         if pass_timer < 0:
             pass_timer = 0  # Activate timer
             oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
         pass_timer += clock.get_time() / 1000.0  # Convert milliseconds to seconds
-        
+
         # If pass_time greater or equal to when the ball should be passed
         if pass_timer >= player.change_ball_time_limit:
             # Time to pass the basketball to the next blue player
@@ -706,27 +704,31 @@ while simulating and (frames_captured < max_frames_caputured):
             pass_timer = -1  # Reset timer to deactivate
             first_overlap = False
             reached_player = False
-    
+
     basketball.draw()  # Draw the basketball
 
     pygame.display.flip() #Update pygame simulation frame
     clock.tick(FPS) # Maintain frame rate (FPS)
 
-    
+
     # Stop simulation after simulation limit time as been met
     if elapsed_time_simulation > simulation_limit*60:
         print("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
-    
-    
+
+
     # Capture frame
     frame = pygame.surfarray.array3d(pygame.display.get_surface())
     frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
 
+    # Press 'q' to quit
+    if cv2.waitKey(25) & 0xFF == ord('q'):
+        break
+
     # Write the frame
     out.write(frame)
     frames_captured += 1
-    
+
 out.release()
 pygame.quit()

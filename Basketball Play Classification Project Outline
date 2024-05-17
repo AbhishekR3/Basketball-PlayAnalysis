@@ -1,4 +1,17 @@
-######################### Future Road Map #########################
+######################### Project Outline #########################
+Create simulations of plays using Pygame
+- Pass
+- Steal
+- Screens
+- Pick and roll
+- Delay action
+Will be adding more plays
+
+
+Object Detections
+- Create a mask of the basketball court image
+- Using HoughCircles detect the circles
+
 Object Tracking
 - Deep Sort (helps considering occuluion)
 
@@ -17,10 +30,6 @@ Optimize learning rate
 - Cosine 
 - /10 after every 20 epochs
 
-
-Create simulations for new plays
-- Screens
-
 ######################### Optimization #########################
 1. Research -> Optimize the FPS
 
@@ -30,6 +39,7 @@ Create simulations for new plays
 
 3. Resolve issue moving ball to another side of the player
 - In the 'Basketball Game Simulation' file
+--> Refer to 
 
 
 4. CourtVision
