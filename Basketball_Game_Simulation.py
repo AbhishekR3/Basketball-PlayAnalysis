@@ -2,7 +2,7 @@
 
 # Utilizing pygame, simulating basketball plays executed.
 
-#%% 
+#%%
 "Import Libraries"
 
 import pygame
@@ -26,7 +26,7 @@ class Player:
         Objective:
         Initialize Player class
         """
-        
+
         self.x = x #set x-coordinate
         self.y = y #set y-coordinate
         self.initial_x = x #set first x-coordinate after received by player
@@ -68,17 +68,17 @@ class Player:
             self.last_update_time = time.time()
             
             #Update when ball update should change
-            self.change_ball_time_limit = random.uniform(3,6) 
+            self.change_ball_time_limit = random.uniform(3,6)
 
             self.initial_x = self.x #set first x-coordinate after received by player
             self.initial_y = self.y #set first y-coordinate after received by player
 
             #For a fair split of which side of the player the basketball is being dribbled
             #Increase/decrease the self.angle depending on the time
-            if int(time.time()%60)%2 == 0: 
+            if int(time.time()%60)%2 == 0:
                 self.next_angle += np.radians(np.random.normal(90, 1.5))
             else:
-                self.next_angle -= np.radians(np.random.normal(90, 1.5)) #Update next angle change               
+                self.next_angle -= np.radians(np.random.normal(90, 1.5)) #Update next angle change
     
     def move(self, basketball):
         """
@@ -92,7 +92,7 @@ class Player:
         """
         
         self.update_speed_angle(basketball)
-        
+
         self.x += self.speed * math.cos(self.angle)
         self.y += self.speed * math.sin(self.angle)
         
@@ -164,8 +164,8 @@ class Basketball:
             dribbling_player.angle_update,
             self.displacement_randomness
         ) = update_basketball_position(
-            self, 
-            dribbling_player, 
+            self,
+            dribbling_player,
             basketball_displacement
         )
         
@@ -328,7 +328,7 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
         displacement_x = path_vector.x
         displacement_y = path_vector.y
         
-    # Add the displacement in the x, y coordinate to the basketball position  
+    # Add the displacement in the x, y coordinate to the basketball position
     ball.x += displacement_x
     ball.y += displacement_y
     
@@ -395,7 +395,7 @@ def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclu
     [Class] ball - basketball
     [float] target_x - x coordinate of the end location
     [float] target_y - y coordinate of the end location
-    [List]  avoiding_players - List of all the players except the 2 players being passed between. This is to avoid the basketball from overlapping with other players.
+    [List]  avoiding_players - List of all the players except the 2 players being passed between.
     [List]  exclusion_list - Exclusion list includes the current player and the player being passed to
     
     Returns:
@@ -471,13 +471,9 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         
     attempts = 0
     while attempts < 1000:  # Limit attempts to prevent infinite loop
-        lower_bound = radius
-        upper_bound = simulation_width - (2 * radius)
-        secure_random_int = lower_bound + secrets.randbelow(upper_bound - lower_bound + 1)
-
         new_player = Player(random.randint(radius, simulation_width - (2*radius)),
                             random.randint(radius, simulation_height - (2*radius)),
-                            radius, 
+                            radius,
                             color)
         if is_valid_placement(new_player, existing_players):
             return new_player
@@ -544,15 +540,13 @@ def initialize_simulation():
     current_player = random.choice(team_players)
 
     basketball = Basketball(
-        current_player.x - basketball_relative_x, 
-        current_player.y - basketball_relative_y, 
+        current_player.x - basketball_relative_x,
+        current_player.y - basketball_relative_y,
         BALL_RADIUS, COLOR_ORANGE
     )
 
 
-#%%
-
-" Set Simulation Parameters "
+#%% Set Simulation Parameters
 
 # Import Basketball Court image
 
@@ -641,7 +635,7 @@ while simulating and (frames_captured < max_frames_caputured):
     time_elapsed = time.time() - oscillation_start_time # Time elapsed since ball reached the player
 
     # Move basketball towards the current player
-    if reached_player is False: 
+    if reached_player is False:
         
         #Restart the following variables
         current_player.angle_update = False
@@ -677,7 +671,7 @@ while simulating and (frames_captured < max_frames_caputured):
         oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
     
     #current_player dribbles the basketball
-    else: 
+    else:
         MOVE_SPEED = np.random.normal(5.6, 1) #Update move_speed
         player_pass_time = player.last_update_time + player.change_ball_time_limit
 

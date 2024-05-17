@@ -92,7 +92,7 @@ def circle_detection(p1, p2, results, frame_with_color):
             # Center of circle
             cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, detection_color, 3)
         #"""
-    
+
     # Add the number of circles detected to the results
     results[(p1, p2)] += circle_count
 
@@ -133,8 +133,7 @@ def color_detection(color_hue):
     return color_detected
 
 
-#%%
-" Initialize Simulation Variables "
+#%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
