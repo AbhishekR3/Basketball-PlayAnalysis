@@ -526,7 +526,7 @@ def initialize_simulation():
 
     # Create screen
     screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
-    pygame.display.set_caption("NBA Game Simulation")
+    pygame.display.set_caption("Basketball Game Simulation")
 
     # Initialize 10 players on the court (5 on each side)
     players = []
@@ -558,9 +558,9 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 
 #Load and scale the image of the basketball court
 
-# Load and transform NBA court diagram
+# Load and transform Basketball court diagram
 script_directory = os.getcwd()
-image_location = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
+image_location = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 try:
     background_image = pygame.image.load(image_location)

@@ -138,7 +138,7 @@ def color_detection(color_hue):
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
-basketball_court_diagram = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
+basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 # Open the video file
 cap = cv2.VideoCapture(video_path)
