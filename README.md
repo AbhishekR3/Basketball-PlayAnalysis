@@ -1,5 +1,6 @@
 # NBA Play Analysis
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/91635e33347a4eea92d9c27e5b4ee0ad)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis?utm_source=github.com&utm_medium=referral&utm_content=AbhishekR3/Basketball-PlayAnalysis&utm_campaign=Badge_Grade)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 
