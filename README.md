@@ -1,8 +1,7 @@
 # NBA Play Analysis
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb?branch=DEV_Code)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?branch=DEV_Code)
-![Version Badge](https://img.shields.io/badge/version-0.3.0-orange)
 
 ## Project Description
 
@@ -10,11 +9,12 @@ This project aims to analyze and classify the type of offensive and defensive pl
 
 CourtVision Frame
 
-![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Clippers%20CourtVision.png)
+![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/Clippers%20CourtVision.png)
+
 
 Pygame Simulation Frame
 
-![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Basketball%20Simulation%20Image.png)
+![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/Basketball%20Simulation%20Image.png)
 
 
 ## Table of Contents
@@ -93,7 +93,7 @@ Basketball-PlayAnalysis/
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.
 
 ## Acknowledgments
 
