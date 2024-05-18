@@ -121,7 +121,7 @@ def color_detection(color_hue):
     # Orange
     elif 10 <= color_hue <= 30:
         color_detected = (255, 165, 0)
-    
+
     # Blue
     elif 100 <= color_hue <= 140:
         color_detected = (0, 0, 255)

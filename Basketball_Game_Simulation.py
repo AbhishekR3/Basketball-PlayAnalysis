@@ -6,7 +6,6 @@
 "Import Libraries"
 
 import pygame
-import random
 import math
 import time
 import datetime
@@ -50,7 +49,7 @@ class Player:
         [Class] self - Player
         [Class] basketball - basketball
         """
-        
+
         # Current time - last updated time < Change time
         if time.time() - self.last_update_time >= self.change_ball_time_limit:
 
@@ -407,7 +406,6 @@ def cryptographic_normal(mu, sigma, radian=False):
 
     # Box-Muller transform
     z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2 * math.pi * u2)
-    z1 = math.sqrt(-2.0 * math.log(u1)) * math.sin(2 * math.pi * u2)
 
     # Return a normally distributed number with mean mu and standard deviation sigma
     normal_value = mu + z0 * sigma
@@ -665,7 +663,7 @@ while simulating and (frames_captured < max_frames_caputured):
             simulating = False
         # Press 'q' to quit
         elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
-                simulating = False
+            simulating = False
 
     # Update and draw players
     for player in players:
