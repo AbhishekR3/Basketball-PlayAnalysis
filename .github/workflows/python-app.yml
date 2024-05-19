@@ -1,0 +1,33 @@
+name: Python CI/CD for Basketball Analysis
+
+on:
+  push:
+    branches: [ DEV_Code ]
+  pull_request:
+    branches: [ DEV_Code ]
+
+jobs:
+  run-python-scripts:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'  # Set your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Assuming dependencies are defined here
+
+    - name: Run Basketball Game Simulation
+      run: python Basketball_Game_Simulation.py
+      # This script should ideally write its output to a file
+
+    - name: Run Basketball Object Tracking
+      run: python Basketball_Object_Tracking.py
+      # This script should read the output from the previous script
