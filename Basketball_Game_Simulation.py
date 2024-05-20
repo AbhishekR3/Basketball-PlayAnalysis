@@ -65,7 +65,7 @@ class Player:
 
             #Update last update time to current time
             self.last_update_time = time.time()
-            
+
             #Update when ball update should change
             self.change_ball_time_limit = secrets.SystemRandom().uniform(3,6)
 
@@ -78,35 +78,34 @@ class Player:
                 self.next_angle += cryptographic_normal(90, 1.5, True)
             else:
                 self.next_angle -= cryptographic_normal(90, 1.5, True) #Update next angle change
-    
+
     def move(self, basketball):
         """
         Objective:
         Move the player depending on it's speed and angle
         If the player reaches the edge of the screen, change angle
-        
+
         Parameters:
         [Class] self - Player
         [Class] basketball - basketball
         """
-        
+
         self.update_speed_angle(basketball)
 
         self.x += self.speed * math.cos(self.angle)
         self.y += self.speed * math.sin(self.angle)
-        
+
         # Prevent wall collision
         if self.x + self.radius > SCREEN_WIDTH-15 or self.x - self.radius < 0:
             self.angle = math.pi - self.angle
         if self.y + self.radius > SCREEN_HEIGHT-15 or self.y - self.radius < 0:
             self.angle = -self.angle
-    
+
     def draw(self):
         """
         Objective: Draw the player on the simulation screen
         """
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
-        
 
 
 #%%

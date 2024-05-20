@@ -192,7 +192,7 @@ try:
 
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
-            
+
         #'''
         # Test different param values in the for loop
         for param1 in param1_values:
