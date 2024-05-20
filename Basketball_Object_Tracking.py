@@ -212,21 +212,20 @@ try:
             break
 
     # Print summary of results
-    print("Total time taken:", time.time()-start_time, "seconds")
-
     print ("Total number of circles that should have been detected", n_frames*11)
 
     for (param1, param2), count in resulting_values.items():
         print(f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
 
+    print("Object Tracking succeeded")
+
 
 except Exception as e:
     print(f"An error occurred: {e}")
+    
+finally:
     print("Total time taken:", time.time()-start_time, "seconds")
+
+    # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
-
-
-# Release the video capture object and close all windows
-cap.release()
-cv2.destroyAllWindows()
