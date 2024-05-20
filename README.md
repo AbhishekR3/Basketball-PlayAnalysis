@@ -10,11 +10,11 @@ This project aims to analyze and classify the type of offensive and defensive pl
 
 CourtVision Frame
 
-![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/Clippers%20CourtVision.png)
+![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Clippers%20CourtVision.png)
 
 Pygame Simulation Frame
 
-![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/Basketball%20Simulation%20Image.png)
+![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Basketball%20Simulation%20Image.png)
 
 ## Table of Contents
 
