@@ -6,7 +6,6 @@
 "Import Libraries"
 
 import pygame
-import random
 import math
 import time
 import datetime
@@ -33,13 +32,13 @@ class Player:
         self.initial_y = y #set first y-coordinate after received by player
         self.radius = radius #set radius
         self.color = color #set player color
-        self.speed = random.uniform(0.2, 1.7) #set random speed
-        self.angle = random.uniform(0, 2 * math.pi) #set random angle
-        self.next_angle = self.angle + np.radians(np.random.normal(90, 1.5)) #set next angle
+        self.speed = secrets.SystemRandom().uniform(0.2, 1.7) #set random speed
+        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
+        self.next_angle = self.angle + cryptographic_normal(90, 1.5, True) #set next angle
         self.last_update_time = time.time() #set last update time
         self.angle_update = False #Set angle update for basketball displacement
-        self.change_ball_time_limit = random.uniform(3, 6) #Set time limit when ball should update
-    
+        self.change_ball_time_limit = secrets.SystemRandom().uniform(3, 6) #Set time limit when ball should update
+
     def update_speed_angle(self, basketball):
         """
         Objective:
@@ -50,7 +49,7 @@ class Player:
         [Class] self - Player
         [Class] basketball - basketball
         """
-        
+
         # Current time - last updated time < Change time
         if time.time() - self.last_update_time >= self.change_ball_time_limit:
 
@@ -59,16 +58,16 @@ class Player:
             basketball.change_displacement = False
 
             #Change speed
-            self.speed = random.uniform(0.2, 1.7)
+            self.speed = secrets.SystemRandom().uniform(0.2, 1.7)
 
             #Change angle
             self.angle = self.next_angle
 
             #Update last update time to current time
             self.last_update_time = time.time()
-            
+
             #Update when ball update should change
-            self.change_ball_time_limit = random.uniform(3,6)
+            self.change_ball_time_limit = secrets.SystemRandom().uniform(3,6)
 
             self.initial_x = self.x #set first x-coordinate after received by player
             self.initial_y = self.y #set first y-coordinate after received by player
@@ -76,38 +75,37 @@ class Player:
             #For a fair split of which side of the player the basketball is being dribbled
             #Increase/decrease the self.angle depending on the time
             if int(time.time()%60)%2 == 0:
-                self.next_angle += np.radians(np.random.normal(90, 1.5))
+                self.next_angle += cryptographic_normal(90, 1.5, True)
             else:
-                self.next_angle -= np.radians(np.random.normal(90, 1.5)) #Update next angle change
-    
+                self.next_angle -= cryptographic_normal(90, 1.5, True) #Update next angle change
+
     def move(self, basketball):
         """
         Objective:
         Move the player depending on it's speed and angle
         If the player reaches the edge of the screen, change angle
-        
+
         Parameters:
         [Class] self - Player
         [Class] basketball - basketball
         """
-        
+
         self.update_speed_angle(basketball)
 
         self.x += self.speed * math.cos(self.angle)
         self.y += self.speed * math.sin(self.angle)
-        
+
         # Prevent wall collision
         if self.x + self.radius > SCREEN_WIDTH-15 or self.x - self.radius < 0:
             self.angle = math.pi - self.angle
         if self.y + self.radius > SCREEN_HEIGHT-15 or self.y - self.radius < 0:
             self.angle = -self.angle
-    
+
     def draw(self):
         """
         Objective: Draw the player on the simulation screen
         """
         pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
-        
 
 
 #%%
@@ -120,18 +118,18 @@ class Basketball:
         Objective:
         Initialize basketball class
         """
-        
+
         self.x = x #set x-coordinate
         self.y = y #set y-coordinate
         self.radius = radius #set basketball radius
         self.color = color #set basketball color
-        self.speed = random.uniform(0.2, 1.7) #set random speed
-        self.angle = random.uniform(0, 2 * math.pi) #set random angle
+        self.speed = secrets.SystemRandom().uniform(0.2, 1.7) #set random speed
+        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
         self.last_update_time = time.time()  #set last update time
         self.history = [] # To store positions for fluctuation effect
         self.offset = 0 #Offset refers to the displacment of basketball from the player. Initialize at 0, since this will update later.
         self.change_displacement = False #To prevent constant change in displacment from the player
-        self.displacement_randomness = random.choice([True, False]) #Displacement randomness to choose a side for a player
+        self.displacement_randomness = secrets.choice([True, False]) #Displacement randomness to choose a side for a player
         self.dribble_switch = False #When dribble switch is false, do not update position through basketball class
         self.stabalize_dribble_switch_x = None #Set the x starting value of the next side of the dribble switch
         self.stabalize_dribble_switch_y = None #Set the y starting value of the next side of the dribble switch
@@ -215,7 +213,7 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
 
         change_displacement_value = True
         angle_update_value = True
-        displacement_randomness = random.choice([True, False])
+        displacement_randomness = secrets.choice([True, False])
     
     else:
         x_coordinate = dribbling_player.x + basketball_displacement + ball.offset * math.cos(ball.angle)
@@ -382,6 +380,41 @@ def ball_reached_position(ball, target_x, target_y):
     else:
         return False
 
+#%%
+
+def cryptographic_normal(mu, sigma, radian=False):
+    """
+    Objective:
+    Return a the normal radian value using secrets library
+
+    Parameters:
+    [float] mu - mean
+    [float] sigma - standard deviation
+
+    Returns:
+    [float] normal value
+    """
+
+    # Generate two uniform random integers
+    raw1 = secrets.randbits(64)
+    raw2 = secrets.randbits(64)
+
+    # Convert to floats in the range [0, 1)
+    u1 = raw1 / 2**64
+    u2 = raw2 / 2**64
+
+    # Box-Muller transform
+    z0 = math.sqrt(-2.0 * math.log(u1)) * math.cos(2 * math.pi * u2)
+
+    # Return a normally distributed number with mean mu and standard deviation sigma
+    normal_value = mu + z0 * sigma
+
+    if radian is False:
+        return normal_value
+
+    elif radian is True:
+        return np.radians(normal_value)
+
 
 #%%
 
@@ -468,13 +501,14 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
     Returns:
     [Class] new_player - A player which is in a valid placement
     """
-        
+
     attempts = 0
     while attempts < 1000:  # Limit attempts to prevent infinite loop
-        new_player = Player(random.randint(radius, simulation_width - (2*radius)),
-                            random.randint(radius, simulation_height - (2*radius)),
-                            radius,
-                            color)
+        new_player = Player(
+            radius + secrets.randbelow(simulation_width - (2 * radius) + 1),
+            radius + secrets.randbelow(simulation_width - (2 * radius) + 1),
+            radius,
+            color)
         if is_valid_placement(new_player, existing_players):
             return new_player
         attempts += 1
@@ -526,7 +560,7 @@ def initialize_simulation():
 
     # Create screen
     screen = pygame.display.set_mode(SCREEN_DIMENSIONS)
-    pygame.display.set_caption("NBA Game Simulation")
+    pygame.display.set_caption("Basketball Game Simulation")
 
     # Initialize 10 players on the court (5 on each side)
     players = []
@@ -537,7 +571,7 @@ def initialize_simulation():
 
     # Choose a random blue player to place the basketball with
     team_players = [player for player in players if player.color == COLOR_BLUE]
-    current_player = random.choice(team_players)
+    current_player = secrets.choice(team_players)
 
     basketball = Basketball(
         current_player.x - basketball_relative_x,
@@ -558,9 +592,9 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 
 #Load and scale the image of the basketball court
 
-# Load and transform NBA court diagram
+# Load and transform Basketball court diagram
 script_directory = os.getcwd()
-image_location = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
+image_location = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 try:
     background_image = pygame.image.load(image_location)
@@ -578,12 +612,12 @@ COLOR_RED = (255, 0, 0)
 COLOR_ORANGE = (255, 165, 0)
 COLOR_WHITE = (255, 255, 255)
 FPS = 30
-MOVE_SPEED = np.random.normal(5.6, 1) #Speed at which basketball moves to the next player
+MOVE_SPEED = cryptographic_normal(5.6, 1) #Speed at which basketball moves to the next player
 
 # Simulation Variables
 clock = pygame.time.Clock()
 pass_timer = -1
-pass_interval = random.uniform(4, 5)  #How many seconds before the player passes the ball
+pass_interval = secrets.SystemRandom().uniform(4, 5)  #How many seconds before the player passes the ball
 reached_player = True #When basketball is with a player
 basketball_relative_x = 5 #X-axis displacemnt of the basketball compared to the player
 basketball_relative_y = 5 #Y-axis displacemnt of the basketball compared to the player
@@ -626,6 +660,9 @@ while simulating and (frames_captured < max_frames_caputured):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             simulating = False
+        # Press 'q' to quit
+        elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
+            simulating = False
 
     # Update and draw players
     for player in players:
@@ -644,7 +681,7 @@ while simulating and (frames_captured < max_frames_caputured):
         
         # Create a new list excluding the current player and randomly choose a player to pass to
         team_players_excluding_current = [player for player in team_players if player != current_player]
-        new_random_player = random.choice(team_players_excluding_current)
+        new_random_player = secrets.choice(team_players_excluding_current)
         
         pass_players = [current_player, new_random_player] #Both players the ball is being passed between
         basketball.x, basketball.y = move_basketball_to_location(
@@ -672,7 +709,7 @@ while simulating and (frames_captured < max_frames_caputured):
     
     #current_player dribbles the basketball
     else:
-        MOVE_SPEED = np.random.normal(5.6, 1) #Update move_speed
+        MOVE_SPEED = cryptographic_normal(5.6, 1) #Update move_speed
         player_pass_time = player.last_update_time + player.change_ball_time_limit
 
         # Check if basketball should switch to another side of the player
@@ -710,15 +747,10 @@ while simulating and (frames_captured < max_frames_caputured):
         print("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
 
-
     # Capture frame
     frame = pygame.surfarray.array3d(pygame.display.get_surface())
     frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
-
-    # Press 'q' to quit
-    if cv2.waitKey(25) & 0xFF == ord('q'):
-        break
 
     # Write the frame
     out.write(frame)

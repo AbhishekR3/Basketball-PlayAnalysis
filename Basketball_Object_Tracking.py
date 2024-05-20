@@ -121,7 +121,7 @@ def color_detection(color_hue):
     # Orange
     elif 10 <= color_hue <= 30:
         color_detected = (255, 165, 0)
-    
+
     # Blue
     elif 100 <= color_hue <= 140:
         color_detected = (0, 0, 255)
@@ -138,7 +138,7 @@ def color_detection(color_hue):
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
-basketball_court_diagram = os.path.join(script_directory, 'assets/NBA Court Diagram.jpg')
+basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 # Open the video file
 cap = cv2.VideoCapture(video_path)
@@ -192,7 +192,7 @@ try:
 
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
-            
+
         #'''
         # Test different param values in the for loop
         for param1 in param1_values:
@@ -212,21 +212,20 @@ try:
             break
 
     # Print summary of results
-    print("Total time taken:", time.time()-start_time, "seconds")
-
     print ("Total number of circles that should have been detected", n_frames*11)
 
     for (param1, param2), count in resulting_values.items():
         print(f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
 
+    print("Object Tracking succeeded")
+
 
 except Exception as e:
     print(f"An error occurred: {e}")
+    
+finally:
     print("Total time taken:", time.time()-start_time, "seconds")
+
+    # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
-
-
-# Release the video capture object and close all windows
-cap.release()
-cv2.destroyAllWindows()
