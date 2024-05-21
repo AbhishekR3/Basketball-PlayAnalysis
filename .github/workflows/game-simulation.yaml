@@ -44,6 +44,10 @@ jobs:
       run: python "./Basketball_Game_Simulation.py" > game_simulation_output.log
       shell: bash
 
+    - name: Display Log File Contents
+      run: cat game_simulation_output.log
+      shell: bash
+
     - name: Run Script and Check Results
       run: |
         python "./Basketball_Game_Simulation.py" > game_simulation_output.log
