@@ -5,7 +5,7 @@ name: Run Basketball Object Tracking
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "DEV_Code" ]
 
 permissions:
   contents: read
