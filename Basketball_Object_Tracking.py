@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import os
 import time
+import logging
 
 #%%
 
@@ -127,13 +128,16 @@ def color_detection(color_hue):
         color_detected = (0, 0, 255)
 
     else:
-        print(color_hue)
+        logging.debug("Color hue outside of range: %s", color_hue)
         color_detected = (0,0,0)
 
     return color_detected
 
 
 #%% Initialize Simulation Variables
+
+# Configuring logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
@@ -166,7 +170,7 @@ n_frames = 0 # Initialize n_frames to count the number of frames in the video
 
 # Check if the video file opened successfully
 if not cap.isOpened():
-    print("Error: Couldn't open the video file.")
+    logging.error ("Error: Couldn't open the video file.")
     exit()
 
 # Create a VideoWriter object to save the output video
@@ -211,20 +215,20 @@ try:
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
-    # Print summary of results
-    print ("Total number of circles that should have been detected", n_frames*11)
+    # Log results summary
+    logging.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
 
     for (param1, param2), count in resulting_values.items():
-        print(f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
+        logging.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
 
-    print("Object Tracking succeeded")
+    logging.debug("Object Tracking succeeded")
 
 
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logging.error (f"An error occurred: {e}")
     
 finally:
-    print("Total time taken:", time.time()-start_time, "seconds")
+    logging.debug ("Total time taken: %f seconds", time.time() - start_time)
 
     # Release the video capture object and close all windows
     cap.release()
