@@ -176,10 +176,10 @@ if not cap.isOpened():
 # Create a VideoWriter object to save the output video
 output_path = os.path.join(script_directory, 'assets/output_video.mp4')
 
-if os.environ.get('OPENCV_HEADLESS') != '1': # For user local machine
+try: # For user local machine
     fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
-else: # For github actions testing
-    fourcc = cv2.VideoWriter_fourcc(*'XVID') # Using XVID
+except: # For github actions testing
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Using mp4v
 
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
@@ -209,8 +209,9 @@ try:
                 resulting_values, inpainted_frame  = circle_detection(param1, param2, resulting_values, inpainted_frame) # Perform circle detection
         #'''
 
-        # Display the frame
-        cv2.imshow('Basketball Object Tracking', inpainted_frame)
+        if 'DISPLAY' not in os.environ:
+            # Display the frame
+            cv2.imshow('Basketball Object Tracking', inpainted_frame)
 
         out.write(inpainted_frame)
 
@@ -222,10 +223,8 @@ try:
 
     # Log results summary
     logging.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
-
     for (param1, param2), count in resulting_values.items():
         logging.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
-
     logging.debug("Object Tracking succeeded")
 
 
@@ -237,5 +236,5 @@ finally:
 
     # Release the video capture object and close all windows
     cap.release()
-    if os.environ.get('OPENCV_HEADLESS') != '1':
+    if 'DISPLAY' not in os.environ:
         cv2.destroyAllWindows()
