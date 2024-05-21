@@ -581,12 +581,22 @@ def initialize_simulation():
 
 #%% Configuring logging
 
+log_file_path = 'game_simulation_output.log'
+
+# Check if the file exists
+if os.path.exists(log_file_path):
+    # Delete the file
+    os.remove(log_file_path)
+    print(f"The file {log_file_path} has been deleted.")
+else:
+    print(f"No file found with the name {log_file_path}.")
+
 # Create a logger object
 logger = logging.getLogger('GameSimulationLogger')
 logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
 
 # Create file handler which logs even debug messages
-file_handler = logging.FileHandler('game_simulation_output.log')
+file_handler = logging.FileHandler(log_file_path)
 file_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
@@ -757,15 +767,14 @@ while simulating and (frames_captured < max_frames_caputured):
     pygame.display.flip() #Update pygame simulation frame
     clock.tick(FPS) # Maintain frame rate (FPS)
 
-
     # Stop simulation after simulation limit time as been met
     if elapsed_time_simulation > simulation_limit*60:
         logger.debug("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
 
-    if frames_captured > 50:
+    if frames_captured > 2:
         break
-    
+
     # Capture frame
     frame = pygame.surfarray.array3d(pygame.display.get_surface())
     frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
@@ -776,5 +785,6 @@ while simulating and (frames_captured < max_frames_caputured):
     frames_captured += 1
 
 logger.debug("Game Simulation succeeded")
+
 out.release()
 pygame.quit()

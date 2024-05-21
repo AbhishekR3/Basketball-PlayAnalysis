@@ -135,12 +135,22 @@ def color_detection(color_hue):
 
 #%% Configuring logging
 
+log_file_path = 'object_tracking_output.log'
+
+# Check if the file exists
+if os.path.exists(log_file_path):
+    # Delete the file
+    os.remove(log_file_path)
+    print(f"The file {log_file_path} has been deleted.")
+else:
+    print(f"No file found with the name {log_file_path}.")
+
 # Create a logger object
 logger = logging.getLogger('ObjectTrackingLogger')
 logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
 
 # Create file handler which logs even debug messages
-file_handler = logging.FileHandler('object_tracking_output.log')
+file_handler = logging.FileHandler(log_file_path)
 file_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
