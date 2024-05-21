@@ -44,8 +44,9 @@ jobs:
       run: python "./Basketball_Object_Tracking.py" > tracking_output.log
       shell: bash
 
-    - name: Check results
+    - name: Run Script and Check Results
       run: |
+        python "./Basketball_Object_Tracking.py" > tracking_output.log
         if grep -q "Object Tracking succeeded" tracking_output.log; then
           echo "Success message found: Test passed."
         else
@@ -53,4 +54,5 @@ jobs:
           exit 1
         fi
       shell: bash
+    
     
