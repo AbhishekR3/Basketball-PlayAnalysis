@@ -641,7 +641,7 @@ initialize_simulation()
 start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
-video_format = cv2.VideoWriter_fourcc(*'X264') # Using x264
+video_format = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 video_location = os.path.join(script_directory, 'assets/simulation.mp4')
 out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
