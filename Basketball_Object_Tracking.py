@@ -237,13 +237,16 @@ try:
             break
 
         # For git actions testing, stop simulation to focus on testing code
-        if n_frames > 1 and os.getenv('GITHUB_ACTIONS') is True:
+        if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
+            logger.debug("Simulation stopped, due to being tested in github actions")
             break
 
     # Log results summary
     logger.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
+
     for (param1, param2), count in resulting_values.items():
         logger.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
+
     logger.debug("Object Tracking succeeded")
 
 

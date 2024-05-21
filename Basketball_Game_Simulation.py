@@ -774,6 +774,7 @@ while simulating and (frames_captured < max_frames_caputured):
 
     # For git actions testing, stop simulation to focus on testing code
     if frames_captured > 1 and os.getenv('GITHUB_ACTIONS') is True:
+        logger.debug("Simulation stopped, due to being tested in github actions")
         break
 
     # Capture frame
