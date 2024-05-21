@@ -772,7 +772,8 @@ while simulating and (frames_captured < max_frames_caputured):
         logger.debug("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
 
-    if frames_captured > 2:
+    # For git actions testing, stop simulation to focus on testing code
+    if frames_captured > 1 and os.getenv('GITHUB_ACTIONS') is True:
         break
 
     # Capture frame

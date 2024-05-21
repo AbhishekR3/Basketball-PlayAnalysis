@@ -236,6 +236,10 @@ try:
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
+        # For git actions testing, stop simulation to focus on testing code
+        if n_frames > 1 and os.getenv('GITHUB_ACTIONS') is True:
+            break
+
     # Log results summary
     logger.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
     for (param1, param2), count in resulting_values.items():
