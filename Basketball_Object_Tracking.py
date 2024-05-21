@@ -128,16 +128,29 @@ def color_detection(color_hue):
         color_detected = (0, 0, 255)
 
     else:
-        logging.debug("Color hue outside of range: %s", color_hue)
+        logger.debug("Color hue outside of range: %s", color_hue)
         color_detected = (0,0,0)
 
     return color_detected
 
+#%% Configuring logging
+# Create a logger object
+logger = logging.getLogger('ObjectTrackingLogger')
+logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
+
+# Create file handler which logs even debug messages
+file_handler = logging.FileHandler('tracking_output.log')
+file_handler.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+
 
 #%% Initialize Simulation Variables
-
-# Configuring logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
@@ -170,7 +183,7 @@ n_frames = 0 # Initialize n_frames to count the number of frames in the video
 
 # Check if the video file opened successfully
 if not cap.isOpened():
-    logging.error ("Error: Couldn't open the video file.")
+    logger.error ("Error: Couldn't open the video file.")
     exit()
 
 # Create a VideoWriter object to save the output video
@@ -220,17 +233,17 @@ try:
             break
 
     # Log results summary
-    logging.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
+    logger.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
     for (param1, param2), count in resulting_values.items():
-        logging.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
-    logging.debug("Object Tracking succeeded")
+        logger.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
+    logger.debug("Object Tracking succeeded")
 
 
 except Exception as e:
-    logging.error (f"An error occurred: {e}")
+    logger.error (f"An error occurred: {e}")
     
 finally:
-    logging.debug ("Total time taken: %f seconds", time.time() - start_time)
+    logger.debug ("Total time taken: %f seconds", time.time() - start_time)
 
     # Release the video capture object and close all windows
     cap.release()
