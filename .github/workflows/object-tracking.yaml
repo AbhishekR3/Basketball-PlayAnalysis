@@ -37,7 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
     - name: Run Basketball Object Tracking
-      run: python "./path/to/subdirectory/Basketball Object Tracking.py" > tracking_output.log
+      run: python "./Basketball_Object_Tracking.py" > tracking_output.log
       shell: /usr/bin/bash -e {0}
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.10.14/x64
