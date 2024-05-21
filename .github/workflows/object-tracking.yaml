@@ -29,6 +29,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         pip install -r Requirements.txt
+      shell: powershell
 
     - name: Lint with flake8
       run: |
@@ -37,19 +38,20 @@ jobs:
         
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      shell: powershell
       
     - name: Run Basketball Object Tracking
-      run: python "./Basketball_Object_Tracking.py" > tracking_output.log
-      shell: /usr/bin/bash -e {0}
-      env:
-        pythonLocation: /opt/hostedtoolcache/Python/3.10.14/x64
-        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.10.14/x64/lib
+      run: python ".\Basketball_Object_Tracking.py" > tracking_output.log
+      shell: powershell
 
     - name: Check results
       run: |
-        if grep -q "Object Tracking succeeded" tracking_output.log; then
-          echo "Success message found: Test passed."
-        else
-          echo "Success message not found: Test failed."
+        $content = Get-Content tracking_output.log
+        if ($content -match "Object Tracking succeeded") {
+          Write-Output "Success message found: Test passed."
+        }
+        else {
+          Write-Output "Success message not found: Test failed."
           exit 1
-        fi
+        }
+      shell: powershell
