@@ -44,6 +44,11 @@ jobs:
       run: python "./Basketball_Object_Tracking.py" > tracking_output.log
       shell: bash
 
+    - name: Display log file content
+      run: cat tracking_output.log
+      shell: bash
+    
+
     - name: Run Script and Check Results
       run: |
         python "./Basketball_Object_Tracking.py" > tracking_output.log
