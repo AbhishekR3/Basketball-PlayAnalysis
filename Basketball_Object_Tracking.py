@@ -228,4 +228,5 @@ finally:
 
     # Release the video capture object and close all windows
     cap.release()
-    cv2.destroyAllWindows()
+    if os.environ.get('OPENCV_HEADLESS') != '1':
+        cv2.destroyAllWindows()
