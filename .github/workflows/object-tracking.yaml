@@ -46,11 +46,11 @@ jobs:
 
     - name: Check results
       run: |
-        content=$(cat tracking_output.log)
-        if [[ "$content" == *"Object Tracking succeeded"* ]]; then
+        if grep -q "Object Tracking succeeded" tracking_output.log; then
           echo "Success message found: Test passed."
         else
           echo "Success message not found: Test failed."
           exit 1
         fi
       shell: bash
+    

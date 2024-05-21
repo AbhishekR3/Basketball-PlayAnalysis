@@ -175,12 +175,7 @@ if not cap.isOpened():
 
 # Create a VideoWriter object to save the output video
 output_path = os.path.join(script_directory, 'assets/output_video.mp4')
-
-try: # For user local machine
-    fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
-except: # For github actions testing
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Using mp4v
-
+fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
