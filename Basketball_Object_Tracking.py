@@ -134,12 +134,13 @@ def color_detection(color_hue):
     return color_detected
 
 #%% Configuring logging
+
 # Create a logger object
 logger = logging.getLogger('ObjectTrackingLogger')
 logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
 
 # Create file handler which logs even debug messages
-file_handler = logging.FileHandler('tracking_output.log')
+file_handler = logging.FileHandler('object_tracking_output.log')
 file_handler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
@@ -210,16 +211,12 @@ try:
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        #'''
         # Test different param values in the for loop
         for param1 in param1_values:
             for param2 in param2_values:
                 resulting_values, inpainted_frame  = circle_detection(param1, param2, resulting_values, inpainted_frame) # Perform circle detection
-        #'''
 
-        if 'DISPLAY' not in os.environ:
-            # Display the frame
-            cv2.imshow('Basketball Object Tracking', inpainted_frame)
+        cv2.imshow('Basketball Object Tracking', inpainted_frame)
 
         out.write(inpainted_frame)
 
@@ -247,5 +244,4 @@ finally:
 
     # Release the video capture object and close all windows
     cap.release()
-    if 'DISPLAY' not in os.environ:
-        cv2.destroyAllWindows()
+    cv2.destroyAllWindows()

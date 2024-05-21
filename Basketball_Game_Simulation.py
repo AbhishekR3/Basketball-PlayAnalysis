@@ -13,7 +13,7 @@ import numpy as np
 import os
 import cv2
 import secrets
-
+import logging
 
 #%%
 
@@ -579,6 +579,22 @@ def initialize_simulation():
         BALL_RADIUS, COLOR_ORANGE
     )
 
+#%% Configuring logging
+
+# Create a logger object
+logger = logging.getLogger('GameSimulationLogger')
+logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
+
+# Create file handler which logs even debug messages
+file_handler = logging.FileHandler('game_simulation_output.log')
+file_handler.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
 
 #%% Set Simulation Parameters
 
@@ -600,7 +616,7 @@ try:
     background_image = pygame.image.load(image_location)
     background_image = pygame.transform.scale(background_image, SCREEN_DIMENSIONS)
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
 
     
 # Simulation Constants
@@ -744,7 +760,7 @@ while simulating and (frames_captured < max_frames_caputured):
 
     # Stop simulation after simulation limit time as been met
     if elapsed_time_simulation > simulation_limit*60:
-        print("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
+        logger.debug("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
 
     # Capture frame
@@ -756,5 +772,6 @@ while simulating and (frames_captured < max_frames_caputured):
     out.write(frame)
     frames_captured += 1
 
+logger.debug("Game Simulation succeeded")
 out.release()
 pygame.quit()
