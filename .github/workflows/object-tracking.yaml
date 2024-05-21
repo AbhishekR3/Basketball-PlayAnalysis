@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: windows-latest
+    runs-on: macos-latest
     env:
       OPENCV_HEADLESS: 1  # Set it here to apply to all steps
 
