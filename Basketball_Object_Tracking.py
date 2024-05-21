@@ -226,9 +226,6 @@ try:
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
-        if n_frames > 10:
-            break
-
     # Log results summary
     logger.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
     for (param1, param2), count in resulting_values.items():

@@ -763,6 +763,9 @@ while simulating and (frames_captured < max_frames_caputured):
         logger.debug("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
         break
 
+    if frames_captured > 100:
+        break
+
     # Capture frame
     frame = pygame.surfarray.array3d(pygame.display.get_surface())
     frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
