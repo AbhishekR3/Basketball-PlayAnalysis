@@ -40,7 +40,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       shell: bash
       
-    - name: Run Basketball Game Simulation
+    - name: Run Basketball Game Simulation script
       run: python "./Basketball_Game_Simulation.py" > game_simulation_output.log
       shell: bash
 
@@ -50,7 +50,6 @@ jobs:
 
     - name: Run Script and Check Results
       run: |
-        python "./Basketball_Game_Simulation.py" > game_simulation_output.log
         if grep -q "Game Simulation succeeded" game_simulation_output.log; then
           echo "Success message found: Test passed."
         else
