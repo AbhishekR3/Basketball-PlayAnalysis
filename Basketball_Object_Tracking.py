@@ -133,6 +133,7 @@ def color_detection(color_hue):
 
     return color_detected
 
+
 #%% Configuring logging
 
 log_file_path = 'object_tracking_output.log'
@@ -252,10 +253,9 @@ try:
 
 except Exception as e:
     logger.error (f"An error occurred: {e}")
-    
+
 finally:
     logger.debug ("Total time taken: %f seconds", time.time() - start_time)
-
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()

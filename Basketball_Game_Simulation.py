@@ -112,7 +112,7 @@ class Player:
 
 class Basketball:
     "Class for the Basketball"
-    
+
     def __init__(self, x, y, radius, color):
         """
         Objective:
@@ -579,6 +579,7 @@ def initialize_simulation():
         BALL_RADIUS, COLOR_ORANGE
     )
 
+
 #%% Configuring logging
 
 log_file_path = 'game_simulation_output.log'
@@ -769,7 +770,7 @@ while simulating and (frames_captured < max_frames_caputured):
 
     # Stop simulation after simulation limit time as been met
     if elapsed_time_simulation > simulation_limit*60:
-        logger.debug("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
+        logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
         break
 
     # For git actions testing, stop simulation to focus on testing code
