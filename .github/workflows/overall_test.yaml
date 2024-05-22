@@ -30,7 +30,7 @@ jobs:
       run: pip install requests
 
     - name: Update Badge
-      run: python update_badge.py
+      run: python update_badge_overall_test.py
       env:
         GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         GIST_ID: 8cd877c3426a17132649c9c3d3a9e8b0
