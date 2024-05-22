@@ -48,7 +48,7 @@ jobs:
       run: cat game_simulation_output.log
       shell: bash
 
-    - name: Run Script and Check Results
+    - name: Check Results
       run: |
         if grep -q "Game Simulation succeeded" game_simulation_output.log; then
           echo "Success message found: Test passed."
