@@ -39,15 +39,10 @@ def get_workflow_status(workflow_id):
         if data["workflow_runs"]:
             return data["workflow_runs"][0]["conclusion"]
     print(f"Error fetching workflow status for ID {workflow_id}: {response.text}")
-    print('')
     return "unknown"
 
 # Get workflow IDs
 workflow_ids = [get_workflow_id(name) for name in workflows]
-
-# Print workflow IDs for debugging
-print(f"Workflow IDs: {workflow_ids}")
-print('')
 
 # Check statuses of all workflows
 statuses = [get_workflow_status(wf_id) for wf_id in workflow_ids if wf_id]
@@ -78,7 +73,4 @@ headers_gist = {
 }
 response = requests.patch(gist_url, headers=headers_gist, json={"files": {"badge.json": {"content": json.dumps(badge_json)}}})
 
-print('')
-print(combined_status)
-print('')
 print(f"Badge update response: {response.status_code}, {response.text}")

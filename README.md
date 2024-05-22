@@ -4,9 +4,6 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![Version Badge](https://img.shields.io/badge/version-0.3.0-orange)
 
-![Object Tracking](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/object-tracking.yaml/badge.svg)
-![Game Simulation](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/game-simulation.yaml/badge.svg)
-
 [![Combined Status](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/AbhishekR3/8cd877c3426a17132649c9c3d3a9e8b0/raw/badge.json)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions)
 
 
