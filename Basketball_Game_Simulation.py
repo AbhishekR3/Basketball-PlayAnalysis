@@ -13,7 +13,7 @@ import numpy as np
 import os
 import cv2
 import secrets
-
+import logging
 
 #%%
 
@@ -112,7 +112,7 @@ class Player:
 
 class Basketball:
     "Class for the Basketball"
-    
+
     def __init__(self, x, y, radius, color):
         """
         Objective:
@@ -580,6 +580,33 @@ def initialize_simulation():
     )
 
 
+#%% Configuring logging
+
+log_file_path = 'game_simulation_output.log'
+
+# Check if the file exists
+if os.path.exists(log_file_path):
+    # Delete the file
+    os.remove(log_file_path)
+    print(f"The file {log_file_path} has been deleted.")
+else:
+    print(f"No file found with the name {log_file_path}.")
+
+# Create a logger object
+logger = logging.getLogger('GameSimulationLogger')
+logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
+
+# Create file handler which logs even debug messages
+file_handler = logging.FileHandler(log_file_path)
+file_handler.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
+
 #%% Set Simulation Parameters
 
 # Import Basketball Court image
@@ -600,7 +627,7 @@ try:
     background_image = pygame.image.load(image_location)
     background_image = pygame.transform.scale(background_image, SCREEN_DIMENSIONS)
 except Exception as e:
-    print(f"An error occurred: {e}")
+    logger.error(f"An error occurred: {e}")
 
     
 # Simulation Constants
@@ -641,7 +668,7 @@ initialize_simulation()
 start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
-video_format = cv2.VideoWriter_fourcc(*'X264') # Using x264
+video_format = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 video_location = os.path.join(script_directory, 'assets/simulation.mp4')
 out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
@@ -741,10 +768,14 @@ while simulating and (frames_captured < max_frames_caputured):
     pygame.display.flip() #Update pygame simulation frame
     clock.tick(FPS) # Maintain frame rate (FPS)
 
-
     # Stop simulation after simulation limit time as been met
     if elapsed_time_simulation > simulation_limit*60:
-        print("Simulation reached time limit of", simulation_limit, "minutes. Stopping simulation")
+        logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
+        break
+
+    # For git actions testing, stop simulation to focus on testing code
+    if frames_captured > 0 and os.getenv('GITHUB_ACTIONS') == 'true':
+        logger.debug("Simulation stopped, due to being tested in github actions")
         break
 
     # Capture frame
@@ -755,6 +786,8 @@ while simulating and (frames_captured < max_frames_caputured):
     # Write the frame
     out.write(frame)
     frames_captured += 1
+
+logger.debug("Game Simulation succeeded")
 
 out.release()
 pygame.quit()

@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import os
 import time
+import logging
 
 #%%
 
@@ -127,10 +128,38 @@ def color_detection(color_hue):
         color_detected = (0, 0, 255)
 
     else:
-        print(color_hue)
+        logger.debug("Color hue outside of range: %s", color_hue)
         color_detected = (0,0,0)
 
     return color_detected
+
+
+#%% Configuring logging
+
+log_file_path = 'object_tracking_output.log'
+
+# Check if the file exists
+if os.path.exists(log_file_path):
+    # Delete the file
+    os.remove(log_file_path)
+    print(f"The file {log_file_path} has been deleted.")
+else:
+    print(f"No file found with the name {log_file_path}.")
+
+# Create a logger object
+logger = logging.getLogger('ObjectTrackingLogger')
+logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
+
+# Create file handler which logs even debug messages
+file_handler = logging.FileHandler(log_file_path)
+file_handler.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(file_handler)
 
 
 #%% Initialize Simulation Variables
@@ -166,12 +195,12 @@ n_frames = 0 # Initialize n_frames to count the number of frames in the video
 
 # Check if the video file opened successfully
 if not cap.isOpened():
-    print("Error: Couldn't open the video file.")
+    logger.error ("Error: Couldn't open the video file.")
     exit()
 
 # Create a VideoWriter object to save the output video
 output_path = os.path.join(script_directory, 'assets/output_video.mp4')
-fourcc = cv2.VideoWriter_fourcc(*'X264') # Using x264
+fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
@@ -193,14 +222,11 @@ try:
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        #'''
         # Test different param values in the for loop
         for param1 in param1_values:
             for param2 in param2_values:
                 resulting_values, inpainted_frame  = circle_detection(param1, param2, resulting_values, inpainted_frame) # Perform circle detection
-        #'''
 
-        # Display the frame
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
 
         out.write(inpainted_frame)
@@ -211,21 +237,25 @@ try:
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break
 
-    # Print summary of results
-    print ("Total number of circles that should have been detected", n_frames*11)
+        # For git actions testing, stop simulation to focus on testing code
+        if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
+            logger.debug("Simulation stopped, due to being tested in github actions")
+            break
+
+    # Log results summary
+    logger.debug (f"Total number of circles that should have been detected {n_frames*11}%%")
 
     for (param1, param2), count in resulting_values.items():
-        print(f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
+        logger.debug (f"param1={param1}, param2={param2} -> {count} circles detected. {count/(n_frames*11)*100:.2f}%")
 
-    print("Object Tracking succeeded")
+    logger.debug("Object Tracking succeeded")
 
 
 except Exception as e:
-    print(f"An error occurred: {e}")
-    
-finally:
-    print("Total time taken:", time.time()-start_time, "seconds")
+    logger.error (f"An error occurred: {e}")
 
+finally:
+    logger.debug ("Total time taken: %f seconds", time.time() - start_time)
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
