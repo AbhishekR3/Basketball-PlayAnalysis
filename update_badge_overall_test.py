@@ -9,7 +9,7 @@ gist_id = os.getenv('GIST_ID')
 token = os.getenv('GITHUB_TOKEN')
 
 # Workflows to check
-workflows = ["object-tracking.yaml", "game-simulation.yaml"]
+workflows = ["object-tracking", "game-simulation"]
 
 # GitHub API URL for workflow runs
 api_url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs"

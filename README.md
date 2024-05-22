@@ -7,6 +7,8 @@
 ![Object Tracking](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/object-tracking.yaml/badge.svg)
 ![Game Simulation](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/game-simulation.yaml/badge.svg)
 
+[![Combined Status](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/AbhishekR3/8cd877c3426a17132649c9c3d3a9e8b0/raw/badge.json)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions)
+
 
 
 ## Project Description
