@@ -8,6 +8,12 @@ repo = os.getenv('GITHUB_REPO')
 gist_id = os.getenv('GIST_ID')
 token = os.getenv('GITHUB_TOKEN')
 
+print("GIST_ID")
+print(gist_id)
+
+print("TOKEN")
+print(token)
+
 # Workflows to check
 workflows = ["object-tracking", "game-simulation"]
 
