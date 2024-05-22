@@ -8,6 +8,7 @@ repo = os.getenv('GITHUB_REPO')
 gist_id = os.getenv('GIST_ID')
 token = os.getenv('GITHUB_TOKEN')
 
+
 # Workflows to check by their names
 workflows = ["Run Basketball Object Tracking", "Run Game Simulation"]  # Ensure these match the 'name' fields in your workflow files
 
@@ -60,7 +61,7 @@ else:
 # Badge JSON content
 badge_json = {
     "schemaVersion": 1,
-    "label": "CI/CD",
+    "label": "Overall CI/CD Test",
     "message": combined_status,
     "color": color
 }
