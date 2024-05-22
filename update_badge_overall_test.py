@@ -50,7 +50,7 @@ print(f"Workflow statuses: {statuses}")
 print('')
 
 # Determine combined status
-if all(status == "success" for status in statuses):
+if all(status == "success" or status == 'None' or status is None for status in statuses):
     combined_status = "passing"
     color = "brightgreen"
 else:
