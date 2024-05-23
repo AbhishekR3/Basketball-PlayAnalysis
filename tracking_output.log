@@ -1,4 +1,0 @@
-2024-05-20 21:41:53,876 - DEBUG - Total number of circles that should have been detected 121%%
-2024-05-20 21:41:53,876 - DEBUG - param1=12, param2=15 -> 108 circles detected. 89.26%
-2024-05-20 21:41:53,876 - DEBUG - Object Tracking succeeded
-2024-05-20 21:41:53,876 - DEBUG - Total time taken: 0.710096 seconds
