@@ -176,7 +176,7 @@ class Basketball:
             )
         except Exception as e:
             logger.error("Error in updating basketball position: %s", e)
-        
+
     def draw(self):
         """
         Objective: Draw the basketball on the simulation screen
@@ -399,7 +399,7 @@ def ball_reached_position(ball, target_x, target_y):
     Returns:
     [bool] if the ball reached the end location or not
     """
-    try: 
+    try:
         # Stop loop if distance between player and basketball is less than 5 pixels
         ball_coordinate = (ball.x, ball.y)
         target_coordinate = (target_x, target_y)
@@ -448,7 +448,8 @@ def cryptographic_normal(mu, sigma, radian=False):
             return np.radians(normal_value)
     
     except Exception as e:
-        logger.error("Error in calculating normal radians using secrets: %s", e)
+        logger.error("Error in calculating normal radians using secrets")
+        logger.debug("Exception details: %s", str(e))
 
 
 #%%

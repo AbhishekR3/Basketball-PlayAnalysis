@@ -191,6 +191,7 @@ def color_detection(color_hue):
     except Exception as e:
         logger.error("Error in detecting color: %s", e)
 
+
 #%% Configuring logging
 
 try:
