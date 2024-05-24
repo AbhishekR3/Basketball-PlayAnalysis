@@ -242,7 +242,7 @@ try:
     _, mask = cv2.threshold(mask, 30, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
     mask = mask.astype(np.uint8)
 
-except:
+except Exception as e:
     logger.error (f"Error: Couldn't open the basketball court diagram file. {e}")
     exit()
 
