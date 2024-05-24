@@ -20,8 +20,8 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
     Preprocess frame of the video based on input parameters
 
     Parameters:
-    [array] frame - video frame
-    [bool] greyed (Default: True) - apply a grey filter on the image
+    [array]  frame - video frame
+    [bool]   greyed (Default: True) - apply a grey filter on the image
     [string] blur (Default: 'median') - apply either median/gaussian blur
 
     Returns:
@@ -42,6 +42,51 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 
     except Exception as e:
         logger.error("Error in preprocessing the frame: %s", e)
+
+
+#%%
+
+def create_optimal_tracking_color(object_bgr):
+    """
+    Objective: 
+    Return the perimeter color and center color of the detected circle. 
+    This is to improve the detection object tracking.
+    Perimeter color is a darker shade. Center color is a lighter shade.
+
+    Parameters:
+    [tuple] object_bgr - object color in bgr
+
+    
+    Returns:
+    [tuple] perimeter_color - perimeter color in rgb
+    [tuple] center_color - center color in rgb
+    """
+
+    try:
+        #Ensuring the color stays within the 0-255 color range
+        def adjust_color_value(color_value, factor):
+            return min(max(int(color_value * factor), 0), 255)
+
+        b, g, r = object_bgr
+
+        # Calculate the darker shade for the perimeter
+        perimeter_color = (
+            adjust_color_value(r, 0.7),
+            adjust_color_value(g, 0.7),
+            adjust_color_value(b, 0.7)
+        )
+
+        # Calculate the lighter shade for the center
+        center_color = (
+            adjust_color_value(r + (255 - r) * 0.5, 1),
+            adjust_color_value(g + (255 - g) * 0.5, 1),
+            adjust_color_value(b + (255 - b) * 0.5, 1)
+        )
+
+    except Exception as e:
+        logger.error("Error in calculating optimal color for object detection: %s", e)
+
+    return perimeter_color, center_color
 
 
 #%%
@@ -91,11 +136,13 @@ def circle_detection(p1, p2, results, frame_with_color):
                 center_color_hue = frame_hsv[y_coordinate, x_coordinate][0] # Set color hue of the circle
                 detection_color = color_detection(center_color_hue) # Set border color
 
+                perimeter_detection_color, center_detection_color = create_optimal_tracking_color(detection_color) #
+
                 # Outer Circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), radius, detection_color, 2)
+                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), radius, perimeter_detection_color, 2)
 
                 # Center of circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, detection_color, 3)
+                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
             #"""
 
         # Add the number of circles detected to the results
@@ -192,8 +239,8 @@ try:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     mask = cv2.resize(mask, (width, height))
-    _, mask = cv2.threshold(mask, 10, 255, cv2.THRESH_BINARY)
-    mask = mask.astype(np.uint8)
+    _, mask = cv2.threshold(mask, 50, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
+    mask = mask.astype(np.uint8) 
 
 except:
     logger.error ("Error: Couldn't open the basketball court diagram file.")

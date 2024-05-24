@@ -849,6 +849,3 @@ except Exception as e:
 finally:
     out.release()
     pygame.quit()
-
-
-#main_game_loop()
