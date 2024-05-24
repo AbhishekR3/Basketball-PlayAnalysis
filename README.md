@@ -5,7 +5,6 @@
 ![Version Badge](https://img.shields.io/badge/version-0.3.2-orange)
 [![Combined Status](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/AbhishekR3/8cd877c3426a17132649c9c3d3a9e8b0/raw/badge.json)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions)
 
-
 ## Project Description
 
 This project aims to analyze and classify the type of offensive and defensive plays executed by NBA teams using simulations and object tracking techniques. It creates simulations similar to CourtVision Clippers to generate training data for a temporal-spatial based neural networks to classify specific plays.

@@ -142,13 +142,12 @@ class Basketball:
         self.stabalize_dribble_switch_x = None #Set the x starting value of the next side of the dribble switch
         self.stabalize_dribble_switch_y = None #Set the y starting value of the next side of the dribble switch
         self.stabalize_dribble_switch_check = False #Set the check to maintain the same stabalized value
-    
-    
+
     def update_position(self, dribbling_player, elapsed_time):
         """
         Objective:
         Update the position of the basketball relative to the current player dribbling the ball.
-        
+    
         Parameters:
         [Class] self - Basketball
         [Class] dribbling_player - The player currently dribbling the basketball
@@ -373,7 +372,7 @@ def ball_reached_player(ball, target, speed):
     [bool] if the ball reached the player or not
     """
 
-    try: 
+    try:
         # Stop loop if distance between player and basketball is less than the ball speed
         if pygame.math.Vector2(target.x - ball.x, target.y - ball.y).length() <= speed:
             if ((abs(ball.y - target.y) <= 5) and (abs(ball.x - target.x) <= 5)):
@@ -449,7 +448,7 @@ def cryptographic_normal(mu, sigma, radian=False):
             return np.radians(normal_value)
     
     except Exception as e:
-        logger.error("Error in calculating the normal radian value using secrets: %s", e)
+        logger.error("Error in calculating normal radians using secrets: %s", e)
 
 
 #%%

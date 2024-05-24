@@ -149,7 +149,7 @@ def circle_detection(p1, p2, results, frame_with_color):
         results[(p1, p2)] += circle_count
 
         return results, frame_with_color
-    
+
     except Exception as e:
         logger.error("Error in circle detection: %s", e)
 
@@ -239,11 +239,11 @@ try:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     mask = cv2.resize(mask, (width, height))
-    _, mask = cv2.threshold(mask, 50, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
-    mask = mask.astype(np.uint8) 
+    _, mask = cv2.threshold(mask, 30, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
+    mask = mask.astype(np.uint8)
 
 except:
-    logger.error ("Error: Couldn't open the basketball court diagram file.")
+    logger.error (f"Error: Couldn't open the basketball court diagram file. {e}")
     exit()
 
 # Parameter values to test
