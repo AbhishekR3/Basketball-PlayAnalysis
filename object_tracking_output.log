@@ -1,4 +1,6 @@
-2024-05-20 23:09:15,860 - DEBUG - Total number of circles that should have been detected 1584%%
-2024-05-20 23:09:15,860 - DEBUG - param1=12, param2=15 -> 1675 circles detected. 105.74%
-2024-05-20 23:09:15,860 - DEBUG - Object Tracking succeeded
-2024-05-20 23:09:15,860 - DEBUG - Total time taken: 8.332917 seconds
+2024-05-23 22:49:06,315 - DEBUG - Color hue outside of range: 41
+2024-05-23 22:49:10,523 - DEBUG - Simulation stopped through manual intervention
+2024-05-23 22:49:10,523 - DEBUG - Total number of circles that should have been detected 7007
+2024-05-23 22:49:10,523 - DEBUG - param1=12, param2=15 -> 7357 circles detected. Detected 105.00%
+2024-05-23 22:49:10,524 - DEBUG - Object Tracking succeeded
+2024-05-23 22:49:10,524 - DEBUG - Total time taken: 34.720165 seconds
