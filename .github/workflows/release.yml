@@ -29,8 +29,8 @@ jobs:
       id: extract_info
       run: |
         COMMIT_MESSAGE="${{ github.event.head_commit.message }}"
-        NEW_VERSION=$(echo "$COMMIT_MESSAGE" | head -n 1 | grep -E '^[0-9]+\.[0-9]+\.[0-9]+')
-        UPDATE_DETAILS=$(echo "$COMMIT_MESSAGE" | tail -n +2)
+        NEW_VERSION=$(echo "$COMMIT_MESSAGE" | grep -Eo '^[0-9]+\.[0-9]+\.[0-9]+' | head -n 1)
+        UPDATE_DETAILS=$(echo "$COMMIT_MESSAGE" | sed -n '2,$p')
         
         if [[ -z "$NEW_VERSION" ]]; then
           NEW_VERSION="${{ steps.get_version.outputs.current_version }}"
