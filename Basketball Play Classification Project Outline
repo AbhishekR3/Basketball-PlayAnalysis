@@ -30,18 +30,22 @@ Optimize learning rate
 - /10 after every 20 epochs
 
 ######################### Optimization #########################
-1. Research -> Optimize the FPS
+1. Optimize simulation
+--> Consider switching to 60 / or higher FPS
+--> Process object detection/tracking on all frames
+--> Perform LSTM and C3D models on every other frame or every 5 frames?
+--> Change video resolution to 240p
+--> Change video dimensions ???
 
-
-2. Create function to prevent occlusion of players constantly in simulation
-
-
-3. Resolve issue moving ball to another side of the player
+2. Resolve issue moving ball to another side of the player
 - In the 'Basketball Game Simulation' file
---> Refer to 
+--> Refer to (https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/2b7e567e77899a0dd13cdb5800985b20e8852113/Basketball_Game_Simulation.py)
+
+i
+3. Others player move away from current_player if too close
 
 
-4. CourtVision
+4. For CourtVision based testing
 - Background Subtraction
 --> MOG2
 --> KNN

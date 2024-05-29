@@ -183,7 +183,7 @@ class Basketball:
         """
         try:
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
-        
+
         except Exception as e:
             logger.error("Error in drawing basketball: %s", e)
 
@@ -549,14 +549,14 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         attempts = 0
         while attempts < 1000:  # Limit attempts to prevent infinite loop
             new_player = Player(
-                radius + secrets.randbelow(simulation_width - (2 * radius) + 1),
-                radius + secrets.randbelow(simulation_width - (2 * radius) + 1),
+                radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
+                radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
                 radius,
                 color)
             if is_valid_placement(new_player, existing_players):
                 return new_player
             attempts += 1
-    
+
     except Exception as e:
         logger.error("Error in placing the players without exceeding overlap threshold: %s", e)
 
@@ -666,7 +666,7 @@ except Exception as e:
 
 #Screen Dimensions
 
-SCREEN_DIMENSIONS = (500, 500)
+SCREEN_DIMENSIONS = (470, 500)
 SCREEN_WIDTH = SCREEN_DIMENSIONS[0]
 SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 
@@ -682,11 +682,11 @@ try:
 except Exception as e:
     logger.error(f"An error occurred when loading basketball court diagram. {e}")
 
-    
+
 # Simulation Constants
 NUM_PLAYERS = 10
-PLAYER_RADIUS = 20
 BALL_RADIUS = 10
+PLAYER_RADIUS = BALL_RADIUS*2
 COLOR_BLUE = (0, 0, 255)
 COLOR_RED = (255, 0, 0)
 COLOR_ORANGE = (255, 165, 0)
