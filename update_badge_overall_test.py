@@ -60,7 +60,7 @@ else:
 # Badge JSON content
 badge_json = {
     "schemaVersion": 1,
-    "label": "Overall CI/CD Test",
+    "label": "CI Test",
     "message": combined_status,
     "color": color
 }
