@@ -1,3 +1,7 @@
+This is my idea outline for this project.
+Some of these are things I saw online and thought might be applicable.
+I also use this as a document to note down things I need to research and thoughts.
+
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
 - Pass
@@ -18,6 +22,11 @@ Object Tracking
 - C3D
 - LSTM 
 - RNN - many to many based model
+
+Augmentations
+- randomly sampling a pyramid scale
+
+
 
 Optimizers
 - Adam (Adaptive Moment Estimation)
@@ -41,7 +50,7 @@ Optimize learning rate
 - In the 'Basketball Game Simulation' file
 --> Refer to (https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/2b7e567e77899a0dd13cdb5800985b20e8852113/Basketball_Game_Simulation.py)
 
-i
+
 3. Others player move away from current_player if too close
 
 
@@ -50,3 +59,21 @@ i
 --> MOG2
 --> KNN
 --> PCA
+
+5. Size of the players, ball, ball detection border and center
+
+
+6. Deep Sort Paper
+- Combinations of big/small objects doesnt work well. 
+Think about making the objects closer in size. 
+
+- Scale threshold (important) + reduction threshold
+
+- Current frame-previous frame matching search takes the longest time to process
+So you should reduce the dimensions
+-> Dimensions
+- Basketball - color + x_coordinate + y_coordinates - x1
+- Player - color + x_coordinate + y_coordinates - x10
+-> Algorithms
+- PCA (For efficiency)
+- t-SNE (For Visualization)
