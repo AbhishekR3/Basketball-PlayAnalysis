@@ -24,9 +24,12 @@ Object Tracking
 - RNN - many to many based model
 
 Augmentations
-- randomly sampling a pyramid scale
-
-
+- geometric: rotate + flipping + pyramid scale + translation + cropping (bottom part of image) 
+- noise injection
+- normalization
+- blur/distortion
+- cutmix
+- color space transformationn
 
 Optimizers
 - Adam (Adaptive Moment Estimation)
@@ -37,6 +40,14 @@ Optimizers
 Optimize learning rate
 - Cosine 
 - /10 after every 20 epochs
+
+
+Features to be extracted
+- basketball + player - coordinate, color, velocity, acceleration
+- distance between circles 
+- which player possesses the ball
+- time spent in specific zones of the court
+- player in posession of the ball 
 
 ######################### Optimization #########################
 1. Optimize simulation
@@ -60,12 +71,12 @@ Optimize learning rate
 --> KNN
 --> PCA
 
-5. Size of the players, ball, ball detection border and center
+5. Opitimize size of the players, baskeball, and thickness of ball detection border and center
 
 
 6. Deep Sort Paper
 - Combinations of big/small objects doesnt work well. 
-Think about making the objects closer in size. 
+Think about making the objects closer in size? It has a scale threshold too
 
 - Scale threshold (important) + reduction threshold
 
@@ -77,3 +88,8 @@ So you should reduce the dimensions
 -> Algorithms
 - PCA (For efficiency)
 - t-SNE (For Visualization)
+
+
+7. For object detection color's take the average of the color around the center
+From center pixel take the color of 5-15 pixels around it
+Figure out the best color
