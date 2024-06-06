@@ -1,6 +1,6 @@
 pygame==2.5.2
 opencv-python-headless==4.9.0.80
-numpy==1.26.4
+numpy==1.23.5
 tensorflow==2.16.1
 scipy==1.9.3
 urllib3==1.26.7
