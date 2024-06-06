@@ -11,7 +11,13 @@ import numpy as np
 import os
 import time
 import logging
-
+from deep_sort.deep_sort import nn_matching
+from deep_sort.deep_sort.detection import Detection
+from deep_sort.deep_sort.tracker import Tracker
+from deep_sort.tools import generate_detections as gdet
+import torch
+import torchvision.models as models
+import torchvision.transforms as transforms
 #%%
 
 def preprocess_frame(frame, greyed = True, blur = 'median'):
@@ -97,6 +103,8 @@ def circle_detection(p1, p2, results, frame_with_color):
     Performs object detection using HoughCircles for each frame of the video
     Create a border and a center dot in the circle
 
+    Uses deep_sort algorithm along with HoughCircles
+
     Parameters:
     [int]   p1 - param1 for HoughCircles()
     [int]   p2 - param2 for HoughCircles()
@@ -124,10 +132,12 @@ def circle_detection(p1, p2, results, frame_with_color):
             circles_detected = np.uint16(np.around(circles_detected))
             circle_count = len(circles_detected[0])
 
-            #"""
+            detections = []
+
             # Display for each detected circles
             for ith_circle in circles_detected[0, :]:
 
+                # Detect coordinates and radius of circles
                 x_coordinate = ith_circle[0]
                 y_coordinate = ith_circle[1]
                 radius = ith_circle[2]
@@ -143,7 +153,25 @@ def circle_detection(p1, p2, results, frame_with_color):
 
                 # Center of circle
                 cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
-            #"""
+
+                #'''
+                # Set detections from deep_sort algorithm
+                detections.append(Detection([x_coordinate - radius, y_coordinate - radius, x_coordinate + radius, y_coordinate + radius], confidence=0.8, feature=None))
+
+
+            # Update tracker
+            tracker.predict()
+            tracker.update(detections)
+
+
+            # Draw tracking results
+            for track in tracker.tracks:
+                if not track.is_confirmed() or track.time_since_update > 1:
+                    continue
+                bbox = track.to_tlbr()
+                cv2.rectangle(frame_with_color, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 255, 0), 2)
+                cv2.putText(frame_with_color, f'ID: {track.track_id}', (int(bbox[0]), int(bbox[1]-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
+            #'''
 
         # Add the number of circles detected to the results
         results[(p1, p2)] += circle_count
@@ -190,6 +218,18 @@ def color_detection(color_hue):
 
     except Exception as e:
         logger.error("Error in detecting color: %s", e)
+
+
+#%%
+
+def extract_feature(image):
+    image = transform(image).unsqueeze(0)  # Add batch dimension
+
+    with torch.no_grad():
+        features = model(image)
+    
+    return features.numpy().squeeze()
+
 
 
 #%% Configuring logging
@@ -240,7 +280,7 @@ try:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     mask = cv2.resize(mask, (width, height))
-    _, mask = cv2.threshold(mask, 30, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
+    _, mask = cv2.threshold(mask, 70, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
     mask = mask.astype(np.uint8)
 
 except Exception as e:
@@ -248,15 +288,12 @@ except Exception as e:
     exit()
 
 # Parameter values to test
-param1_values = [12] # 12/13 - Best results
-param2_values = [15] # 15 - Best results
+param1_value = 12 # 12/13 - Best results
+param2_value = 15 # 15 - Best results
 
 # Initialize results dictionary
 resulting_values = {}
-
-for param1 in param1_values:
-    for param2 in param2_values:
-        resulting_values[(param1, param2)] = 0
+resulting_values[(param1_value, param2_value)] = 0
 
 n_frames = 0 # Initialize n_frames to count the number of frames in the video
 
@@ -270,6 +307,13 @@ output_path = os.path.join(script_directory, 'assets/object_tracking_video.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
+
+# Initialize Deep SORT components
+### --> Optimize the number
+max_cosine_distance = 0.2
+nn_budget = 100
+metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+tracker = Tracker(metric)
 
 #%%
 
@@ -289,10 +333,8 @@ try:
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        # Test different param values in the for loop
-        for param1 in param1_values:
-            for param2 in param2_values:
-                resulting_values, inpainted_frame  = circle_detection(param1, param2, resulting_values, inpainted_frame) # Perform circle detection
+        # Perform circle detection
+        resulting_values, inpainted_frame  = circle_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
 
@@ -305,16 +347,17 @@ try:
             logger.debug ("Simulation stopped through manual intervention")
             break
 
+        '''
         # For git actions testing, stop simulation to focus on testing code
         if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
-
+        '''
     # Log results summary
     logger.debug (f"Total number of circles that should have been detected {n_frames*11}")
 
     for (param1, param2), count in resulting_values.items():
-        logger.debug (f"param1={param1}, param2={param2} -> {count} circles detected. Detected {count/(n_frames*11)*100:.2f}%")
+        logger.debug (f"param1={param1_value}, param2={param2_value} -> {count} circles detected. Detected {count/(n_frames*11)*100:.2f}%")
 
     logger.debug("Object Tracking succeeded")
 

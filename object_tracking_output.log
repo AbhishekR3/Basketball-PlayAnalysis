@@ -1,6 +1,3 @@
-2024-05-23 22:49:06,315 - DEBUG - Color hue outside of range: 41
-2024-05-23 22:49:10,523 - DEBUG - Simulation stopped through manual intervention
-2024-05-23 22:49:10,523 - DEBUG - Total number of circles that should have been detected 7007
-2024-05-23 22:49:10,523 - DEBUG - param1=12, param2=15 -> 7357 circles detected. Detected 105.00%
-2024-05-23 22:49:10,524 - DEBUG - Object Tracking succeeded
-2024-05-23 22:49:10,524 - DEBUG - Total time taken: 34.720165 seconds
+2024-06-05 23:02:20,064 - ERROR - Error in circle detection: Shape mismatch: 3 != 13
+2024-06-05 23:02:20,064 - ERROR - An error occurred: cannot unpack non-iterable NoneType object
+2024-06-05 23:02:20,064 - DEBUG - Total time taken: 0.287976 seconds

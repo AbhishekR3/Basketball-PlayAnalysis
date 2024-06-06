@@ -1,3 +1,5 @@
+---------------------------------------------------------------------------------------
+
 DeepSort Implementation
 @inproceedings{Wojke2017simple,
   title={Simple Online and Realtime Tracking with a Deep Association Metric},
@@ -19,3 +21,6 @@ DeepSort Implementation
   doi={10.1109/WACV.2018.00087}
 }
 
+Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
+
+---------------------------------------------------------------------------------------

@@ -84,6 +84,9 @@ Basketball-PlayAnalysis/
 ├── update_badge_overall_test.py                    # Script to update CI/CD pipeline badge
 ├── README.md                                       # Project documentation
 ├── Requirements.txt                                # Project requirements
+├── deep_sort/                                      # Directory for deep sort algorithms
+│   ├── deep_sort/
+│   ├── tools/
 ├── assets/                                         # Directory containing images and diagrams
 │   ├── Basketball Court Diagram.jpg
 │   ├── object_tracking_video.mp4
@@ -97,3 +100,4 @@ Basketball-PlayAnalysis/
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.
+
