@@ -11,13 +11,17 @@ import numpy as np
 import os
 import time
 import logging
+'''
 from deep_sort.deep_sort import nn_matching
 from deep_sort.deep_sort.detection import Detection
 from deep_sort.deep_sort.tracker import Tracker
 from deep_sort.tools import generate_detections as gdet
+'''
 import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
+from ultralytics import YOLO
+from deep_sort.yolov8_deepsort import Tracker
 #%%
 
 def preprocess_frame(frame, greyed = True, blur = 'median'):
@@ -146,7 +150,8 @@ def circle_detection(p1, p2, results, frame_with_color):
                 center_color_hue = frame_hsv[y_coordinate, x_coordinate][0] # Set color hue of the circle
                 detection_color = color_detection(center_color_hue) # Set border color
 
-                perimeter_detection_color, center_detection_color = create_optimal_tracking_color(detection_color) #
+                #Set the optimal color for tracking purposes
+                perimeter_detection_color, center_detection_color = create_optimal_tracking_color(detection_color)
 
                 # Outer Circle
                 cv2.circle(frame_with_color, (x_coordinate, y_coordinate), radius, perimeter_detection_color, 2)
@@ -154,7 +159,7 @@ def circle_detection(p1, p2, results, frame_with_color):
                 # Center of circle
                 cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
 
-                #'''
+                '''
                 # Set detections from deep_sort algorithm
                 detections.append(Detection([x_coordinate - radius, y_coordinate - radius, x_coordinate + radius, y_coordinate + radius], confidence=0.8, feature=None))
 
@@ -171,7 +176,7 @@ def circle_detection(p1, p2, results, frame_with_color):
                 bbox = track.to_tlbr()
                 cv2.rectangle(frame_with_color, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (0, 255, 0), 2)
                 cv2.putText(frame_with_color, f'ID: {track.track_id}', (int(bbox[0]), int(bbox[1]-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 2)
-            #'''
+            '''
 
         # Add the number of circles detected to the results
         results[(p1, p2)] += circle_count
@@ -219,31 +224,15 @@ def color_detection(color_hue):
     except Exception as e:
         logger.error("Error in detecting color: %s", e)
 
-
-#%%
-
-def extract_feature(image):
-    image = transform(image).unsqueeze(0)  # Add batch dimension
-
-    with torch.no_grad():
-        features = model(image)
-    
-    return features.numpy().squeeze()
-
-
-
 #%% Configuring logging
 
 try:
     log_file_path = 'object_tracking_output.log'
 
-    # Check if the file exists
+    # If the log file exists, delete it
     if os.path.exists(log_file_path):
-        # Delete the file
         os.remove(log_file_path)
-        print(f"The file {log_file_path} has been deleted.")
-    else:
-        print(f"No file found with the name {log_file_path}.")
+        print(f"The file {log_file_path} has been found thus deleted for the new run.")
 
     # Create a logger object
     logger = logging.getLogger('ObjectTrackingLogger')
@@ -309,11 +298,9 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
 # Initialize Deep SORT components
-### --> Optimize the number
-max_cosine_distance = 0.2
-nn_budget = 100
-metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
-tracker = Tracker(metric)
+tracker = Tracker()
+model = YOLO("yolov8n.pt")
+detection_threshold = 0.5 #USE CASE OF THIS?????
 
 #%%
 
@@ -335,6 +322,30 @@ try:
 
         # Perform circle detection
         resulting_values, inpainted_frame  = circle_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
+
+        features_detected = model(inpainted_frame)
+
+
+        for feature in features_detected:
+            detections = []
+            for r in feature.boxes.data.tolist():
+                x1, y1, x2, y2, score, class_id = r
+                x1 = int(x1)
+                x2 = int(x2)
+                y1 = int(y1)
+                y2 = int(y2)
+                class_id = int(class_id)
+                if score > detection_threshold:
+                    detections.append([x1, y1, x2, y2, score])
+
+            tracker.update(inpainted_frame, detections)
+
+            for track in tracker.tracks:
+                bbox = track.bbox
+                x1, y1, x2, y2 = bbox
+                track_id = track.track_id
+
+                cv2.rectangle(inpainted_frame, (int(x1), int(y1)), (int(x2), int(y2)), [(0, 0, 0)], 3)
 
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
 

@@ -1,3 +1,0 @@
-2024-06-05 23:02:20,064 - ERROR - Error in circle detection: Shape mismatch: 3 != 13
-2024-06-05 23:02:20,064 - ERROR - An error occurred: cannot unpack non-iterable NoneType object
-2024-06-05 23:02:20,064 - DEBUG - Total time taken: 0.287976 seconds

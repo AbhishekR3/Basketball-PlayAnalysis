@@ -4,3 +4,4 @@ numpy==1.23.5
 tensorflow==2.16.1
 scipy==1.9.3
 urllib3==1.26.7
+ultralytics==8.2.11

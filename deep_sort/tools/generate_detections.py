@@ -70,16 +70,26 @@ def extract_image_patch(image, bbox, patch_shape):
 
 class ImageEncoder(object):
 
+//////////////// GENERATING DETECTIONS ///////////////////////
+
+python tools/generate_detections.py \
+    --model=resources/networks/mars-small128.pb \
+    --mot_dir=./MOT16/train \
+    --output_dir=./resources/detections/MOT16_train
+
+
+
     def __init__(self, checkpoint_filename, input_name="images",
                  output_name="features"):
-        self.session = tf.Session()
-        with tf.gfile.GFile(checkpoint_filename, "rb") as file_handle:
-            graph_def = tf.GraphDef()
+        self.session = tf.compat.v1.Session()
+        checkpoint_filename = stabalize_path(checkpoint_filename)
+        with tf.compat.v1.gfile.GFile(checkpoint_filename, "rb") as file_handle:
+            graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(file_handle.read())
         tf.import_graph_def(graph_def, name="net")
-        self.input_var = tf.get_default_graph().get_tensor_by_name(
+        self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name(
             "net/%s:0" % input_name)
-        self.output_var = tf.get_default_graph().get_tensor_by_name(
+        self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name(
             "net/%s:0" % output_name)
 
         assert len(self.output_var.get_shape()) == 2
@@ -201,10 +211,26 @@ def parse_args():
         " exist.", default="detections")
     return parser.parse_args()
 
+def stabalize_path(path_string):
+    # Split the path into two parts
+    index = path_string.index("/deep_sort/")
+    string_1 = path_string[:index]
+    string_2 = path_string[index:]
+
+    # Insert the mid_string
+    mid_string = "/Basketball-PlayAnalysis"
+    new_path = string_1 + mid_string + string_2
+
+    return new_path
 
 def main():
     args = parse_args()
-    encoder = create_box_encoder(args.model, batch_size=32)
+
+    # Import model
+    parent_directory = os.path.dirname(os.getcwd())
+    encoder_model_filename = os.path.join(parent_directory, 'Basketball-PlayAnalysis/deep_sort/model_data/mars-small128.pb')
+
+    encoder = create_box_encoder(model_filename=encoder_model_filename, batch_size=32)
     generate_detections(encoder, args.mot_dir, args.output_dir,
                         args.detection_dir)
 

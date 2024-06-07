@@ -93,3 +93,8 @@ So you should reduce the dimensions
 7. For object detection color's take the average of the color around the center
 From center pixel take the color of 5-15 pixels around it
 Figure out the best color
+
+8. Modify encode model in yolov8-deepsort.py
+Instead of using 'model_data/mars-small128.pb'
+Use something simpler that detects geometric data
+Look into custom CNN that is built specifically for circles
