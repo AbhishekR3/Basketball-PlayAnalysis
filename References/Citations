@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------
-
 DeepSort Implementation
+
 @inproceedings{Wojke2017simple,
   title={Simple Online and Realtime Tracking with a Deep Association Metric},
   author={Wojke, Nicolai and Bewley, Alex and Paulus, Dietrich},
@@ -22,5 +22,5 @@ DeepSort Implementation
 }
 
 Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
-
+Includes a modification of this code: https://github.com/computervisioneng/object-tracking-yolov8-deep-sort/blob/master/tracker.py
 ---------------------------------------------------------------------------------------

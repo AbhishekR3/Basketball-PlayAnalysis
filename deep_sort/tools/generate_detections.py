@@ -6,7 +6,6 @@ import numpy as np
 import cv2
 import tensorflow as tf
 
-
 def _run_in_batches(f, data_dict, out, batch_size):
     data_len = len(out)
     num_batches = int(data_len / batch_size)
@@ -69,18 +68,7 @@ def extract_image_patch(image, bbox, patch_shape):
 
 
 class ImageEncoder(object):
-
-//////////////// GENERATING DETECTIONS ///////////////////////
-
-python tools/generate_detections.py \
-    --model=resources/networks/mars-small128.pb \
-    --mot_dir=./MOT16/train \
-    --output_dir=./resources/detections/MOT16_train
-
-
-
-    def __init__(self, checkpoint_filename, input_name="images",
-                 output_name="features"):
+    def __init__(self, checkpoint_filename, input_name="images", output_name="features"):
         self.session = tf.compat.v1.Session()
         checkpoint_filename = stabalize_path(checkpoint_filename)
         with tf.compat.v1.gfile.GFile(checkpoint_filename, "rb") as file_handle:
@@ -192,23 +180,34 @@ def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
 
 
 def parse_args():
-    """Parse command line arguments.
-    """
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Re-ID feature extractor")
+
+    # Model file
     parser.add_argument(
         "--model",
-        default="resources/networks/mars-small128.pb",
-        help="Path to freezed inference graph protobuf.")
+        help=encoder_model_filename,
+        default="resources/networks/mars-small128.pb")
+    
+    # Training data directory
     parser.add_argument(
-        "--mot_dir", help="Path to MOTChallenge directory (train or test)",
+        "--mot_dir", 
+        help=training_data_directory,
         required=True)
+    
+    # Custom Detections - not yet implemented
     parser.add_argument(
-        "--detection_dir", help="Path to custom detections. Defaults to "
+        "--detection_dir", 
+        help="Path to custom detections. Defaults to "
         "standard MOT detections Directory structure should be the default "
-        "MOTChallenge structure: [sequence]/det/det.txt", default=None)
+        "MOTChallenge structure: [sequence]/det/det.txt", 
+        default=None)
+    
+    # Output directory
     parser.add_argument(
-        "--output_dir", help="Output directory. Will be created if it does not"
-        " exist.", default="detections")
+        "--output_dir", 
+        help= detections_output, 
+        default="detections")
     return parser.parse_args()
 
 def stabalize_path(path_string):
@@ -223,12 +222,26 @@ def stabalize_path(path_string):
 
     return new_path
 
-def main():
-    args = parse_args()
-
-    # Import model
+def global_parameters():
+    global encoder_model_filename, training_data_directory, detections_output
+    
     parent_directory = os.path.dirname(os.getcwd())
+    
+    # Import model
     encoder_model_filename = os.path.join(parent_directory, 'Basketball-PlayAnalysis/deep_sort/model_data/mars-small128.pb')
+
+    # Import training data
+    training_data_directory = os.path.join(parent_directory, 'Basketball-PlayAnalysis/deep_sort/model_data/Training_Data')
+
+    # Output directory
+    detections_output = os.path.join(parent_directory, 'Basketball-PlayAnalysis/deep_sort/detections_output')
+
+def main():
+    tf.compat.v1.disable_eager_execution()
+
+    global encoder_model_filename
+
+    args = parse_args()
 
     encoder = create_box_encoder(model_filename=encoder_model_filename, batch_size=32)
     generate_detections(encoder, args.mot_dir, args.output_dir,
