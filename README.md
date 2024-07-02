@@ -1,4 +1,4 @@
-# NBA Play Analysis
+# Basketball Play Analysis
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
@@ -8,7 +8,10 @@
 
 ## Project Description
 
-This project aims to analyze and classify the type of offensive and defensive plays executed by NBA teams using simulations and object tracking techniques. It creates simulations similar to CourtVision Clippers to generate training data for a temporal-spatial based neural networks to classify specific plays.
+This project aims to analyze and classify the type of offensive and defensive plays executed by basketball teams using object tracking techniques
+and neural networks. This project will create simulations for training data using pygame.
+
+The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 
 CourtVision Sample Frame
 
@@ -38,13 +41,13 @@ Ensure you have the following packages installed:
 
 Install the following libraries.
 ```bash
-pip install pygame opencv-python numpy
+pip install pygame opencv-python numpy torch ultralytics
 ```
 
 Clone the Repository
 ```bash
-git clone https://github.com/AbhishekR3/NBA-PlayAnalysis.git
-cd NBA-PlayAnalysis
+git clone https://github.com/AbhishekR3/Basketball-PlayAnalysis.git
+cd Basketball-PlayAnalysis
 ```
 
 ## Usage

@@ -11,17 +11,17 @@ import numpy as np
 import os
 import time
 import logging
-'''
-from deep_sort.deep_sort import nn_matching
-from deep_sort.deep_sort.detection import Detection
-from deep_sort.deep_sort.tracker import Tracker
-from deep_sort.tools import generate_detections as gdet
-'''
 import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
 from ultralytics import YOLO
-from deep_sort.yolov8_deepsort import Tracker
+
+
+from deep_sort.deep_sort import nn_matching
+from deep_sort.deep_sort.detection import Detection
+from deep_sort.deep_sort.tracker import Tracker
+from deep_sort.tools import generate_detections as gdet
+
 #%%
 
 def preprocess_frame(frame, greyed = True, blur = 'median'):
@@ -107,8 +107,6 @@ def circle_detection(p1, p2, results, frame_with_color):
     Performs object detection using HoughCircles for each frame of the video
     Create a border and a center dot in the circle
 
-    Uses deep_sort algorithm along with HoughCircles
-
     Parameters:
     [int]   p1 - param1 for HoughCircles()
     [int]   p2 - param2 for HoughCircles()
@@ -186,6 +184,84 @@ def circle_detection(p1, p2, results, frame_with_color):
     except Exception as e:
         logger.error("Error in circle detection: %s", e)
 
+
+#%%
+
+def object_tracking(frame, model, tracker, encoder):
+    """
+    Objective:
+    Perform deepsort object tracking on each video frame.
+    
+    Parameters:
+    [array] frame - video frame before object tracking
+
+    Returns:
+    [array] frame - video frame after object tracking
+    """
+
+    results = model(frame)
+
+    # Extract bounding boxes and scores
+    boxes = results[0].boxes.xyxy.cpu().numpy()
+    scores = results[0].boxes.conf.cpu().numpy()
+    class_ids = results[0].boxes.cls.cpu().numpy()
+    
+    # Filter detections based on confidence threshold
+    mask = scores > 0.5
+    boxes = boxes[mask]
+    scores = scores[mask]
+    class_ids = class_ids[mask]
+
+    # Compute features for Deep SORT
+    features = encoder(frame, boxes)
+
+    # Create detections for Deep SORT
+    detections = [Detection(box, score, feature) for box, score, feature in zip(boxes, scores, features)]
+
+    # Update tracker
+    tracker.predict()
+    tracker.update(detections)
+
+    # Draw bounding boxes and IDs
+    for track in tracker.tracks:
+        if not track.is_confirmed() or track.time_since_update > 1:
+            continue
+        bbox = track.to_tlbr()
+        class_name = results[0].names[int(class_ids[track.detection_index])]
+        color = (255, 255, 255)  # BGR format
+        cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
+        cv2.putText(frame, f"{class_name}-{track.track_id}", (int(bbox[0]), int(bbox[1])-10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+
+    '''
+    for result in results:
+        detections = []
+        for r in result.boxes.data.tolist():
+            x1, y1, x2, y2, score, class_id = r
+            x1 = int(x1)
+            x2 = int(x2)
+            y1 = int(y1)
+            y2 = int(y2)
+            class_id = int(class_id)
+            detections.append([x1, y1, x2, y2, score])
+
+        try:
+            tracker.update(frame=frame, detections=detections)
+        except Exception as e:
+            logger.error("Error in object tracking: %s", e)
+
+        for track in tracker.tracks:
+            object_box = track.bbox # Bounding box around each detected object
+            x1, y1, x2, y2 = object_box
+            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+            track_id = track.track_id
+            object_box_color = [(255, 255, 255)]
+        
+            cv2.rectangle(frame, (x1, y1), (x2, y2), object_box_color, 3)     
+    '''
+
+    return frame
 
 #%%
 
@@ -269,7 +345,7 @@ try:
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     mask = cv2.resize(mask, (width, height))
-    _, mask = cv2.threshold(mask, 70, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
+    _, mask = cv2.threshold(mask, 255, 255, cv2.THRESH_BINARY) # First number represents the threshold level of removal of the masked image
     mask = mask.astype(np.uint8)
 
 except Exception as e:
@@ -297,11 +373,24 @@ fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
-# Initialize Deep SORT components
-tracker = Tracker()
-model = YOLO("yolov8n.pt")
-detection_threshold = 0.5 #USE CASE OF THIS?????
 
+# Initialize Deep SORT components
+model = YOLO("yolov8n.pt")
+max_cosine_distance = 0.3
+nn_budget = None
+metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+tracker = Tracker(metric)
+
+
+# Adjust this path based on the location of your script relative to the model file
+model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
+encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
+
+'''
+model_filename = 'deep_sort/model_data/mars-small128.pb'
+model_filename = os.path.join(script_directory, model_filename)
+encoder = gdet.create_box_encoder(model_filename, batch_size=1)
+'''
 #%%
 
 start_time = time.time()
@@ -320,34 +409,20 @@ try:
         # Inpaint the frame using the mask
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        # Perform circle detection
+        # Perform Hough Circles detection (Object Detection for Circles)
         resulting_values, inpainted_frame  = circle_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
-        features_detected = model(inpainted_frame)
+        #'''
+        # Perform DeepSort (Object Tracking)
+        try:
+            inpainted_frame = object_tracking(inpainted_frame, model, tracker, encoder)
+        except Exception as e:
+            logger.debug("Debug in object tracking: %s", e)
+        #'''
 
-
-        for feature in features_detected:
-            detections = []
-            for r in feature.boxes.data.tolist():
-                x1, y1, x2, y2, score, class_id = r
-                x1 = int(x1)
-                x2 = int(x2)
-                y1 = int(y1)
-                y2 = int(y2)
-                class_id = int(class_id)
-                if score > detection_threshold:
-                    detections.append([x1, y1, x2, y2, score])
-
-            tracker.update(inpainted_frame, detections)
-
-            for track in tracker.tracks:
-                bbox = track.bbox
-                x1, y1, x2, y2 = bbox
-                track_id = track.track_id
-
-                cv2.rectangle(inpainted_frame, (int(x1), int(y1)), (int(x2), int(y2)), [(0, 0, 0)], 3)
-
+        # Display Video Frame
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
+        cv2.waitKey(1)  # Add a small delay to allow the window to update
 
         out.write(inpainted_frame)
 
@@ -366,9 +441,6 @@ try:
         '''
     # Log results summary
     logger.debug (f"Total number of circles that should have been detected {n_frames*11}")
-
-    for (param1, param2), count in resulting_values.items():
-        logger.debug (f"param1={param1_value}, param2={param2_value} -> {count} circles detected. Detected {count/(n_frames*11)*100:.2f}%")
 
     logger.debug("Object Tracking succeeded")
 

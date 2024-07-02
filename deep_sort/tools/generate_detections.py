@@ -44,7 +44,7 @@ def extract_image_patch(image, bbox, patch_shape):
         boundaries.
 
     """
-    bbox = np.array(bbox)
+    bbox = np.array(bbox, dtype=float)
     if patch_shape is not None:
         # correct aspect ratio to patch shape
         target_aspect = float(patch_shape[1]) / patch_shape[0]
@@ -54,7 +54,7 @@ def extract_image_patch(image, bbox, patch_shape):
 
     # convert to top left, bottom right
     bbox[2:] += bbox[:2]
-    bbox = bbox.astype(np.int)
+    bbox = np.round(bbox).astype(int) #bbox.astype(int)
 
     # clip at image boundaries
     bbox[:2] = np.maximum(0, bbox[:2])
@@ -62,9 +62,10 @@ def extract_image_patch(image, bbox, patch_shape):
     if np.any(bbox[:2] >= bbox[2:]):
         return None
     sx, sy, ex, ey = bbox
-    image = image[sy:ey, sx:ex]
-    image = cv2.resize(image, tuple(patch_shape[::-1]))
-    return image
+    patch = image[sy:ey, sx:ex]
+    #patch = cv2.resize(patch, tuple(patch_shape[::-1]))
+    patch = cv2.resize(patch, (patch_shape[1], patch_shape[0]))
+    return patch
 
 
 class ImageEncoder(object):
@@ -74,11 +75,13 @@ class ImageEncoder(object):
         with tf.compat.v1.gfile.GFile(checkpoint_filename, "rb") as file_handle:
             graph_def = tf.compat.v1.GraphDef()
             graph_def.ParseFromString(file_handle.read())
-        tf.import_graph_def(graph_def, name="net")
-        self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name(
-            "net/%s:0" % input_name)
-        self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name(
-            "net/%s:0" % output_name)
+        tf.compat.v1.import_graph_def(graph_def, name="net")
+
+        #self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % input_name)
+        #self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % output_name)
+
+        self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name(input_name + ":0")
+        self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name(output_name + ":0")
 
         assert len(self.output_var.get_shape()) == 2
         assert len(self.input_var.get_shape()) == 4
@@ -157,9 +160,9 @@ def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
         detections_in = np.loadtxt(detection_file, delimiter=',')
         detections_out = []
 
-        frame_indices = detections_in[:, 0].astype(np.int)
-        min_frame_idx = frame_indices.astype(np.int).min()
-        max_frame_idx = frame_indices.astype(np.int).max()
+        frame_indices = detections_in[:, 0].astype(int)
+        min_frame_idx = frame_indices.astype(int).min()
+        max_frame_idx = frame_indices.astype(int).max()
         for frame_idx in range(min_frame_idx, max_frame_idx + 1):
             print("Frame %05d/%05d" % (frame_idx, max_frame_idx))
             mask = frame_indices == frame_idx

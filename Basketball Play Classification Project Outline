@@ -44,8 +44,7 @@ Optimize learning rate
 
 Features to be extracted
 - basketball + player - coordinate, color, velocity, acceleration
-- distance between circles 
-- which player possesses the ball
+- distance between circles
 - time spent in specific zones of the court
 - player in posession of the ball 
 
