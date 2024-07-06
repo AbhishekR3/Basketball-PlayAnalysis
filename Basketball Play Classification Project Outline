@@ -70,6 +70,7 @@ Features to be extracted
 --> KNN
 --> PCA
 
+
 5. Opitimize size of the players, baskeball, and thickness of ball detection border and center
 
 
@@ -97,3 +98,7 @@ Figure out the best color
 Instead of using 'model_data/mars-small128.pb'
 Use something simpler that detects geometric data
 Look into custom CNN that is built specifically for circles
+
+
+9. Parralel/Batch Processing
+Apply parralel/batch processing for object detection and inpaint frame?

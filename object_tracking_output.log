@@ -1,33 +1,56 @@
-2024-06-30 15:12:20,624 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:20,738 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:20,855 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:20,971 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:21,097 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:21,404 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:22,089 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:22,207 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:23,311 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:23,423 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:23,546 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:23,665 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:24,143 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:24,272 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:24,390 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:24,724 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:24,830 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,054 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,164 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,500 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,619 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,735 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:25,841 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:26,306 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:26,441 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:26,691 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:26,799 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:27,133 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:27,236 - DEBUG - Debug in object tracking: 'Track' object has no attribute 'detection_index'
-2024-06-30 15:12:27,784 - DEBUG - Simulation stopped through manual intervention
-2024-06-30 15:12:27,784 - DEBUG - Total number of circles that should have been detected 1177
-2024-06-30 15:12:27,784 - DEBUG - Object Tracking succeeded
-2024-06-30 15:12:27,784 - DEBUG - Total time taken: 13.338035 seconds
+2024-07-05 17:45:52,595 - DEBUG - Unkown object detection
+2024-07-05 17:45:53,826 - DEBUG - Unkown object detection
+2024-07-05 17:45:54,085 - DEBUG - Unkown object detection
+2024-07-05 17:45:54,878 - DEBUG - Unkown object detection
+2024-07-05 17:45:55,346 - DEBUG - Unkown object detection
+2024-07-05 17:45:55,686 - DEBUG - Unkown object detection
+2024-07-05 17:45:56,382 - DEBUG - Unkown object detection
+2024-07-05 17:45:57,382 - DEBUG - Unkown object detection
+2024-07-05 17:45:57,831 - DEBUG - Unkown object detection
+2024-07-05 17:45:58,858 - DEBUG - Unkown object detection
+2024-07-05 17:45:59,326 - DEBUG - Unkown object detection
+2024-07-05 17:45:59,672 - DEBUG - Unkown object detection
+2024-07-05 17:46:00,458 - DEBUG - Unkown object detection
+2024-07-05 17:46:00,832 - DEBUG - Unkown object detection
+2024-07-05 17:46:04,018 - DEBUG - Unkown object detection
+2024-07-05 17:46:06,146 - DEBUG - Unkown object detection
+2024-07-05 17:46:15,844 - DEBUG - Unkown object detection
+2024-07-05 17:46:16,186 - DEBUG - Unkown object detection
+2024-07-05 17:46:17,071 - DEBUG - Unkown object detection
+2024-07-05 17:46:17,869 - DEBUG - Unkown object detection
+2024-07-05 17:46:18,562 - DEBUG - Unkown object detection
+2024-07-05 17:46:19,630 - DEBUG - Unkown object detection
+2024-07-05 17:46:20,446 - DEBUG - Unkown object detection
+2024-07-05 17:46:21,262 - DEBUG - Unkown object detection
+2024-07-05 17:46:21,262 - DEBUG - Unkown object detection
+2024-07-05 17:46:21,746 - DEBUG - Unkown object detection
+2024-07-05 17:46:22,094 - DEBUG - Unkown object detection
+2024-07-05 17:46:22,447 - DEBUG - Unkown object detection
+2024-07-05 17:46:24,949 - DEBUG - Unkown object detection
+2024-07-05 17:46:25,191 - DEBUG - Unkown object detection
+2024-07-05 17:46:25,545 - DEBUG - Unkown object detection
+2024-07-05 17:46:25,906 - DEBUG - Unkown object detection
+2024-07-05 17:46:26,490 - DEBUG - Unkown object detection
+2024-07-05 17:46:28,016 - DEBUG - Unkown object detection
+2024-07-05 17:46:28,492 - DEBUG - Unkown object detection
+2024-07-05 17:46:28,951 - DEBUG - Unkown object detection
+2024-07-05 17:46:29,851 - DEBUG - Unkown object detection
+2024-07-05 17:46:30,198 - DEBUG - Unkown object detection
+2024-07-05 17:46:30,541 - DEBUG - Unkown object detection
+2024-07-05 17:46:30,892 - DEBUG - Unkown object detection
+2024-07-05 17:46:31,123 - DEBUG - Unkown object detection
+2024-07-05 17:46:32,401 - DEBUG - Unkown object detection
+2024-07-05 17:46:35,057 - DEBUG - Color hue outside of range: 66
+2024-07-05 17:46:36,591 - DEBUG - Unkown object detection
+2024-07-05 17:46:38,246 - DEBUG - Unkown object detection
+2024-07-05 17:46:38,801 - DEBUG - Unkown object detection
+2024-07-05 17:46:41,449 - DEBUG - Unkown object detection
+2024-07-05 17:46:45,052 - DEBUG - Unkown object detection
+2024-07-05 17:46:47,751 - DEBUG - Unkown object detection
+2024-07-05 17:46:49,586 - DEBUG - Unkown object detection
+2024-07-05 17:46:51,671 - DEBUG - Unkown object detection
+2024-07-05 17:47:09,397 - DEBUG - Total number of objects that should have been detected 7216
+2024-07-05 17:47:09,398 - DEBUG - Total number of objects that was detected: 90.85%
+2024-07-05 17:47:09,398 - DEBUG - Total number of objects tracked:, 20.95%
+2024-07-05 17:47:09,398 - DEBUG - Object Tracking succeeded
+2024-07-05 17:47:09,398 - DEBUG - Total time taken: 84.528847 seconds

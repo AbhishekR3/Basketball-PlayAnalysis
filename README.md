@@ -53,7 +53,7 @@ cd Basketball-PlayAnalysis
 ## Usage
 
 First run Basketball_Game_Simulation.py to generate video simulation
-Next run Basketball_Object_Tracking.py for object tracking
+Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
 
 ```bash
 python Basketball_Game_Simulation.py
@@ -79,6 +79,7 @@ Contributions are welcome in the following areas:
 - Other ideas that can improve and expand the project.
 
 ## Project-Structure
+Important files for this project
 
 ```bash
 Basketball-PlayAnalysis/

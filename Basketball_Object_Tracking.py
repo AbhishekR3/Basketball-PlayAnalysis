@@ -1,6 +1,11 @@
 # Basketball Object Tracking
+# Track positions of each player and the basketball.
 
-# Utilizing OpenCV, track players and basketball.
+'''
+Important functions involved: 
+- Hough Circle Transform - Object Detection specifically for Circles
+- DeepSort - Multi Object Tracking Algorithm that factors in occlusion
+'''
 
 #%%
 
@@ -187,24 +192,39 @@ def circle_detection(p1, p2, results, frame_with_color):
 
 #%%
 
-def object_tracking(frame, model, tracker, encoder):
+def object_tracking(frame, model, tracker, encoder, n_tracked):
     """
     Objective:
     Perform deepsort object tracking on each video frame.
     
     Parameters:
     [array] frame - video frame before object tracking
+    [???] model - YOLO detection with the pre-trained model
+    [???] tracker - 
+    [???] encoder - 
+    [int] n_tracked - number of objects that are tracked (debugging purposes)
 
     Returns:
     [array] frame - video frame after object tracking
+    [int] n_tracked - number of objects that are tracked (debugging purposes)
     """
 
     results = model(frame)
 
     # Extract bounding boxes and scores
-    boxes = results[0].boxes.xyxy.cpu().numpy()
-    scores = results[0].boxes.conf.cpu().numpy()
-    class_ids = results[0].boxes.cls.cpu().numpy()
+    boxes = results[0].boxes.xyxy.numpy()
+    scores = results[0].boxes.conf.numpy()
+    class_ids = results[0].boxes.cls.numpy()
+
+    # Calculate number of objects detected
+    if boxes is not None:
+        n_tracked += 1
+
+    print('Detected Object')
+    print(boxes)
+
+    if boxes is not None:
+        n_tracked += len(boxes)
     
     # Filter detections based on confidence threshold
     mask = scores > 0.5
@@ -224,44 +244,31 @@ def object_tracking(frame, model, tracker, encoder):
 
     # Draw bounding boxes and IDs
     for track in tracker.tracks:
+        
+        # Check if
+        # not track.is_confirmed()    : Check that an object track has not been found, currently set to 3 consecutive frames
+        # track.time_since_update > 1 : 
         if not track.is_confirmed() or track.time_since_update > 1:
             continue
+
+        # Calculate the coordinates' border of the object
         bbox = track.to_tlbr()
-        class_name = results[0].names[int(class_ids[track.detection_index])]
+        
+        # Determine the object's class name (Eg: player, basketball) 
+        if class_ids.size == 0:
+            class_name = 'Unknown' ## WHY DOES NONE OCCUR
+            logger.debug("Unkown object detection")
+            
+        else:
+            class_name = results[0].names[int(class_ids[0])]
+
+        # Set object border lines and type of class text
         color = (255, 255, 255)  # BGR format
         cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
         cv2.putText(frame, f"{class_name}-{track.track_id}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-
-    '''
-    for result in results:
-        detections = []
-        for r in result.boxes.data.tolist():
-            x1, y1, x2, y2, score, class_id = r
-            x1 = int(x1)
-            x2 = int(x2)
-            y1 = int(y1)
-            y2 = int(y2)
-            class_id = int(class_id)
-            detections.append([x1, y1, x2, y2, score])
-
-        try:
-            tracker.update(frame=frame, detections=detections)
-        except Exception as e:
-            logger.error("Error in object tracking: %s", e)
-
-        for track in tracker.tracks:
-            object_box = track.bbox # Bounding box around each detected object
-            x1, y1, x2, y2 = object_box
-            x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-            track_id = track.track_id
-            object_box_color = [(255, 255, 255)]
-        
-            cv2.rectangle(frame, (x1, y1), (x2, y2), object_box_color, 3)     
-    '''
-
-    return frame
+    return frame, n_tracked
 
 #%%
 
@@ -386,11 +393,9 @@ tracker = Tracker(metric)
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
 encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
 
-'''
-model_filename = 'deep_sort/model_data/mars-small128.pb'
-model_filename = os.path.join(script_directory, model_filename)
-encoder = gdet.create_box_encoder(model_filename, batch_size=1)
-'''
+# DEBUG Values
+n_tracked = 0
+
 #%%
 
 start_time = time.time()
@@ -399,6 +404,7 @@ start_time = time.time()
 try:
     # Loop through each frame in the video
     while cap.isOpened():
+
         # Read a frame from the video
         ret, frame_colored = cap.read()
 
@@ -406,27 +412,24 @@ try:
         if not ret:
             break
 
-        # Inpaint the frame using the mask
+        # Perform background subtraction (Remove basketball court)
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        # Perform Hough Circles detection (Object Detection for Circles)
+        # Perform Hough Circles detection (Object Detection)
         resulting_values, inpainted_frame  = circle_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
-        #'''
         # Perform DeepSort (Object Tracking)
-        try:
-            inpainted_frame = object_tracking(inpainted_frame, model, tracker, encoder)
-        except Exception as e:
-            logger.debug("Debug in object tracking: %s", e)
-        #'''
+        inpainted_frame, n_tracked = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked)
 
         # Display Video Frame
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
         cv2.waitKey(1)  # Add a small delay to allow the window to update
 
+        # Write the output frame
         out.write(inpainted_frame)
 
-        n_frames += 1 # Increase frame count
+        # Increase frame count
+        n_frames += 1 
 
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
@@ -434,21 +437,30 @@ try:
             break
 
         '''
-        # For git actions testing, stop simulation to focus on testing code
+        For git actions testing, stop simulation to focus on testing code. 
+        This should be commented out
+
         if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
         '''
     # Log results summary
-    logger.debug (f"Total number of circles that should have been detected {n_frames*11}")
+    n_objects = n_frames*11
+    count_detected_objects = list(resulting_values.values())[0]/n_objects*100
+    count_tracked_objects = n_tracked/n_objects*100
 
-    logger.debug("Object Tracking succeeded")
+    logger.debug (f"Total number of objects that should have been detected {n_objects}")
+    logger.debug (f"Total number of objects that was detected: {count_detected_objects:.2f}%")
+    logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.2f}%")
+
+    logger.debug ("Object Tracking succeeded")
 
 except Exception as e:
-    logger.error (f"An error occurred: {e}")
+    logger.error (f"An error occurred when processing the video frame: {e}")
 
 finally:
     logger.debug ("Total time taken: %f seconds", time.time() - start_time)
+
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
