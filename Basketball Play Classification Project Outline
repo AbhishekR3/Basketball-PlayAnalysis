@@ -5,6 +5,7 @@ I also use this as a document to note down things I need to research and general
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
 - Pass
+- Hockey Pass
 - Steal
 - Screens
 - Pick and roll
@@ -17,11 +18,29 @@ Object Detections
 
 Object Tracking
 - Deep Sort (helps considering occuluion)
+--> Create custom model?
+Modify encode model in yolov8-deepsort.py
+Instead of using 'model_data/mars-small128.pb'
+Use something simpler that detects geometric data
+Look into custom CNN that is built specifically for circles
+--> YOLOv9 implemented -- Try out YOLOV10
 
-3D CNN model (?Temporal Action Localization?)
+Hyperparameter Tuning
+- Adam optimizer
+- Grid Search
+
+Neural Networks
 - C3D
 - LSTM 
-- RNN - many to many based model
+- TCN
+
+Model Efficiency/Compression
+- Quantization
+- Pruning
+- Efficient Interface? Research more
+- Neural Network on every other frame or every 5 frames?
+- Feature Reduction: PCA / anything else?
+- Ensemble methods
 
 Augmentations
 - geometric: rotate + flipping + pyramid scale + translation + cropping (bottom part of image) 
@@ -29,18 +48,11 @@ Augmentations
 - normalization
 - blur/distortion
 - cutmix
-- color space transformationn
-
-Optimizers
-- Adam (Adaptive Moment Estimation)
-- SGD + Momentum
-- Nesterov Accelerated Gradient (NAG)
-- Adagrad
+- color space transformation
 
 Optimize learning rate
 - Cosine 
 - /10 after every 20 epochs
-
 
 Features to be extracted
 - basketball + player - coordinate, color, velocity, acceleration
@@ -48,33 +60,33 @@ Features to be extracted
 - time spent in specific zones of the court
 - player in posession of the ball 
 
-######################### Optimization #########################
-1. Optimize simulation
---> Consider switching to 60 / or higher FPS
---> Process object detection/tracking on all frames
---> Perform LSTM and C3D models on every other frame or every 5 frames?
---> Change video resolution to 240p
---> Change video dimensions ???
+Data Processing
+- Parralel/Batch processing?
+- Distributed processing
+- GPU accelerated libraries
+- Spatial Databases
 
-2. Resolve issue moving ball to another side of the player
+Simulation Optimization
+- Change video dimensions???
+- Change video resolution to 240p?
+- Consider switching to 60/higher FPS
+
+######################### Bugs #########################
+1. Resolve issue moving ball to another side of the player
 - In the 'Basketball Game Simulation' file
 --> Refer to (https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/2b7e567e77899a0dd13cdb5800985b20e8852113/Basketball_Game_Simulation.py)
 
+2. Update CI testing so both python files are executed in the same GIT Action
 
-3. Others player move away from current_player if too close
+######################### Optimization #########################
+1. Others player move away from current_player if too close
 
+2. Object Detection color
+- Set the center and outer circle color in the first frame
+- Figure out the best color
 
-4. For CourtVision based testing
-- Background Subtraction
---> MOG2
---> KNN
---> PCA
-
-
-5. Opitimize size of the players, baskeball, and thickness of ball detection border and center
-
-
-6. Deep Sort Paper
+######################### Notes #########################
+1. Deep Sort Paper
 - Combinations of big/small objects doesnt work well. 
 Think about making the objects closer in size? It has a scale threshold too
 
@@ -88,17 +100,3 @@ So you should reduce the dimensions
 -> Algorithms
 - PCA (For efficiency)
 - t-SNE (For Visualization)
-
-
-7. For object detection color's take the average of the color around the center
-From center pixel take the color of 5-15 pixels around it
-Figure out the best color
-
-8. Modify encode model in yolov8-deepsort.py
-Instead of using 'model_data/mars-small128.pb'
-Use something simpler that detects geometric data
-Look into custom CNN that is built specifically for circles
-
-
-9. Parralel/Batch Processing
-Apply parralel/batch processing for object detection and inpaint frame?

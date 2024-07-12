@@ -34,10 +34,9 @@ class Tracker:
         A Kalman filter to filter target trajectories in image space.
     tracks : List[Track]
         The list of active tracks at the current time step.
-
     """
 
-    def __init__(self, metric, max_iou_distance=0.7, max_age=30, n_init=3):
+    def __init__(self, metric, max_iou_distance=0.2, max_age=5, n_init=5):
         self.metric = metric
         self.max_iou_distance = max_iou_distance
         self.max_age = max_age

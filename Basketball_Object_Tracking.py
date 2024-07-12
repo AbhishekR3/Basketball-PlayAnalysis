@@ -1,10 +1,29 @@
 # Basketball Object Tracking
-# Track positions of each player and the basketball.
+# Track positions of each player and the basketball
 
 '''
-Important functions involved: 
+Outline
 - Hough Circle Transform - Object Detection specifically for Circles
 - DeepSort - Multi Object Tracking Algorithm that factors in occlusion
+'''
+
+
+'''
+Upcoming Implementations:
+
+- Grid Search
+
+Feature Extractor Model
+Kalman filter parameters
+max_dist
+NMS threshold
+
+YOLOV10 implementation
+
+Object Detection
+1. Move object detection to simulation file
+2. Change Object Detection color
+- Invert RGB/HSV. Create a general formula for all types of colors.
 '''
 
 #%%
@@ -57,6 +76,43 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 
     except Exception as e:
         logger.error("Error in preprocessing the frame: %s", e)
+
+#%%
+
+def color_detection(color_hue):
+    """
+    Objective:
+    Returns the BGR value for a given hue color.
+    Switch Red and Blue values to create a distnct circle around the players.
+
+    Parameters:
+    [int] color_hue - Hue value
+
+    Returns:
+    [tuple] color_detected - Color detected is represented in (x, x, x) format
+    """
+
+    try:
+        # Red detected -> Return BLue
+        if color_hue < 10 or color_hue > 170:
+            color_detected = (255, 0, 0)
+
+        # Orange
+        elif 10 <= color_hue <= 30:
+            color_detected = (255, 165, 0)
+
+        # Blue
+        elif 100 <= color_hue <= 140:
+            color_detected = (0, 0, 255)
+
+        else:
+            logger.debug("Color hue outside of range: %s", color_hue)
+            color_detected = (0,0,0)
+
+        return color_detected
+
+    except Exception as e:
+        logger.error("Error in detecting color: %s", e)
 
 
 #%%
@@ -199,9 +255,9 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
     
     Parameters:
     [array] frame - video frame before object tracking
-    [???] model - YOLO detection with the pre-trained model
-    [???] tracker - 
-    [???] encoder - 
+    [class model] model - YOLO detection with the pre-trained model
+    [class deepsort] tracker - DeepSORT Tracker
+    [function] encoder - Extracts relevant information (features) from the given frame 
     [int] n_tracked - number of objects that are tracked (debugging purposes)
 
     Returns:
@@ -214,23 +270,28 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
     # Extract bounding boxes and scores
     boxes = results[0].boxes.xyxy.numpy()
     scores = results[0].boxes.conf.numpy()
-    class_ids = results[0].boxes.cls.numpy()
+    
+    # Filter the detections based on confidence threshold
+    mask = scores > 0.2
+    boxes = boxes[mask]
+    scores = scores[mask]
 
     # Calculate number of objects detected
-    if boxes is not None:
-        n_tracked += 1
-
     print('Detected Object')
     print(boxes)
 
     if boxes is not None:
         n_tracked += len(boxes)
-    
-    # Filter detections based on confidence threshold
-    mask = scores > 0.5
-    boxes = boxes[mask]
-    scores = scores[mask]
-    class_ids = class_ids[mask]
+
+    # Relevant parameters
+    #tracker.py - max_iou_distance=0.2, max_age=5, n_init=5
+    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=euclidean/cosine (need to test further)
+    #63.0567%
+
+    #Kalman filter parameters
+    #max_dist
+    #NMS threshold
+
 
     # Compute features for Deep SORT
     features = encoder(frame, boxes)
@@ -246,66 +307,21 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
     for track in tracker.tracks:
         
         # Check if
-        # not track.is_confirmed()    : Check that an object track has not been found, currently set to 3 consecutive frames
-        # track.time_since_update > 1 : 
+        # not track.is_confirmed()    : Check that an object track has not been found
+        # track.time_since_update > 1 : Check the track has not been updated for more than one frame
         if not track.is_confirmed() or track.time_since_update > 1:
             continue
 
         # Calculate the coordinates' border of the object
         bbox = track.to_tlbr()
-        
-        # Determine the object's class name (Eg: player, basketball) 
-        if class_ids.size == 0:
-            class_name = 'Unknown' ## WHY DOES NONE OCCUR
-            logger.debug("Unkown object detection")
-            
-        else:
-            class_name = results[0].names[int(class_ids[0])]
 
         # Set object border lines and type of class text
         color = (255, 255, 255)  # BGR format
         cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-        cv2.putText(frame, f"{class_name}-{track.track_id}", (int(bbox[0]), int(bbox[1])-10), 
+        cv2.putText(frame, f"{track.track_id}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     return frame, n_tracked
-
-#%%
-
-def color_detection(color_hue):
-    """
-    Objective:
-    Returns the BGR value for a given hue color.
-    Switch Red and Blue values to create a distnct circle around the players.
-
-    Parameters:
-    [int] color_hue - Hue value
-
-    Returns:
-    [tuple] color_detected - Color detected is represented in (x, x, x) format
-    """
-
-    try:
-        # Red detected -> Return BLue
-        if color_hue < 10 or color_hue > 170:
-            color_detected = (255, 0, 0)
-
-        # Orange
-        elif 10 <= color_hue <= 30:
-            color_detected = (255, 165, 0)
-
-        # Blue
-        elif 100 <= color_hue <= 140:
-            color_detected = (0, 0, 255)
-
-        else:
-            logger.debug("Color hue outside of range: %s", color_hue)
-            color_detected = (0,0,0)
-
-        return color_detected
-
-    except Exception as e:
-        logger.error("Error in detecting color: %s", e)
 
 #%% Configuring logging
 
@@ -382,12 +398,11 @@ out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
 
 # Initialize Deep SORT components
-model = YOLO("yolov8n.pt")
-max_cosine_distance = 0.3
+model = YOLO("yolov9c.pt")
+max_cosine_distance = 0.5
 nn_budget = None
-metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
-
 
 # Adjust this path based on the location of your script relative to the model file
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
@@ -451,7 +466,7 @@ try:
 
     logger.debug (f"Total number of objects that should have been detected {n_objects}")
     logger.debug (f"Total number of objects that was detected: {count_detected_objects:.2f}%")
-    logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.2f}%")
+    logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.4f}%")
 
     logger.debug ("Object Tracking succeeded")
 

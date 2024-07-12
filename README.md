@@ -66,7 +66,8 @@ The goal of this project is to create an algorithm that classifies offensive and
 
 The project will use a temporal-spatial based classification model. The simulations are created using pygame for generating training data.
 
-The project outline can be found in the file called "Basketball Play Classification Project Outline"
+The project outline contains detailed information on the relevant concepts/algorithms applied in this project.
+https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline
 
 I am open to contributions. Please contact me at <abhishektips3@gmail.com> for contributions. 
 

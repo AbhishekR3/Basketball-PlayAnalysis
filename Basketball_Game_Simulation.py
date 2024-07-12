@@ -1,6 +1,10 @@
 # Basketball Game Simulation
+# Utilizing pygame, simulating basketball plays executed
 
-# Utilizing pygame, simulating basketball plays executed.
+'''
+Outline
+
+'''
 
 #%%
 "Import Libraries"
