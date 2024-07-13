@@ -1,29 +1,49 @@
-# Basketball Object Tracking
-# Track positions of each player and the basketball
-
 '''
-Outline
+Basketball Object Tracking
+This file tracks the positions of each player and the basketball.
+
+Main ML related algorithms used are:
 - Hough Circle Transform - Object Detection specifically for Circles
+- YOLOv9 - End to End Object Object Detection
 - DeepSort - Multi Object Tracking Algorithm that factors in occlusion
 '''
-
 
 '''
 Upcoming Implementations:
 
-- Grid Search
+1.
+# Features extracted through object detection (Hough Circle Transformation)
+tracker.py
+self.tracks = []
 
+Include speed and direction as a feature
+
+2.
+Game_Simulation.py
+Update place_circle_with_constraints
+Create a perimeter and center circle related to the circle
+
+3.
+Game_Simulation.py
+Update game simulation to include alpha blending
+
+4.
+YOLOv10 implementation
+
+5.
+Optimize parameters
+
+Grid Search
+- Kalman filter parameters
+- max_dist
+- NMS threshold? - Removed in YOLOv10
+- other parameters
+
+6.
 Feature Extractor Model
-Kalman filter parameters
-max_dist
-NMS threshold
+- ResNet50
+- EfficientNet
 
-YOLOV10 implementation
-
-Object Detection
-1. Move object detection to simulation file
-2. Change Object Detection color
-- Invert RGB/HSV. Create a general formula for all types of colors.
 '''
 
 #%%
@@ -162,7 +182,7 @@ def create_optimal_tracking_color(object_bgr):
 
 #%%
 
-def circle_detection(p1, p2, results, frame_with_color):
+def object_detection(p1, p2, results, frame_with_color):
     """
     Objective:
     Performs object detection using HoughCircles for each frame of the video
@@ -217,6 +237,12 @@ def circle_detection(p1, p2, results, frame_with_color):
 
                 # Center of circle
                 cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
+
+                print(x_coordinate, 
+                      y_coordinate,
+                      radius,
+                      center_color_hue,
+                      detection_color)
 
                 '''
                 # Set detections from deep_sort algorithm
@@ -285,7 +311,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
 
     # Relevant parameters
     #tracker.py - max_iou_distance=0.2, max_age=5, n_init=5
-    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=euclidean/cosine (need to test further)
+    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=euclidean/cosine (need to test further), model=YOLOv9
     #63.0567%
 
     #Kalman filter parameters
@@ -304,7 +330,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
     tracker.update(detections)
 
     # Draw bounding boxes and IDs
-    for track in tracker.tracks:
+    for ith_value, track in enumerate(tracker.tracks):
         
         # Check if
         # not track.is_confirmed()    : Check that an object track has not been found
@@ -315,11 +341,29 @@ def object_tracking(frame, model, tracker, encoder, n_tracked):
         # Calculate the coordinates' border of the object
         bbox = track.to_tlbr()
 
-        # Set object border lines and type of class text
-        color = (255, 255, 255)  # BGR format
-        cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-        cv2.putText(frame, f"{track.track_id}", (int(bbox[0]), int(bbox[1])-10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        # Create the borders for the detected objects + relevant track_id and confidence score
+        
+        try:
+            # Calculate the object's detection confidence score
+            confidence_score = scores[ith_value]
+
+            # Set object border lines + object's track_id and confidence score
+            color = (255, 255, 255)  # BGR format
+            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
+            cv2.putText(frame, f"{track.track_id}-{confidence_score:3f}", (int(bbox[0]), int(bbox[1])-10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        
+        except:
+            # Calculate the object's detection confidence score
+            confidence_score = 0.0
+            #BUG: Why is confidence_score not recognized but object is still detected?
+            
+            # Set object border lines + object's track_id and confidence score
+            color = (255, 255, 255)  # BGR format
+            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
+            cv2.putText(frame, f"{track.track_id}-{confidence_score:3f}", (int(bbox[0]), int(bbox[1])-10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     return frame, n_tracked
 
@@ -431,7 +475,7 @@ try:
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
         # Perform Hough Circles detection (Object Detection)
-        resulting_values, inpainted_frame  = circle_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
+        resulting_values, inpainted_frame  = object_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
         # Perform DeepSort (Object Tracking)
         inpainted_frame, n_tracked = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked)

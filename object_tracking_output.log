@@ -1,5 +1,5 @@
-2024-07-11 23:12:08,331 - DEBUG - Total number of objects that should have been detected 3278
-2024-07-11 23:12:08,331 - DEBUG - Total number of objects that was detected: 93.50%
-2024-07-11 23:12:08,331 - DEBUG - Total number of objects tracked:, 63.0567%
-2024-07-11 23:12:08,331 - DEBUG - Object Tracking succeeded
-2024-07-11 23:12:08,332 - DEBUG - Total time taken: 159.657929 seconds
+2024-07-13 00:01:30,390 - DEBUG - Total number of objects that should have been detected 3278
+2024-07-13 00:01:30,390 - DEBUG - Total number of objects that was detected: 93.50%
+2024-07-13 00:01:30,390 - DEBUG - Total number of objects tracked:, 63.0567%
+2024-07-13 00:01:30,390 - DEBUG - Object Tracking succeeded
+2024-07-13 00:01:30,390 - DEBUG - Total time taken: 161.326065 seconds

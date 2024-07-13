@@ -23,6 +23,9 @@ Modify encode model in yolov8-deepsort.py
 Instead of using 'model_data/mars-small128.pb'
 Use something simpler that detects geometric data
 Look into custom CNN that is built specifically for circles
+
+- Initially was 2.86%
+
 --> YOLOv9 implemented -- Try out YOLOV10
 
 Hyperparameter Tuning

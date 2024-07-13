@@ -1,9 +1,7 @@
-# Basketball Game Simulation
-# Utilizing pygame, simulating basketball plays executed
-
 '''
-Outline
-
+Basketball Game Simulation
+Utilizing pygame, simulating basketball plays executed
+The code also includes alpha blending for rendering semi-transparent objects in the simulation.
 '''
 
 #%%
@@ -557,6 +555,8 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
                 radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
                 radius,
                 color)
+            ### CREATE PERIMETER color around this circle
+            ### CREATE CENTER color around this circle
             if is_valid_placement(new_player, existing_players):
                 return new_player
             attempts += 1
@@ -567,7 +567,7 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
 
 #%%
 
-def circles_overlap(circle1, circle2, minimum_overlap_percentage):
+def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
     """
     Objective:
     Check if 2 circles (players or basketball) overlap 
@@ -781,7 +781,7 @@ try:
             #Calculate the distance between the basketball and the receiving player.
             #This dictates which relative position the basketball should be from the player
             if first_overlap is False:
-                if circles_overlap(basketball, current_player, basketball_player_overlap):
+                if check_circles_overlap(basketball, current_player, basketball_player_overlap):
                     
                     #Calculate x, y displacement relative to player
                     basketball_relative_x = basketball.x - current_player.x

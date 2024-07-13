@@ -43,8 +43,10 @@ class Tracker:
         self.n_init = n_init
 
         self.kf = kalman_filter.KalmanFilter()
-        self.tracks = []
         self._next_id = 1
+
+        # Features extracted through object detection (Hough Circle Transformation)
+        self.tracks = []
 
     def predict(self):
         """Propagate track state distributions one time step forward.
