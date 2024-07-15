@@ -39,10 +39,7 @@ Pygame Simulation Frame
 
 Ensure you have the following packages installed:
 
-Install the following libraries.
-```bash
-pip install pygame opencv-python numpy torch ultralytics
-```
+Refer Requirements.txt file and install the libraries mentioned
 
 Clone the Repository
 ```bash
@@ -86,7 +83,6 @@ Important files for this project
 Basketball-PlayAnalysis/
 ├── Basketball_Game_Simulation.py                   # Script for simulating basketball games
 ├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
-├── update_badge_overall_test.py                    # Script to update CI/CD pipeline badge
 ├── README.md                                       # Project documentation
 ├── Requirements.txt                                # Project requirements
 ├── deep_sort/                                      # Directory for deep sort algorithms
@@ -96,9 +92,7 @@ Basketball-PlayAnalysis/
 │   ├── Basketball Court Diagram.jpg
 │   ├── object_tracking_video.mp4
 │   ├── simulation.mp4
-├── .github/workflows                               # Git Actions
-│   ├── game-simulation.yaml
-│   ├── object-tracking.yaml
+├── .github/workflows                               # Git Actions\
 │   ├── overall-test.yaml
 ```
 

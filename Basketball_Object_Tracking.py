@@ -145,51 +145,6 @@ def color_detection(color_hue):
 
 #%%
 
-def create_optimal_tracking_color(object_bgr):
-    """
-    Objective: 
-    Return the perimeter color and center color of the detected circle. 
-    This is to improve the detection object tracking.
-    Perimeter color is a darker shade. Center color is a lighter shade.
-
-    Parameters:
-    [tuple] object_bgr - object color in bgr
-
-    
-    Returns:
-    [tuple] perimeter_color - perimeter color in rgb
-    [tuple] center_color - center color in rgb
-    """
-
-    try:
-        #Ensuring the color stays within the 0-255 color range
-        def adjust_color_value(color_value, factor):
-            return min(max(int(color_value * factor), 0), 255)
-
-        # cv2 returns values in BGR format
-        b, g, r = object_bgr
-
-        # Calculate the darker shade for the perimeter
-        perimeter_color = (
-            adjust_color_value(r, 0.7),
-            adjust_color_value(g, 0.7),
-            adjust_color_value(b, 0.7)
-        )
-
-        # Calculate the lighter shade for the center
-        center_color = (
-            adjust_color_value(r + (255 - r) * 0.5, 1),
-            adjust_color_value(g + (255 - g) * 0.5, 1),
-            adjust_color_value(b + (255 - b) * 0.5, 1)
-        )
-
-        return perimeter_color, center_color
-
-    except Exception as e:
-        logger.error("Error in calculating optimal color for object detection: %s", e)
-
-#%%
-
 def update_objectdetection_features(objectdetection_features, x_coordinate, y_coordinate, radius, object_color):
     """
     Objective: 
@@ -289,15 +244,6 @@ def object_detection(p1, p2, results, frame_with_color):
                 # Identify the color of the circle # NEED TO WORK ON IT - Get mean value of surrounding pixels
                 object_color = frame_rgb[y_coordinate, x_coordinate]
 
-                #Set the optimal color for tracking purposes
-                perimeter_detection_color, center_detection_color = create_optimal_tracking_color(detection_color)
-
-                # Outer Circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), radius, perimeter_detection_color, 2)
-
-                # Center of circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
-
                 # Update object detections features
                 objectdetection_features = update_objectdetection_features(objectdetection_features, x_coordinate, y_coordinate, radius, object_color)
 
@@ -344,9 +290,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     scores = scores[mask]
 
     # Calculate number of objects detected
-    print('Detected Object')
-    #print(boxes)
-
     if boxes is not None:
         n_tracked += len(boxes)
 
@@ -384,8 +327,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
         print('No circle features were detected in the frame')
         logger.debug("No circle features were detected in the frame: %s", e)
 
-    #[Detection(box, score, feature) for box, score, feature in zip(boxes, scores, features)]
-
     # Update tracker
     tracker.predict()
     tracker.update(detections)
@@ -411,11 +352,10 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
         except:
             # Calculate the object's detection confidence score
             confidence_score = 0.0
-            #BUG: Why is confidence_score not recognized but object is still detected?
 
         # Set object border lines + object's track_id and confidence score
         color = (255, 255, 255)  # BGR format
-        detectioncircle_radius = int(track.radius)+4
+        detectioncircle_radius = int(track.radius)+6
         detectioncircle_color = [255, 255, 255]
         detectioncircle_thickness = 2
         cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, detectioncircle_color, detectioncircle_thickness)
@@ -534,8 +474,6 @@ try:
         # Perform Hough Circles detection (Object Detection)
         resulting_values, objectdetection_features, inpainted_frame  = object_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
-        print(objectdetection_features)
-        
         # Perform DeepSort (Object Tracking)
         inpainted_frame, n_tracked = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, objectdetection_features)
 
@@ -553,15 +491,12 @@ try:
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")
             break
-
-        '''
-        For git actions testing, stop simulation to focus on testing code. 
-        This should be commented out
-
-        if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
+        
+        # GitHub Actions specific code
+        if os.getenv('GITHUB_ACTIONS') is True and n_frames > 0:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
-        '''
+
     # Log results summary
     n_objects = n_frames*11
     count_detected_objects = list(resulting_values.values())[0]/n_objects*100
@@ -570,7 +505,6 @@ try:
     logger.debug (f"Total number of objects that should have been detected {n_objects}")
     logger.debug (f"Total number of objects that was detected: {count_detected_objects:.2f}%")
     logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.4f}%")
-
     logger.debug ("Object Tracking succeeded")
 
 except Exception as e:

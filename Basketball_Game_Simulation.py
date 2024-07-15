@@ -113,10 +113,19 @@ class Player:
         Objective: Draw the player on the simulation screen
         """
         try:
-            pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+            # Circle
+            pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius+2)
+
+            inverse_color = reverse_color(self.color) # Calculate the inverse of circle's color  
+            
+            # Perimeter
+            draw_circle(screen, (int(self.x), int(self.y)), self.radius + 2, inverse_color, 2)
+
+            # Center
+            draw_circle(screen, (int(self.x), int(self.y)), 2, inverse_color, 2)
+
         except Exception as e:
             logger.error("Error in drawing player: %s", e)
-
 
 #%%
 
@@ -185,6 +194,14 @@ class Basketball:
         """
         try:
             pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+
+            inverse_color = reverse_color(self.color) # Calculate the inverse of circle's color  
+            
+            # Perimeter
+            draw_circle(screen, (int(self.x), int(self.y)), self.radius + 2, inverse_color, 2)
+
+            # Center
+            draw_circle(screen, (int(self.x), int(self.y)), 2, inverse_color, 2)
 
         except Exception as e:
             logger.error("Error in drawing basketball: %s", e)
@@ -385,6 +402,53 @@ def ball_reached_player(ball, target, speed):
     except Exception as e:
         logger.error("Error in calculating if basketball reached the player: %s", e)
 
+#%% 
+
+def reverse_color(circle_color):
+    """
+    Objective:
+    Reverse the circle's RGB scheme to create a more accuracte object detection/tracking
+    For example: [255, 0, 0] -> [0, 255, 255]
+
+    Parameters:
+    [tuple] circle_color - Detected color of the circle
+
+    Returns:
+    [tuple] inverse_circle_color - Detected color of the circle
+    """
+
+    try:
+        inverse_circle_color = tuple(0 if c >= 128 else 255 for c in circle_color)
+
+        return inverse_circle_color
+
+    except Exception as e:
+        logger.error("Error in calculating the inverse of the given color: %s", e)
+
+#%% 
+
+def draw_circle(surface, center, radius, color, thickness=0):
+    """
+    Objective:
+    Draw a circle on a pygame surface, similar to cv2.circle
+    
+    Parameters:q
+    [pygame.Surface] surface - Simulation frame to draw on
+    [tuple] center - (x, y) of circle center
+    [int] radius - radius of the circle
+    [tuple] color - (r, g, b) of circle color
+    [int] thickness - thickness of circle outline
+    """
+
+    x, y = center
+
+    if thickness == 0:
+        # Draw a filled circle
+        pygame.draw.circle(surface, color, (int(x), int(y)), radius)
+    else:
+        # Draw a hollow circle
+        for i in range(thickness):
+            pygame.draw.circle(surface, color, (int(x), int(y)), radius - i, 1)
 
 #%%
 
@@ -555,6 +619,8 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
                 radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
                 radius,
                 color)
+            
+
             ### CREATE PERIMETER color around this circle
             ### CREATE CENTER color around this circle
             if is_valid_placement(new_player, existing_players):
@@ -715,7 +781,6 @@ basketball_displacement = 15 #Basketball displacement from the player
 simulating = True #Set simulation to true to start
 simulation_limit = 3 # stop simulation after x minutes
 
-
 #%%
 
 " Simulate Basketball Game "
@@ -844,6 +909,12 @@ try:
         # Write the frame
         out.write(frame)
         frames_captured += 1
+
+        # GitHub Actions specific code
+        if os.getenv('GITHUB_ACTIONS') is True and frames_captured > 0:
+            logger.debug("Simulation stopped after 2 frames, as it's running in GitHub Actions")
+            break
+
 
     logger.debug("Game Simulation succeeded")
 

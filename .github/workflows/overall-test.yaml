@@ -30,7 +30,23 @@ jobs:
       shell: bash
     
     - name: Run Basketball Game Simulation
-      run: python Basketball_Game_Simulation.py
+      run: 
+        python Basketball_Game_Simulation.py
+
+        if [ $? -eq 0 ]; then
+          echo "Basketball Game Simulation completed successfully"
+        else
+          echo "Basketball Game Simulation failed"
+          exit 1
+        fi
       
     - name: Run Basketball Object Tracking
-      run: python Basketball_Object_Tracking.py
+      run: 
+        python Basketball_Object_Tracking.py
+
+        if [ $? -eq 0 ]; then
+          echo "Basketball Game Simulation completed successfully"
+        else
+          echo "Basketball Game Simulation failed"
+          exit 1
+        fi
