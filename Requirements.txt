@@ -3,5 +3,8 @@ opencv-python-headless==4.9.0.80
 numpy==1.23.5
 tensorflow==2.16.1
 scipy==1.9.3
-urllib3==1.26.7
-ultralytics==8.2.11
+urllib3==1.26.6
+ultralytics==8.2.56
+torch==2.3.0
+torchvision==0.18.0
+pytest==7.4.0

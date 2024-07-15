@@ -12,25 +12,29 @@ Main ML related algorithms used are:
 Upcoming Implementations:
 
 1.
-# Features extracted through object detection (Hough Circle Transformation)
-tracker.py
-self.tracks = []
-
-Include speed and direction as a feature
+Include these additional features: 
+- speed
+- direction
+- aspect ratio to frame
 
 2.
+Feature Extractor Model
+- ResNet50
+- EfficientNet
+
+3.
 Game_Simulation.py
 Update place_circle_with_constraints
 Create a perimeter and center circle related to the circle
 
-3.
+4.
 Game_Simulation.py
 Update game simulation to include alpha blending
 
-4.
+5.
 YOLOv10 implementation
 
-5.
+6.
 Optimize parameters
 
 Grid Search
@@ -39,10 +43,7 @@ Grid Search
 - NMS threshold? - Removed in YOLOv10
 - other parameters
 
-6.
-Feature Extractor Model
-- ResNet50
-- EfficientNet
+Include Kalman filter state as a feature for object tracking
 
 7.
 Improve variable stating the color of each circle
@@ -406,26 +407,21 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
         try:
             # Calculate the object's detection confidence score
             confidence_score = scores[ith_value]
-
-            # Set object border lines + object's track_id and confidence score
-            color = (255, 255, 255)  # BGR format
-            detectioncircle_radius = int(track.radius)+4
-            detectioncircle_color = [255, 255, 255]
-            detectioncircle_thickness = 2
-            cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, [255, 255, 255], 2)
-            cv2.putText(frame, f"{track.track_id}-{confidence_score:3f}", (int(bbox[0]), int(bbox[1])-10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-
+        
         except:
             # Calculate the object's detection confidence score
             confidence_score = 0.0
             #BUG: Why is confidence_score not recognized but object is still detected?
-            
-            # Set object border lines + object's track_id and confidence score
-            color = (255, 255, 255)  # BGR format
-            cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
-            cv2.putText(frame, f"{track.track_id}-{confidence_score:3f}", (int(bbox[0]), int(bbox[1])-10), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        # Set object border lines + object's track_id and confidence score
+        color = (255, 255, 255)  # BGR format
+        detectioncircle_radius = int(track.radius)+4
+        detectioncircle_color = [255, 255, 255]
+        detectioncircle_thickness = 2
+        cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, detectioncircle_color, detectioncircle_thickness)
+        cv2.putText(frame, f"{track.track_id}-{confidence_score:2f}", (int(bbox[0]), int(bbox[1])-10), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        
 
     return frame, n_tracked
 
@@ -503,7 +499,7 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
 # Initialize Deep SORT components
-model = YOLO("yolov9c.pt")
+model = YOLO("yolov8n.pt") #yolov8n.pt | yolo9c.pt | yolo9e.pt
 max_cosine_distance = 0.5
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
@@ -538,6 +534,8 @@ try:
         # Perform Hough Circles detection (Object Detection)
         resulting_values, objectdetection_features, inpainted_frame  = object_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
+        print(objectdetection_features)
+        
         # Perform DeepSort (Object Tracking)
         inpainted_frame, n_tracked = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, objectdetection_features)
 

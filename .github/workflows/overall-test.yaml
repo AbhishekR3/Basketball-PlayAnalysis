@@ -1,7 +1,4 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Run Basketball Simulation and Basketball Tracking
+name: Basketball Simulation and Tracking Test
 
 on:
   push:
@@ -13,29 +10,27 @@ on:
       - 'main'
       - 'DEV_Code'
 
-permissions:
-  contents: read
-
 jobs:
-  update-badge:
+  test:
     runs-on: macos-latest
-
+    
     steps:
-    - name: Check out the repository
-      uses: actions/checkout@v4
-
+    - uses: actions/checkout@v2
+    
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v2
       with:
-        python-version: '3.10'
-
-    - name: Install requests
-      run: pip install requests
-
-    - name: Update Badge
-      run: python update_badge_overall_test.py
-      env:
-        GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-        GIST_ID: 8cd877c3426a17132649c9c3d3a9e8b0
-        GITHUB_OWNER: AbhishekR3
-        GITHUB_REPO: Basketball-PlayAnalysis
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        pip install -r Requirements.txt
+      shell: bash
+    
+    - name: Run Basketball Game Simulation
+      run: python Basketball_Game_Simulation.py
+      
+    - name: Run Basketball Object Tracking
+      run: python Basketball_Object_Tracking.py

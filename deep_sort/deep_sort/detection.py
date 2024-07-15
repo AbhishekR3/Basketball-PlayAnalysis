@@ -31,12 +31,11 @@ class Detection(object):
         self.confidence = float(confidence)
         self.feature = np.asarray(feature, dtype=np.float32)
 
-        # UPDATED #
+        # Features of the circle detected
         self.x = x
         self.y = y
         self.radius = radius
         self.color = color
-        # UPDATED #
 
     def to_tlbr(self):
         """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
@@ -53,4 +52,5 @@ class Detection(object):
         ret = self.tlwh.copy()
         ret[:2] += ret[2:] / 2
         ret[2] /= ret[3]
+        #ret = np.concatenate([ret, self.x, self.y, self.radius, self.color])
         return ret
