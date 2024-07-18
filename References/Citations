@@ -1,4 +1,4 @@
----------------------------------------------------------------------------------------
+**************************************************************************************************************************************
 DeepSort Implementation
 
 @inproceedings{Wojke2017simple,
@@ -23,4 +23,24 @@ DeepSort Implementation
 
 Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
 Includes a modification of this code: https://github.com/computervisioneng/object-tracking-yolov8-deep-sort/blob/master/tracker.py
----------------------------------------------------------------------------------------
+
+**************************************************************************************************************************************
+
+Roboflow - Creating image annotations used in custom object detection model
+
+@misc{
+  customobjectdetection_data_dataset,
+  title = { CustomObjectDetection_Data Dataset },
+  type = { Open Source Dataset },
+  author = { BasketballPlayAnalysis },
+  howpublished = { \url{ https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data } },
+  url = { https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data },
+  journal = { Roboflow Universe },
+  publisher = { Roboflow },
+  year = { 2024 },
+  month = { jul },
+  note = { visited on 2024-07-17 },
+  }
+  
+**************************************************************************************************************************************
+

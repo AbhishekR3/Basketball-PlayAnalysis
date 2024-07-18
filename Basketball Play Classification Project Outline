@@ -16,6 +16,10 @@ Object Detections
 - Create a mask of the basketball court image
 - Using HoughCircles detect the circles
 
+Image Segmentation
+- YOLOv9c
+https://www.youtube.com/watch?v=ZF7EAodHn1U&t=219s
+
 Object Tracking
 - Deep Sort (helps considering occuluion)
 --> Create custom model?

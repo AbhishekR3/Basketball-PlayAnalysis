@@ -620,9 +620,6 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
                 radius,
                 color)
             
-
-            ### CREATE PERIMETER color around this circle
-            ### CREATE CENTER color around this circle
             if is_valid_placement(new_player, existing_players):
                 return new_player
             attempts += 1

@@ -4,7 +4,7 @@ This file tracks the positions of each player and the basketball.
 
 Main ML related algorithms used are:
 - Hough Circle Transform - Object Detection specifically for Circles
-- YOLO - End to End Object Object Detection using YOLOv9e for accuracy. YOLOV8n for debugging. YOLOV9c for quick check
+- YOLO - End to End Object Object Detection using YOLOv9c for accuracy/speed balance. YOLOV8n for debugging.
 - DeepSort - Multi Object Tracking Algorithm that factors in occlusion
 '''
 
@@ -12,29 +12,30 @@ Main ML related algorithms used are:
 Upcoming Implementations:
 
 1.
-Include these additional features: 
-- speed
-- direction
-- aspect ratio to frame
-
-2.
 Feature Extractor Model
 - ResNet50
 - EfficientNet
 
+2.
+Include these additional features: 
+- velocity
+- acceleration
+- color historgram
+
+
 3.
-Game_Simulation.py
-Update place_circle_with_constraints
-Create a perimeter and center circle related to the circle
-
-4.
-Game_Simulation.py
-Update game simulation to include alpha blending
-
-5.
 YOLOv10 implementation
 
-6.
+4.
+Alpha Blending in game simulation
+
+3. Image segmentation
+2. Perform edge detection to strengthen outline of the circle
+1. Alpha Blending
+
+4. HoughCircle Detection 
+
+5.
 Optimize parameters
 
 Grid Search
@@ -45,13 +46,8 @@ Grid Search
 
 Include Kalman filter state as a feature for object tracking
 
-7.
-Improve variable stating the color of each circle
 
-object_color
-
-Take input of the colors surrounding the center coordinate based on coordinate
-Return mean value? If blue is detected then return blue, if red is detected return red?
+6. Create validation test cases
 '''
 
 #%%
@@ -64,8 +60,12 @@ import os
 import time
 import logging
 import torch
+import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
+from torchvision.models import efficientnet_b0
+from PIL import Image
+#from ultralytics import YOLOv10
 from ultralytics import YOLO
 
 # DeepSORT code from local files
@@ -278,12 +278,13 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     [int] n_tracked - number of objects that are tracked (debugging purposes)
     """
 
+    # Process the current frame with the YOLO model
     results = model(frame)
 
     # Extract bounding boxes and scores
     boxes = results[0].boxes.xyxy.numpy()
     scores = results[0].boxes.conf.numpy()
-    
+
     # Filter the detections based on confidence threshold
     mask = scores > 0.2
     boxes = boxes[mask]
@@ -295,7 +296,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
 
     # Relevant parameters (optimal)
     #tracker.py - max_iou_distance=0.2, max_age=5, n_init=5
-    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=euclidean/cosine (need to test further), model=YOLOv9e
+    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine (need to test further), model=YOLOv9e, FeatureExtract model = EfficientNet
 
     # Object Tracking Accuracy: 78.95%
     # Time Taken: 272 seconds
@@ -333,7 +334,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
 
     # Draw bounding boxes and IDs
     for ith_value, track in enumerate(tracker.tracks):
-
         # Check if
         # not track.is_confirmed()    : Check that an object track has not been found
         # track.time_since_update > 1 : Check the track has not been updated for more than one frame
@@ -361,7 +361,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
         cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, detectioncircle_color, detectioncircle_thickness)
         cv2.putText(frame, f"{track.track_id}-{confidence_score:2f}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-        
 
     return frame, n_tracked
 
@@ -439,13 +438,15 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
 # Initialize Deep SORT components
-model = YOLO("yolov8n.pt") #yolov8n.pt | yolo9c.pt | yolo9e.pt
+model = YOLO("yolov9c.yaml") #yolov8n.pt | yolo9c.pt
+#model = YOLOv10("yolov10l.pt")
+##model = YOLOv10.from_pretrained('yolov10n.pt')
 max_cosine_distance = 0.5
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
 
-# Adjust this path based on the location of your script relative to the model file
+# Training model and feature extractor
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
 encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
 
@@ -467,6 +468,11 @@ try:
         # If frame is read correctly ret is True
         if not ret:
             break
+
+        '''
+        if n_frames>=5:
+            print('DEBUG')
+        '''
 
         # Perform background subtraction (Remove basketball court)
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
@@ -516,3 +522,6 @@ finally:
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
+
+# %%
+# %%
