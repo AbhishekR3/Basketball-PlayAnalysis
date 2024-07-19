@@ -23,6 +23,10 @@ https://www.youtube.com/watch?v=ZF7EAodHn1U&t=219s
 Object Tracking
 - Deep Sort (helps considering occuluion)
 - Initially was 2.86%
+- With custom model 96%
+
+96.00-2.86
+93.14%
 
 Improving accuracy in custom model training: Train.py
 - K-Fold Cross Validation
@@ -75,6 +79,9 @@ Simulation Optimization
 - Change video dimensions???
 - Change video resolution to 240p?
 - Consider switching to 60/higher FPS
+
+
+GPU Accelerated Libraries
 
 ######################### Bugs #########################
 1. Resolve issue moving ball to another side of the player

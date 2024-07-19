@@ -36,3 +36,10 @@ The following augmentation was applied to create 3 versions of each source image
 * Salt and pepper noise was applied to 1.53 percent of pixels
 
 ********************************************************************************************************************
+
+Overall, the model performs significantly better than the generic pre-trained YOLOv9c model.
+The custom model records a mAP50 value of 98.4% and recall value of 98.2%
+
+Training/Validation results and relevant metrics can be found in Training Results document in the same folder 
+
+********************************************************************************************************************

@@ -3,6 +3,7 @@ Training the YOLO model on the custom dataset
 
 Key Concepts Implemented:
 - Augmentations (refer README.dataset.txt for more info)
+- Logging GPU memory usage
 '''
 
 # Training/Testing the YOLO model on the custom dataset
@@ -21,6 +22,7 @@ print(f"MPS (Metal Performance Shaders) available: {torch.backends.mps.is_availa
 print(f"MPS backend enabled: {torch.backends.mps.is_built()}")
 
 # Set seeds for consistentncy
+
 def set_seeds(seed=42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -29,8 +31,6 @@ def set_seeds(seed=42):
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-# Use this function before training
 set_seeds()
       
 # Check GPU memory usage
@@ -39,7 +39,7 @@ def log_memory_usage():
         print(f"Memory allocated: {torch.mps.current_allocated_memory() / 1e6:.2f} MB")
         print(f"Memory reserved: {torch.mps.driver_allocated_memory() / 1e6:.2f} MB")
 
-# Check if MPS (Metal Performance Shaders) is available
+# Check if GPU (MPS) is available
 if torch.backends.mps.is_available():
     device = torch.device("mps")
     print("Using MPS (Apple Silicon GPU)")
@@ -56,6 +56,7 @@ model.to(device)
 # Model Information
 model.info()
 
+# GPU memory usage before training
 print()
 print("Memory usage before training:")
 log_memory_usage()
@@ -66,6 +67,7 @@ projectfile_path = os.getcwd()
 trainingdata_path = os.path.join(projectfile_path, 'CustomObjectDetection_Data', 'data.yaml')
 results = model.train(data=trainingdata_path, epochs=10, imgsz=640, device=device)  # train the model
 
+# GPU memory usage after training
 print()
 print("Memory usage after training:")
 log_memory_usage()
@@ -74,7 +76,6 @@ print()
 # Use the model
 metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)
-
 
 # Save the model
 model_path = os.path.join(projectfile_path, 'CustomModel_InstanceSegmentation.pt')

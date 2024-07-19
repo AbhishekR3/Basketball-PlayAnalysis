@@ -4,9 +4,9 @@ This file tracks the positions of each player and the basketball.
 
 Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
-- YOLO - End to End Object Object Detection using YOLOv9c for accuracy/speed balance. YOLOV8n for debugging.
---> Custom Model (Refer CustomObjectDetection_Data for more info) 
-- DeepSort - Multi Object Tracking Algorithm that factors in occlusion
+- YOLO - End to End Object Object Detection using YOLOv9c base for accuracy/speed balance
+--> Implemented a custom model (Refer CustomObjectDetection_Data/README.dataset.txt for more info) 
+- DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
 '''
 
 '''
@@ -15,8 +15,20 @@ Upcoming Implementations:
 0. 
 Create validation test cases for object detection / deepsort tracking
 
+If validation test good, continue with Cloud Migration.
+If validation test not good, fix it with the below in mind
+---------
+0. Change from mars128 feature extractor to custom YOLO model
+<PLANNING>
+1. Remove the mars128 feature extractor.
+2. Modify the YOLO model to output features along with detections.
+3. Update the `object_tracking` function to use YOLO features instead of mars128 features.
+4. Adjust the DeepSORT tracker to work with the new feature format.
+5. Test the changes and fine-tune as needed.
+</PLANNING>
+
 1.
-Improve custom model implement: K-Fold Cross Validation
+Improve custom model implement: K-Fold Cross Validation?
 
 2.
 Feature Extractor Model
@@ -35,7 +47,6 @@ YOLOv10 implementation
 5.
 Alpha Blending in game simulation
 - Alpha Blending - Rendering semi-transparent objects when there is overlap to increase object detection/tracking
-
 
 -1. Image segmentation
 -2. Perform edge detection to strengthen outline of the circle
@@ -63,13 +74,13 @@ import numpy as np
 import os
 import time
 import logging
+import random
 import torch
 import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
 from torchvision.models import efficientnet_b0
 from PIL import Image
-#from ultralytics import YOLOv10
 from ultralytics import YOLO
 
 # DeepSORT code from local files
@@ -78,6 +89,20 @@ from deep_sort.deep_sort.detection import Detection
 from deep_sort.deep_sort.tracker import Tracker
 from deep_sort.tools import generate_detections as gdet
 
+""""
+# Set seeds for consistentncy
+def set_seeds(seed=42):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+# Use this function before training
+set_seeds()
+"""
 #%%
 
 def preprocess_frame(frame, greyed = True, blur = 'median'):
@@ -108,44 +133,6 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 
     except Exception as e:
         logger.error("Error in preprocessing the frame: %s", e)
-
-#%%
-
-def color_detection(color_hue):
-    """
-    Objective:
-    Returns the BGR value for a given hue color.
-    Switch Red and Blue values to create a distnct circle around the players.
-
-    Parameters:
-    [int] color_hue - Hue value
-
-    Returns:
-    [tuple] color_detected - Color detected is represented in (x, x, x) format
-    """
-
-    try:
-        # Red detected -> Return BLue
-        if color_hue < 10 or color_hue > 170:
-            color_detected = (255, 0, 0)
-
-        # Orange
-        elif 10 <= color_hue <= 30:
-            color_detected = (255, 165, 0)
-
-        # Blue
-        elif 100 <= color_hue <= 140:
-            color_detected = (0, 0, 255)
-
-        else:
-            logger.debug("Color hue outside of range: %s", color_hue)
-            color_detected = (0,0,0)
-
-        return color_detected
-
-    except Exception as e:
-        logger.error("Error in detecting color: %s", e)
-
 
 #%%
 
@@ -218,7 +205,7 @@ def object_detection(p1, p2, results, frame_with_color):
         frame_hsv = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2HSV)
         frame_rgb = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2RGB)
 
-        circles_detected = cv2.HoughCircles(frame_greyed, cv2.HOUGH_GRADIENT, 1, minDist = 3, param1 = p1, param2 = p2, minRadius = 10, maxRadius = 20)
+        circles_detected = cv2.HoughCircles(frame_greyed, cv2.HOUGH_GRADIENT, dp=1, minDist = 1, param1 = p1, param2 = p2, minRadius = 10, maxRadius = 20)
 
         # If no circles were detected, set circle_count to 0 and return null objectdetection_features
         if circles_detected is None:
@@ -241,11 +228,7 @@ def object_detection(p1, p2, results, frame_with_color):
                 y_coordinate = ith_circle[1]
                 radius = ith_circle[2]
 
-                # Color of circle
-                center_color_hue = frame_hsv[y_coordinate, x_coordinate][0] # Set color hue of the circle
-                detection_color = color_detection(center_color_hue) # Set border color
-
-                # Identify the color of the circle # NEED TO WORK ON IT - Get mean value of surrounding pixels
+                # Identify the color of the circle
                 object_color = frame_rgb[y_coordinate, x_coordinate]
 
                 # Update object detections features
@@ -272,7 +255,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     
     Parameters:
     [array] frame - video frame before object tracking
-    [class model] model - YOLO detection with the pre-trained model
+    [class model] model - YOLO detection with the custom model
     [class deepsort] tracker - DeepSORT Tracker
     [function] encoder - Extracts relevant information (features) from the given frame 
     [int] n_tracked - number of objects that are tracked (debugging purposes)
@@ -290,25 +273,27 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     scores = results[0].boxes.conf.numpy()
 
     # Filter the detections based on confidence threshold
-    mask = scores > 0.5
+    mask = scores > 0.65
     boxes = boxes[mask]
     scores = scores[mask]
 
     # Calculate number of objects detected
     if boxes is not None:
         n_tracked += len(boxes)
+    
+    print('No, objects added:',len(boxes))
+    
+    """
+    #Relevant parameters
+    tracker.py - max_iou_distance=0.5, max_age=2, n_init=50
+    B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine
+    --> model=YOLOv9c based custom model, FeatureExtract model = EfficientNet
 
-    # Relevant parameters (optimal)
-    #tracker.py - max_iou_distance=0.2, max_age=5, n_init=5
-    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine (need to test further)
-    #--> model=YOLOv9c based custom model, FeatureExtract model = EfficientNet
-
-    # Object Tracking Accuracy: 78.95%
-    # Time Taken: 272 seconds
-
-    #Kalman filter parameters
-    #max_dist
-    #NMS threshold
+    Check these
+    Kalman filter parameters
+    max_dist
+    NMS threshold
+    """
 
     # Compute features for Deep SORT
     features = encoder(frame, boxes)
@@ -360,7 +345,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
 
         # Set object border lines + object's track_id and confidence score
         color = (255, 255, 255)  # BGR format
-        detectioncircle_radius = int(track.radius)+6
+        detectioncircle_radius = int(track.radius)+5
         detectioncircle_color = [255, 255, 255]
         detectioncircle_thickness = 2
         cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, detectioncircle_color, detectioncircle_thickness)
@@ -422,7 +407,7 @@ except Exception as e:
     exit()
 
 # Parameter values to test
-param1_value = 12 # 12/13 - Best results
+param1_value = 10 # 12/13 - Best results
 param2_value = 15 # 15 - Best results
 
 # Initialize results dictionary
@@ -446,7 +431,8 @@ out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 script_directory = os.getcwd()
 model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
 model = YOLO(model_path)
-max_cosine_distance = 0.5
+model.iou = 0.45
+max_cosine_distance = 0.3
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
