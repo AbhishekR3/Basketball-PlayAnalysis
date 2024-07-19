@@ -22,15 +22,13 @@ https://www.youtube.com/watch?v=ZF7EAodHn1U&t=219s
 
 Object Tracking
 - Deep Sort (helps considering occuluion)
---> Create custom model?
-Modify encode model in yolov8-deepsort.py
-Instead of using 'model_data/mars-small128.pb'
-Use something simpler that detects geometric data
-Look into custom CNN that is built specifically for circles
-
 - Initially was 2.86%
 
---> YOLOv9 implemented -- Try out YOLOV10
+Improving accuracy in custom model training: Train.py
+- K-Fold Cross Validation
+- Hyperparamter fine tuning
+- Learning Rate scheduling
+- Early stopping mechanism to prevent overfitting
 
 Hyperparameter Tuning
 - Adam optimizer

@@ -2,40 +2,47 @@
 Basketball Object Tracking
 This file tracks the positions of each player and the basketball.
 
-Main ML related algorithms used are:
+Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
 - YOLO - End to End Object Object Detection using YOLOv9c for accuracy/speed balance. YOLOV8n for debugging.
+--> Custom Model (Refer CustomObjectDetection_Data for more info) 
 - DeepSort - Multi Object Tracking Algorithm that factors in occlusion
 '''
 
 '''
 Upcoming Implementations:
 
+0. 
+Create validation test cases for object detection / deepsort tracking
+
 1.
+Improve custom model implement: K-Fold Cross Validation
+
+2.
 Feature Extractor Model
 - ResNet50
 - EfficientNet
 
-2.
+3.
 Include these additional features: 
 - velocity
 - acceleration
 - color historgram
 
-
-3.
+4.
 YOLOv10 implementation
 
-4.
-Alpha Blending in game simulation
-
-3. Image segmentation
-2. Perform edge detection to strengthen outline of the circle
-1. Alpha Blending
-
-4. HoughCircle Detection 
-
 5.
+Alpha Blending in game simulation
+- Alpha Blending - Rendering semi-transparent objects when there is overlap to increase object detection/tracking
+
+
+-1. Image segmentation
+-2. Perform edge detection to strengthen outline of the circle
+-3. Alpha Blending
+
+
+6.
 Optimize parameters
 
 Grid Search
@@ -45,9 +52,6 @@ Grid Search
 - other parameters
 
 Include Kalman filter state as a feature for object tracking
-
-
-6. Create validation test cases
 '''
 
 #%%
@@ -286,7 +290,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     scores = results[0].boxes.conf.numpy()
 
     # Filter the detections based on confidence threshold
-    mask = scores > 0.2
+    mask = scores > 0.5
     boxes = boxes[mask]
     scores = scores[mask]
 
@@ -296,7 +300,8 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
 
     # Relevant parameters (optimal)
     #tracker.py - max_iou_distance=0.2, max_age=5, n_init=5
-    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine (need to test further), model=YOLOv9e, FeatureExtract model = EfficientNet
+    #B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine (need to test further)
+    #--> model=YOLOv9c based custom model, FeatureExtract model = EfficientNet
 
     # Object Tracking Accuracy: 78.95%
     # Time Taken: 272 seconds
@@ -438,9 +443,9 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
 # Initialize Deep SORT components
-model = YOLO("yolov9c.yaml") #yolov8n.pt | yolo9c.pt
-#model = YOLOv10("yolov10l.pt")
-##model = YOLOv10.from_pretrained('yolov10n.pt')
+script_directory = os.getcwd()
+model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+model = YOLO(model_path)
 max_cosine_distance = 0.5
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)

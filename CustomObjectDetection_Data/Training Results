@@ -1,0 +1,19 @@
+Latest Training Results Data
+
+Model: YOLOv9c
+Epochs: 10
+Image Size = 640x640
+
+
+| Class      | Images | Instances | Box(P) | R     | mAP50 | mAP50-95 |
+|------------|--------|-----------|-------|-------|-------|----------|
+| all        | 6      | 66        | 0.964 | 0.982 | 0.984 | 0.699    |
+| Basketball | 6      | 6         | 0.931 | 1.000 | 0.995 | 0.521    |
+| Team_A     | 6      | 30        | 0.961 | 0.967 | 0.963 | 0.779    |
+| Team_B     | 6      | 30        | 1.000 | 0.978 | 0.995 | 0.798    |
+
+Speed per image:
+- 4.7ms preprocess
+- 206.6ms inference
+- 0.0ms loss
+- 213.9ms postprocess

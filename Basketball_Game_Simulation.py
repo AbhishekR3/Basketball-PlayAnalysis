@@ -1,7 +1,6 @@
 '''
 Basketball Game Simulation
 Utilizing pygame, simulating basketball plays executed
-The code also includes alpha blending for rendering semi-transparent objects in the simulation.
 '''
 
 #%%
