@@ -1,9 +1,4 @@
 ********************************************************************************************************************
-
-I had a great experience using Roboflow to annotate and create training/validation/test data for my project.
-I would recommend it to others who are building personal project.  
-
-********************************************************************************************************************
 To see the dataset and model please refer to the below link
 https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data
 

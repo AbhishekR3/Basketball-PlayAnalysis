@@ -902,8 +902,10 @@ try:
         frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
 
-        # Write the frame
-        out.write(frame)
+        # Do not include the first frame so the simulation could stabalize for effective analysis 
+        if frames_captured > 0:
+            # Write the output frame
+            out.write(frame)
         frames_captured += 1
 
         # GitHub Actions specific code

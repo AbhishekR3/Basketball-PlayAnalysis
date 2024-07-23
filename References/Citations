@@ -44,3 +44,6 @@ Roboflow - Creating image annotations used in custom object detection model
   
 **************************************************************************************************************************************
 
+CVAT (Computer Vision Annotation Tool) - Creating object tracking validation metrics
+
+This project uses [CVAT (Computer Vision Annotation Tool)](https://github.com/cvat-ai/cvat), an open-source annotation tool for computer vision.

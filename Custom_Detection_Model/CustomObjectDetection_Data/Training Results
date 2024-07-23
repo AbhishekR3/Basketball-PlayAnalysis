@@ -2,8 +2,9 @@ Latest Training Results Data
 
 Model: YOLOv9c
 Epochs: 10
-Image Size = 640x640
+Image Size: 640x640
 
+Performance:
 
 | Class      | Images | Instances | Box(P) | R     | mAP50 | mAP50-95 |
 |------------|--------|-----------|-------|-------|-------|----------|

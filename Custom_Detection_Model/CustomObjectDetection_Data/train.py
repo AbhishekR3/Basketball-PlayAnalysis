@@ -64,7 +64,7 @@ print()
 
 # Train dataset
 projectfile_path = os.getcwd()
-trainingdata_path = os.path.join(projectfile_path, 'CustomObjectDetection_Data', 'data.yaml')
+trainingdata_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'data.yaml')
 results = model.train(data=trainingdata_path, epochs=10, imgsz=640, device=device)  # train the model
 
 # GPU memory usage after training

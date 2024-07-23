@@ -5,8 +5,10 @@ This file tracks the positions of each player and the basketball.
 Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
 - YOLO - End to End Object Object Detection using YOLOv9c base for accuracy/speed balance
---> Implemented a custom model (Refer CustomObjectDetection_Data/README.dataset.txt for more info) 
+--> Implemented a custom model with 98.4% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
+--> Implemented validation
+
 '''
 
 '''
@@ -15,7 +17,46 @@ Upcoming Implementations:
 0. 
 Create validation test cases for object detection / deepsort tracking
 
-If validation test good, continue with Cloud Migration.
+Sequences: Passing, Dribbling
+Sequence Level Splitting keep temporal continuity
+- 30fps: 1-22: Train, 22-27: Test, 27-30: Validation
+
+Metrics to track
+- MOTA
+--> This is considers 3 major error ratios
+--> MOTA = 1 - (FalseNegatives + FalsePositives + IDSwitches) / GroundTruth
+
+- MOTP 
+--> This measures the preecision of object localization
+--> MOTP = Σ(Distance_between_objects) / Σ(count_matches)
+
+- IDF1
+--> This is the ratio between correctly identified detections and average ground-truth+computed detections
+--> IDF1 = 2 * ID_TruePositive /  (2 * ID_TruePositive + ID_FalseNegative + ID_FalsePositive)
+
+- Track Completness
+--> This measures the completeness of length of trajectory
+
+- Intersection over Union (IoU)
+- Center error
+- Track completeness
+- ID switches
+- False positives/negatives
+
+
+
+
+- Sequences of different lengths
+
+Challenging Situations
+- Occlusion
+
+Augmentations needs to be applied to the entire video not varying per frame
+
+K-fold cross-validation
+
+
+If validation test good, continue with integrating current_time as a feature for the object detection then Cloud Migration.
 If validation test not good, fix it with the below in mind
 ---------
 0. Change from mars128 feature extractor to custom YOLO model
@@ -26,6 +67,10 @@ If validation test not good, fix it with the below in mind
 4. Adjust the DeepSORT tracker to work with the new feature format.
 5. Test the changes and fine-tune as needed.
 </PLANNING>
+
+1. Fix the movement of the basketball 
+- when receiving a pass
+- 
 
 1.
 Improve custom model implement: K-Fold Cross Validation?
@@ -82,6 +127,7 @@ import torchvision.transforms as transforms
 from torchvision.models import efficientnet_b0
 from PIL import Image
 from ultralytics import YOLO
+import pandas as pd
 
 # DeepSORT code from local files
 from deep_sort.deep_sort import nn_matching
@@ -248,7 +294,7 @@ def object_detection(p1, p2, results, frame_with_color):
 
 #%%
 
-def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
+def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, detected_objects):
     """
     Objective:
     Perform deepsort object tracking on each video frame.
@@ -259,10 +305,24 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     [class deepsort] tracker - DeepSORT Tracker
     [function] encoder - Extracts relevant information (features) from the given frame 
     [int] n_tracked - number of objects that are tracked (debugging purposes)
+    [dataframe] detected_objects - pandas dataframe to store information on detected objects
 
     Returns:
     [array] frame - video frame after object tracking
     [int] n_tracked - number of objects that are tracked (debugging purposes)
+    [dataframe] detected_objects - pandas dataframe to store information on detected objects
+    """
+    
+    """
+    #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
+    tracker.py - max_iou_distance=0.5, max_age=2, n_init=5
+    B_O_T.py - scores>0.65, max_cosine_distance=0.3, nn_metric=cosine
+    --> model=YOLOv9c based custom model
+
+    Check these
+    Kalman filter parameters
+    max_dist
+    NMS threshold
     """
 
     # Process the current frame with the YOLO model
@@ -281,19 +341,18 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     if boxes is not None:
         n_tracked += len(boxes)
     
-    print('No, objects added:',len(boxes))
-    
-    """
-    #Relevant parameters
-    tracker.py - max_iou_distance=0.5, max_age=2, n_init=50
-    B_O_T.py - scores>0.2, max_cosine_distance=0.5, nn_metric=cosine
-    --> model=YOLOv9c based custom model, FeatureExtract model = EfficientNet
+    # Add each tracked object's data in the detected_objects dataframe
+    tracked_objects = []
+    for i in range(len(boxes)):
+        ith_object_details = [
+            boxes[i], #BoundingBox
+            scores[i], #ConfidenceScore
+            np.float32(n_frames/30) #Time
+        ]
+        new_row = pd.DataFrame([ith_object_details], columns=['BoundingBox', 'ConfidenceScore', 'Time'])
+        detected_objects = pd.concat([detected_objects, new_row], ignore_index=True)
 
-    Check these
-    Kalman filter parameters
-    max_dist
-    NMS threshold
-    """
+    print('No. objects tracked:',len(boxes))
 
     # Compute features for Deep SORT
     features = encoder(frame, boxes)
@@ -321,6 +380,9 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
     # Update tracker
     tracker.predict()
     tracker.update(detections)
+
+    for ith_value, track in enumerate(tracker.tracks):
+        print(track)
 
     # Draw bounding boxes and IDs
     for ith_value, track in enumerate(tracker.tracks):
@@ -352,7 +414,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features):
         cv2.putText(frame, f"{track.track_id}-{confidence_score:2f}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-    return frame, n_tracked
+    return frame, n_tracked, detected_objects
 
 #%% Configuring logging
 
@@ -387,7 +449,7 @@ except Exception as e:
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
-video_path = os.path.join(script_directory, 'assets/simulation.mp4')
+video_path = os.path.join(script_directory, 'assets/Simulation_Cropped.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 # Open the video file
@@ -436,6 +498,7 @@ max_cosine_distance = 0.3
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
+detected_objects = pd.DataFrame(columns=['BoundingBox', 'ConfidenceScore', 'Time'])
 
 # Training model and feature extractor
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
@@ -472,7 +535,7 @@ try:
         resulting_values, objectdetection_features, inpainted_frame  = object_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
 
         # Perform DeepSort (Object Tracking)
-        inpainted_frame, n_tracked = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, objectdetection_features)
+        inpainted_frame, n_tracked, detected_objects = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, objectdetection_features, detected_objects)
 
         # Display Video Frame
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
@@ -514,5 +577,4 @@ finally:
     cap.release()
     cv2.destroyAllWindows()
 
-# %%
 # %%

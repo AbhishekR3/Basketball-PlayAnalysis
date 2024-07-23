@@ -1,32 +1,27 @@
 This is my idea outline for this project.
-Some of these are things I saw online and thought might be applicable.
+Some of these are things I read online and thought might be applicable.
 I also use this as a document to note down things I need to research and general planning.
 
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
+Example:
 - Pass
 - Hockey Pass
 - Steal
 - Screens
 - Pick and roll
 - Delay action
-Will be adding more plays
 
 Object Detections
 - Create a mask of the basketball court image
 - Using HoughCircles detect the circles
 
 Image Segmentation
-- YOLOv9c
-https://www.youtube.com/watch?v=ZF7EAodHn1U&t=219s
+- Built custom model on YOLOv9c
 
 Object Tracking
 - Deep Sort (helps considering occuluion)
-- Initially was 2.86%
-- With custom model 96%
-
-96.00-2.86
-93.14%
+- With custom model
 
 Improving accuracy in custom model training: Train.py
 - K-Fold Cross Validation
@@ -82,6 +77,8 @@ Simulation Optimization
 
 
 GPU Accelerated Libraries
+- MOT - CuPy, Numba, PyCUDA
+- NN - 
 
 ######################### Bugs #########################
 1. Resolve issue moving ball to another side of the player
