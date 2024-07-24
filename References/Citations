@@ -22,7 +22,16 @@ DeepSort Implementation
 }
 
 Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
-Includes a modification of this code: https://github.com/computervisioneng/object-tracking-yolov8-deep-sort/blob/master/tracker.py
+
+**************************************************************************************************************************************
+YOLOv10 - Object Detection Algorithm 
+
+@article{wang2024yolov10,
+  title={YOLOv10: Real-Time End-to-End Object Detection},
+  author={Wang, Ao and Chen, Hui and Liu, Lihao and Chen, Kai and Lin, Zijia and Han, Jungong and Ding, Guiguang},
+  journal={arXiv preprint arXiv:2405.14458},
+  year={2024}
+}
 
 **************************************************************************************************************************************
 
@@ -47,3 +56,5 @@ Roboflow - Creating image annotations used in custom object detection model
 CVAT (Computer Vision Annotation Tool) - Creating object tracking validation metrics
 
 This project uses [CVAT (Computer Vision Annotation Tool)](https://github.com/cvat-ai/cvat), an open-source annotation tool for computer vision.
+
+**************************************************************************************************************************************

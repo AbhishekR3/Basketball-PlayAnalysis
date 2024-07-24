@@ -11,7 +11,7 @@ BasketballPlayAnalysis - v1 2024-07-17 9:32pm
 This dataset was exported via roboflow.com on July 18, 2024 at 3:42 AM GMT
 
 The dataset includes 63 images.
-Classes annotated in YOLOv9 format
+Classes annotated in YOLOv10 format
 - Basketball
 - Team_A
 - Team_B
@@ -32,8 +32,11 @@ The following augmentation was applied to create 3 versions of each source image
 
 ********************************************************************************************************************
 
-Overall, the model performs significantly better than the generic pre-trained YOLOv9c model.
-The custom model records a mAP50 value of 98.4% and recall value of 98.2%
+Overall, the model performs significantly better than the generic pre-trained YOLOv10m model.
+The custom model records the following metrics:
+- mAP50     - 94.8%
+- Precision - 78.8%
+- Recall    - 82.2%
 
 Training/Validation results and relevant metrics can be found in Training Results document in the same folder 
 

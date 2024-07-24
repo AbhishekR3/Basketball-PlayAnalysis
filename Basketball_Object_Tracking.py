@@ -4,10 +4,10 @@ This file tracks the positions of each player and the basketball.
 
 Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
-- YOLO - End to End Object Object Detection using YOLOv9c base for accuracy/speed balance
---> Implemented a custom model with 98.4% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
+- YOLO - End to End Object Object Detection using YOLOv10m base for accuracy/speed balance
+--> Implemented a custom model with 94.8% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
---> Implemented validation
+--> Implementing validation
 
 '''
 
@@ -323,7 +323,7 @@ except Exception as e:
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
-video_path = os.path.join(script_directory, 'assets/Simulation_Cropped.mp4')
+video_path = os.path.join(script_directory, 'assets/simulation.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 # Open the video file
@@ -343,7 +343,7 @@ except Exception as e:
     exit()
 
 # Parameter values to test
-param1_value = 10 # 12/13 - Best results
+param1_value = 12 # 12/13 - Best results
 param2_value = 15 # 15 - Best results
 
 # Initialize results dictionary
@@ -358,7 +358,7 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(script_directory, 'assets/simulation.mp4')
+output_path = os.path.join(script_directory, 'assets/simulation_tracked.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
@@ -418,6 +418,9 @@ try:
         # Increase frame count
         n_frames += 1 
 
+        if n_frames > 120:
+            break
+
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")
@@ -433,7 +436,7 @@ try:
     count_tracked_objects = n_tracked/n_objects*100
 
     logger.debug (f"Total number of objects that should have been tracked {n_objects}")
-    logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.4f}%")
+    logger.debug (f"Percentage of objects tracked:, {count_tracked_objects:.4f}%")
     logger.debug ("Object Tracking succeeded")
 
 except Exception as e:

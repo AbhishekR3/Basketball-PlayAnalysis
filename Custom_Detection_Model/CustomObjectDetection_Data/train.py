@@ -24,11 +24,11 @@ print(f"MPS backend enabled: {torch.backends.mps.is_built()}")
 # Set seeds for consistentncy
 
 def set_seeds(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 set_seeds()
@@ -47,8 +47,11 @@ else:
     device = torch.device("cpu")
     print("MPS not available, using CPU")
 
-# Build YOLOv9c model from pre-trained weight
-model = YOLO("yolov9c.pt")
+# Build YOLOv10m model from pre-trained weight
+YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt'
+model = YOLO(YOLO_pretrained_model_path)
+
+#model = YOLOv10.from_pretrained('jameslahm/yolov10s')
 
 # Move model to appropriate device
 model.to(device)
