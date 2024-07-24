@@ -64,7 +64,7 @@ class Track:
     """
 
     def __init__(self, mean, covariance, track_id, n_init, max_age,
-                 feature=None, x=None, y=None, radius=None, color=None):
+                 feature=None):
         self.mean = mean
         self.covariance = covariance
         self.track_id = track_id
@@ -79,10 +79,6 @@ class Track:
 
         self._n_init = n_init
         self._max_age = max_age
-        self.x = x
-        self.y = y
-        self.radius = radius
-        self.color = color
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
@@ -147,11 +143,6 @@ class Track:
         self.time_since_update = 0
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
             self.state = TrackState.Confirmed
-
-        self.x = detection.x
-        self.y = detection.y
-        self.radius = detection.radius
-        self.color = detection.color
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step).

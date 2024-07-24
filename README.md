@@ -21,6 +21,9 @@ Pygame Simulation Frame
 
 ![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Basketball%20Simulation%20Image.png)
 
+![Object Tracking Simulation](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/object_tracking_video.mp4)
+
+
 ## Table of Contents
 
 - [Installation](#installation)
@@ -81,18 +84,20 @@ Important files for this project
 
 ```bash
 Basketball-PlayAnalysis/
-├── Basketball_Game_Simulation.py                   # Script for simulating basketball games
+├── Basketball_Passing_Simulation.py                # Script for simulating basketball plays
 ├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
 ├── README.md                                       # Project documentation
 ├── Requirements.txt                                # Project requirements
-├── deep_sort/                                      # Directory for deep sort algorithms
+├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 │   ├── deep_sort/
 │   ├── tools/
-├── assets/                                         # Directory containing images and diagrams
+├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
+├── References/                                     # References for the developemtn of the project
+├── assets/                                         # Containing referenced images and diagrams
 │   ├── Basketball Court Diagram.jpg
 │   ├── object_tracking_video.mp4
 │   ├── simulation.mp4
-├── .github/workflows                               # Git Actions\
+├── .github/workflows                               # Git Actions
 │   ├── overall-test.yaml
 ```
 

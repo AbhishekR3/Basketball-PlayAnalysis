@@ -182,119 +182,7 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 
 #%%
 
-def update_objectdetection_features(objectdetection_features, x_coordinate, y_coordinate, radius, object_color):
-    """
-    Objective: 
-    Create an array of features extracted for each object detected
-
-    Parameters:
-    [array] objectdetection_features - detected features in the given frame
-    [int] x_coordinate - detected circle's center x-coordinate
-    [int] y_coordinate - detected circle's center y-coordinate
-    [int] radius - detected circle's radius
-    [int] object_color -  detected circle's color
-
-    Returns:
-    [array] objectdetection_features - detected features in the given frame
-    """
-
-    try:
-        # Calculate greyscale value based on RGB detected
-        r_hex = object_color[0]
-        g_hex = object_color[1]
-        b_hex = object_color[2]
-
-        # Convert RGB to Grayscale value (NTSC formula)
-        grayscale = 0.299 * r_hex + 0.587 * g_hex + 0.114 * b_hex
-
-        # Set features for the objects detected 
-        detected_object_features = {'x': int(x_coordinate), 
-                                    'y': int(y_coordinate), 
-                                    'radius': int(radius), 
-                                    'color': int(grayscale)}
-
-        # Convert the individual detected object features to numpy array
-        detected_object_features = np.array([detected_object_features])
-
-        # Append objectdetection_features for the specific frame with new object detected features
-        objectdetection_features.append(detected_object_features)
-        
-        return objectdetection_features
-
-    except Exception as e:
-        logger.error("Error in updating object detection features: %s", e)
-
-
-#%%
-
-def object_detection(p1, p2, results, frame_with_color):
-    """
-    Objective:
-    Performs object detection using HoughCircles for each frame of the video
-    Create a border and a center dot in the circle
-
-    Parameters:
-    [int]   p1 - param1 for HoughCircles()
-    [int]   p2 - param2 for HoughCircles()
-    [dict]  results - number of circles counted for the given param1, param2 values
-    [array] frame_with_color - video frame
-    
-    Returns:
-    [dict]  results - number of circles counted for the given param1, param2 values
-    [array] objectdetection_features - features extracted from the detected objects
-    [array] frame_with_color - video frame
-    """
-
-    try:
-        frame_greyed = preprocess_frame(frame_with_color)
-
-        frame_hsv = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2HSV)
-        frame_rgb = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2RGB)
-
-        circles_detected = cv2.HoughCircles(frame_greyed, cv2.HOUGH_GRADIENT, dp=1, minDist = 1, param1 = p1, param2 = p2, minRadius = 10, maxRadius = 20)
-
-        # If no circles were detected, set circle_count to 0 and return null objectdetection_features
-        if circles_detected is None:
-            circle_count = 0
-            objectdetection_features = []
-
-        # If circles were detected, create border and a center dot around the detected circle
-        else:
-            circles_detected = np.uint16(np.around(circles_detected))
-            circle_count = len(circles_detected[0])
-
-            # Object Detection extracted features
-            objectdetection_features = []
-
-            # Display for each detected circles
-            for ith_circle in circles_detected[0, :]:
-
-                # Detect coordinates and radius of circles
-                x_coordinate = ith_circle[0]
-                y_coordinate = ith_circle[1]
-                radius = ith_circle[2]
-
-                # Identify the color of the circle
-                object_color = frame_rgb[y_coordinate, x_coordinate]
-
-                # Update object detections features
-                objectdetection_features = update_objectdetection_features(objectdetection_features, x_coordinate, y_coordinate, radius, object_color)
-
-            # Convert list to np array
-            objectdetection_features = np.array(objectdetection_features)
-
-        # Add the number of circles detected to the results
-        results[(p1, p2)] += circle_count
-
-        return results, objectdetection_features, frame_with_color
-
-    except Exception as e:
-        logger.error("Error in circle detection: %s", e)
-
-
-#%%
-
-def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, detected_objects):
+def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects):
     """
     Objective:
     Perform deepsort object tracking on each video frame.
@@ -336,10 +224,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, 
     mask = scores > 0.65
     boxes = boxes[mask]
     scores = scores[mask]
-
-    # Calculate number of objects detected
-    if boxes is not None:
-        n_tracked += len(boxes)
     
     # Add each tracked object's data in the detected_objects dataframe
     tracked_objects = []
@@ -352,28 +236,21 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, 
         new_row = pd.DataFrame([ith_object_details], columns=['BoundingBox', 'ConfidenceScore', 'Time'])
         detected_objects = pd.concat([detected_objects, new_row], ignore_index=True)
 
-    print('No. objects tracked:',len(boxes))
-
     # Compute features for Deep SORT
     features = encoder(frame, boxes)
 
     # Create detections for Deep SORT
     detections = []
-    
-    if circle_features is not None:
-        for box, score, feature, circle_feature in zip(boxes, scores, features, circle_features):
+
+    for box, score, feature in zip(boxes, scores, features):
         # Create a new Detection object
             detection = Detection(
                 box, 
                 score, 
-                feature,
-                x = int(circle_feature[0]['x']),
-                y = int(circle_feature[0]['y']),
-                radius = int(circle_feature[0]['radius']),
-                color = int(circle_feature[0]['color']))
+                feature)
             detections.append(detection)
-
-    else:
+    
+    if detections is None:
         print('No circle features were detected in the frame')
         logger.debug("No circle features were detected in the frame: %s", e)
 
@@ -381,8 +258,9 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, 
     tracker.predict()
     tracker.update(detections)
 
-    for ith_value, track in enumerate(tracker.tracks):
-        print(track)
+    # Calculate number of objects tracked
+    print('Number objects tracked:', len(tracker.tracks))
+    n_tracked += len(tracker.tracks)
 
     # Draw bounding boxes and IDs
     for ith_value, track in enumerate(tracker.tracks):
@@ -395,7 +273,6 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, 
         # Calculate the coordinates' border of the object
         bbox = track.to_tlbr()
 
-
         # Create the borders for the detected objects + relevant track_id and confidence score
         try:
             # Calculate the object's detection confidence score
@@ -405,13 +282,10 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, circle_features, 
             # Calculate the object's detection confidence score
             confidence_score = 0.0
 
-        # Set object border lines + object's track_id and confidence score
+        # Label detected object's track_id and confidence score
         color = (255, 255, 255)  # BGR format
-        detectioncircle_radius = int(track.radius)+5
-        detectioncircle_color = [255, 255, 255]
-        detectioncircle_thickness = 2
-        cv2.circle(frame, (int(track.x), int(track.y)), detectioncircle_radius, detectioncircle_color, detectioncircle_thickness)
-        cv2.putText(frame, f"{track.track_id}-{confidence_score:2f}", (int(bbox[0]), int(bbox[1])-10), 
+
+        cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     return frame, n_tracked, detected_objects
@@ -484,7 +358,7 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(script_directory, 'assets/object_tracking_video.mp4')
+output_path = os.path.join(script_directory, 'assets/simulation.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
@@ -531,11 +405,8 @@ try:
         # Perform background subtraction (Remove basketball court)
         inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        # Perform Hough Circles detection (Object Detection)
-        resulting_values, objectdetection_features, inpainted_frame  = object_detection(param1_value, param2_value, resulting_values, inpainted_frame) 
-
         # Perform DeepSort (Object Tracking)
-        inpainted_frame, n_tracked, detected_objects = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, objectdetection_features, detected_objects)
+        inpainted_frame, n_tracked, detected_objects = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, detected_objects)
 
         # Display Video Frame
         cv2.imshow('Basketball Object Tracking', inpainted_frame)
@@ -559,11 +430,9 @@ try:
 
     # Log results summary
     n_objects = n_frames*11
-    count_detected_objects = list(resulting_values.values())[0]/n_objects*100
     count_tracked_objects = n_tracked/n_objects*100
 
-    logger.debug (f"Total number of objects that should have been detected {n_objects}")
-    logger.debug (f"Total number of objects that was detected: {count_detected_objects:.2f}%")
+    logger.debug (f"Total number of objects that should have been tracked {n_objects}")
     logger.debug (f"Total number of objects tracked:, {count_tracked_objects:.4f}%")
     logger.debug ("Object Tracking succeeded")
 

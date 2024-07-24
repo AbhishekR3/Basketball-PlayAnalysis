@@ -2,6 +2,20 @@ This is my idea outline for this project.
 Some of these are things I read online and thought might be applicable.
 I also use this as a document to note down things I need to research and general planning.
 
+
+######################### Upcoming Release - v0.1.1 #########################
+- Multi-object tracking has been implemented with DeepSORT
+- Created a custom model with image segmentation based on YOLOv9c to prioritize accuracy
+- Validation Metrics:
+--> mAP50 - 98.5%
+--> MAPSE - XX%
+--> MOTP - XX%
+- Utilized CVAT / Roboflow to annotate objects for training/testing/validation data
+- Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
+--> Removed the object detection perimeter to reduce data processing and improve accurate bounding
+- General optimizations/bug fixing
+
+
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
 Example:
