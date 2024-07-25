@@ -1,6 +1,6 @@
 '''
 Basketball Object Tracking
-This file tracks the positions of each player and the basketball.
+This file tracks the positions/features of each player and the basketball.
 
 Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
@@ -43,9 +43,6 @@ Metrics to track
 - ID switches
 - False positives/negatives
 
-
-
-
 - Sequences of different lengths
 
 Challenging Situations
@@ -72,24 +69,15 @@ If validation test not good, fix it with the below in mind
 - when receiving a pass
 - 
 
-1.
+2.
 Improve custom model implement: K-Fold Cross Validation?
 
-2.
+3.
 Feature Extractor Model
 - ResNet50
 - EfficientNet
 
-3.
-Include these additional features: 
-- velocity
-- acceleration
-- color historgram
-
 4.
-YOLOv10 implementation
-
-5.
 Alpha Blending in game simulation
 - Alpha Blending - Rendering semi-transparent objects when there is overlap to increase object detection/tracking
 
@@ -98,16 +86,14 @@ Alpha Blending in game simulation
 -3. Alpha Blending
 
 
-6.
+5.
 Optimize parameters
 
 Grid Search
 - Kalman filter parameters
 - max_dist
-- NMS threshold? - Removed in YOLOv10
-- other parameters
 
-Include Kalman filter state as a feature for object tracking
+Include Kalman filter state as a feature for object tracking?
 '''
 
 #%%
@@ -124,8 +110,6 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 import torchvision.transforms as transforms
-from torchvision.models import efficientnet_b0
-from PIL import Image
 from ultralytics import YOLO
 import pandas as pd
 
@@ -135,20 +119,6 @@ from deep_sort.deep_sort.detection import Detection
 from deep_sort.deep_sort.tracker import Tracker
 from deep_sort.tools import generate_detections as gdet
 
-""""
-# Set seeds for consistentncy
-def set_seeds(seed=42):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
-# Use this function before training
-set_seeds()
-"""
 #%%
 
 def preprocess_frame(frame, greyed = True, blur = 'median'):
@@ -182,6 +152,29 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 
 #%%
 
+def export_dataframe_to_csv(df, file_path, index=False):
+    """
+    Objective:
+
+    Parameters:
+
+    Returns:
+
+    
+    """
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        # Export the DataFrame to CSV
+        df.to_csv(file_path, index=index)
+        print(f"DataFrame successfully exported to {file_path}")
+    except Exception as e:
+        print(f"An error occurred while exporting the DataFrame: {e}")
+
+
+#%%
+
 def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects):
     """
     Objective:
@@ -203,51 +196,46 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
     
     """
     #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
-    tracker.py - max_iou_distance=0.5, max_age=2, n_init=5
+    tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
     B_O_T.py - scores>0.65, max_cosine_distance=0.3, nn_metric=cosine
-    --> model=YOLOv9c based custom model
+    --> model=YOLOv10m based custom model
 
-    Check these
+    Check these if need more fine-tuning
     Kalman filter parameters
     max_dist
-    NMS threshold
     """
 
     # Process the current frame with the YOLO model
     results = model(frame)
 
-    # Extract bounding boxes and scores
+    # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
     boxes = results[0].boxes.xyxy.numpy()
     scores = results[0].boxes.conf.numpy()
+    class_ids = results[0].boxes.cls.numpy()
+
+    # Convert class indices to class names
+    class_names_dict = results[0].names
+    class_names = [class_names_dict[int(i)] for i in class_ids]
 
     # Filter the detections based on confidence threshold
     mask = scores > 0.65
     boxes = boxes[mask]
     scores = scores[mask]
+    class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
     
-    # Add each tracked object's data in the detected_objects dataframe
-    tracked_objects = []
-    for i in range(len(boxes)):
-        ith_object_details = [
-            boxes[i], #BoundingBox
-            scores[i], #ConfidenceScore
-            np.float32(n_frames/30) #Time
-        ]
-        new_row = pd.DataFrame([ith_object_details], columns=['BoundingBox', 'ConfidenceScore', 'Time'])
-        detected_objects = pd.concat([detected_objects, new_row], ignore_index=True)
-
     # Compute features for Deep SORT
     features = encoder(frame, boxes)
 
     # Create detections for Deep SORT
     detections = []
 
-    for box, score, feature in zip(boxes, scores, features):
+    for box, score, feature, class_name in zip(boxes, scores, features, class_names):
         # Create a new Detection object
             detection = Detection(
                 box, 
                 score, 
-                feature)
+                feature,
+                class_name)
             detections.append(detection)
     
     if detections is None:
@@ -262,8 +250,37 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
     print('Number objects tracked:', len(tracker.tracks))
     n_tracked += len(tracker.tracks)
 
-    # Draw bounding boxes and IDs
-    for ith_value, track in enumerate(tracker.tracks):
+    # Add each tracked object's data in the detected_objects dataframe
+    tracked_objects = []
+
+    # Verify the tracks
+    for ith_value, track in enumerate(tracker.tracks):        
+        try:
+            # Calculate the object's detection confidence score
+            confidence_score = scores[ith_value]
+        
+        except:
+            # Calculate the object's detection confidence score
+            confidence_score = 0.0
+
+        # Add a new detected object to the detected_objects array
+        ith_object_details = [
+            track.track_id, #TrackID
+            track.class_id, #ClassID - Basketball, Team_A, Team_B
+            track.mean, #Track State - 8-dimensional vector: [x, y, a, h, vx, vy, va, vh]
+            track.covariance, #Covariance between Track State variables
+            confidence_score, #Confidence Score of object
+            track.state, #Track Status - Tentative, Confirmed, Deleted
+            track.hits, # Total objects successfully matched to the track
+            track.age, # Total number of frames since the track was initialized
+            track.features, # Features detected in the object
+            np.float32(n_frames/30) #Time
+        ]
+
+        new_object = pd.DataFrame([ith_object_details], columns=
+                                  ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
+        detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
+
         # Check if
         # not track.is_confirmed()    : Check that an object track has not been found
         # track.time_since_update > 1 : Check the track has not been updated for more than one frame
@@ -273,18 +290,10 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
         # Calculate the coordinates' border of the object
         bbox = track.to_tlbr()
 
-        # Create the borders for the detected objects + relevant track_id and confidence score
-        try:
-            # Calculate the object's detection confidence score
-            confidence_score = scores[ith_value]
-        
-        except:
-            # Calculate the object's detection confidence score
-            confidence_score = 0.0
-
-        # Label detected object's track_id and confidence score
+        # Label color for detected object's track_id and confidence score
         color = (255, 255, 255)  # BGR format
 
+        # Draw bounding boxes and IDs
         cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
@@ -372,7 +381,7 @@ max_cosine_distance = 0.3
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
-detected_objects = pd.DataFrame(columns=['BoundingBox', 'ConfidenceScore', 'Time'])
+detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
 
 # Training model and feature extractor
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
@@ -431,12 +440,16 @@ try:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
 
+    # Export dataframe into csv
+    file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
+    export_dataframe_to_csv(detected_objects, file_path)
+
     # Log results summary
     n_objects = n_frames*11
     count_tracked_objects = n_tracked/n_objects*100
 
     logger.debug (f"Total number of objects that should have been tracked {n_objects}")
-    logger.debug (f"Percentage of objects tracked:, {count_tracked_objects:.4f}%")
+    logger.debug (f"Percentage of objects tracked: {count_tracked_objects:.4f}%")
     logger.debug ("Object Tracking succeeded")
 
 except Exception as e:

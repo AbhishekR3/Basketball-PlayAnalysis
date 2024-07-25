@@ -26,12 +26,11 @@ class Detection(object):
 
     """
 
-    def __init__(self, tlwh, confidence, feature, x=None, y=None, radius=None, color=None):
+    def __init__(self, tlwh, confidence, feature, class_id):
         self.tlwh = np.asarray(tlwh, dtype=float)
         self.confidence = float(confidence)
         self.feature = np.asarray(feature, dtype=np.float32)
-
-        # Features of the circle detected
+        self.class_id = class_id # Detected object's class_id: Basketball, Team_A, Team_B
 
     def to_tlbr(self):
         """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
