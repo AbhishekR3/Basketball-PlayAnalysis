@@ -4,15 +4,11 @@ I also use this as a document to note down things I need to research and general
 
 
 ######################### Upcoming Release - v0.1.1 #########################
-- Multi-object tracking has been implemented with DeepSORT
-- Created a custom model with image segmentation based on YOLOv9c to prioritize accuracy
-- Validation Metrics:
---> mAP50 - 98.5%
---> MAPSE - XX%
---> MOTP - XX%
-- Utilized CVAT / Roboflow to annotate objects for training/testing/validation data
+- Multi-object tracking has been implemented with DeepSORT algorithm
+- Created a custom model with image segmentation based on YOLOv10m to prioritize accuracy
+- Validation Metrics: mAP50 - 98.5% || MAPSE - XX% || MOTP - XX%
 - Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
---> Removed the object detection perimeter to reduce data processing and improve accurate bounding
+- Implemented GPU accelerated programming
 - General optimizations/bug fixing
 
 

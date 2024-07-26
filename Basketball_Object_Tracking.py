@@ -4,7 +4,7 @@ This file tracks the positions/features of each player and the basketball.
 
 Key Concepts Implemented:
 - Hough Circle Transform - Object Detection specifically for Circles
-- YOLO - End to End Object Object Detection using YOLOv10m base for accuracy/speed balance
+- YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
 --> Implemented a custom model with 94.8% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
 --> Implementing validation
@@ -112,6 +112,9 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from ultralytics import YOLO
 import pandas as pd
+import onnx
+import onnxruntime
+#import cudf
 
 # DeepSORT code from local files
 from deep_sort.deep_sort import nn_matching
@@ -150,16 +153,60 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
     except Exception as e:
         logger.error("Error in preprocessing the frame: %s", e)
 
+def prepare_frame_for_display(frame):
+    # If it's a PyTorch tensor
+    if isinstance(frame, torch.Tensor):
+        # Move to CPU and convert to numpy
+        frame = frame.detach().cpu().numpy()
+        
+        # If it's a batch, take the first item
+        if frame.ndim == 4:
+            frame = frame[0]
+        
+        # Rearrange dimensions if necessary (CHW -> HWC)
+        if frame.shape[0] == 3:
+            frame = np.transpose(frame, (1, 2, 0))
+        
+        # Scale to 0-255 if in float format
+        if frame.dtype == np.float32 or frame.dtype == np.float64:
+            frame = (frame * 255).astype(np.uint8)
+    
+    # Ensure it's a numpy array
+    if not isinstance(frame, np.ndarray):
+        raise TypeError("Frame must be a numpy array or PyTorch tensor")
+    
+    # Ensure it's in uint8 format
+    if frame.dtype != np.uint8:
+        frame = frame.astype(np.uint8)
+    
+    # Ensure it's in HWC format
+    if frame.ndim == 2:
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    elif frame.shape[2] == 1:
+        frame = frame.squeeze()
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+    elif frame.shape[2] == 4:
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+    
+    # Clip values to valid range
+    frame = np.clip(frame, 0, 255)
+    
+    # Ensure the array is contiguous
+    frame = np.ascontiguousarray(frame)
+    
+    return frame
+
 #%%
 
 def export_dataframe_to_csv(df, file_path, index=False):
     """
     Objective:
-
+    Create a csv file of the objects tracked and its relevant features
+    
     Parameters:
-
-    Returns:
-
+    [] df - Dataframe containing object's tracked and reelvant data
+    [] file_path - 
+    [] index - 
     
     """
     try:
@@ -198,20 +245,21 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
     #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
     tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
     B_O_T.py - scores>0.65, max_cosine_distance=0.3, nn_metric=cosine
-    --> model=YOLOv10m based custom model
+    --> model=YOLOv9c based custom model
 
     Check these if need more fine-tuning
     Kalman filter parameters
     max_dist
     """
 
-    # Process the current frame with the YOLO model
-    results = model(frame)
+    # Process the current frame with the YOLO model without gradient computation
+    with torch.no_grad():
+        results = model(frame)
 
     # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
-    boxes = results[0].boxes.xyxy.numpy()
-    scores = results[0].boxes.conf.numpy()
-    class_ids = results[0].boxes.cls.numpy()
+    boxes = results[0].boxes.xyxy.cpu().numpy()
+    scores = results[0].boxes.conf.cpu().numpy()
+    class_ids = results[0].boxes.cls.cpu().numpy()
 
     # Convert class indices to class names
     class_names_dict = results[0].names
@@ -372,15 +420,52 @@ fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 
+# Transformation pipeline for each video frame for compatability
+transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((640, 640)),  # Resize to YOLO's expected input size
+    transforms.ToTensor(),
+])
+
+
+# Switch model to GPU if available
+if torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("GPU is being used")
+
 # Initialize Deep SORT components
 script_directory = os.getcwd()
-model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+
+#model_path = os.path.join(script_directory, 'CustomModel_InstanceSegmentation.onnx')
+#model = onnx.load("path/to/your/yolo_model.onnx")
+
+model_path = os.path.join(script_directory, 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt')
+#model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
 model = YOLO(model_path)
+model.to(device) # Move model to GPU
+model.info() # Model Information
 model.iou = 0.45
 max_cosine_distance = 0.3
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
+
+"""
+# GPU Accelerated CuDF
+detected_objects = cudf.DataFrame({
+    'TrackID': cudf.Series([], dtype=np.int32),
+    'ClassID': cudf.Series([], dtype=np.int32),
+    'Mean': cudf.Series([], dtype='object'),
+    'Co-Variance': cudf.Series([], dtype='object'),
+    'ConfidenceScore': cudf.Series([], dtype=np.float32),
+    'State': cudf.Series([], dtype=np.int32),
+    'Hits': cudf.Series([], dtype=np.int32),
+    'Age': cudf.Series([], dtype=np.int32),
+    'Features': cudf.Series([], dtype='object'),
+    'Time': cudf.Series([], dtype=np.float32)
+})
+"""
+
 detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
 
 # Training model and feature extractor
@@ -403,6 +488,8 @@ try:
         ret, frame_colored = cap.read()
 
         # If frame is read correctly ret is True
+        if ret:
+            frame_colored = transform(frame_colored).unsqueeze(0).to(device)
         if not ret:
             break
 
@@ -412,17 +499,25 @@ try:
         '''
 
         # Perform background subtraction (Remove basketball court)
-        inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
+        #inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
+
+        # Preprocess Frame for optimal tracking
+        #inpainted_frame = preprocess_frame(inpainted_frame, greyed = True, blur = 'median')
 
         # Perform DeepSort (Object Tracking)
-        inpainted_frame, n_tracked, detected_objects = object_tracking(inpainted_frame, model, tracker, encoder, n_tracked, detected_objects)
+        tracked_frame, n_tracked, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_tracked, detected_objects)
+
+
+        # After processing your frame and before calling cv2.imshow
+
+        tracked_frame = prepare_frame_for_display(tracked_frame)
 
         # Display Video Frame
-        cv2.imshow('Basketball Object Tracking', inpainted_frame)
+        cv2.imshow('Basketball Object Tracking', tracked_frame)
         cv2.waitKey(1)  # Add a small delay to allow the window to update
 
         # Write the output frame
-        out.write(inpainted_frame)
+        out.write(tracked_frame)
 
         # Increase frame count
         n_frames += 1 

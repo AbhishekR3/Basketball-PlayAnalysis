@@ -51,8 +51,6 @@ else:
 YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt'
 model = YOLO(YOLO_pretrained_model_path)
 
-#model = YOLOv10.from_pretrained('jameslahm/yolov10s')
-
 # Move model to appropriate device
 model.to(device)
 
@@ -81,5 +79,5 @@ metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)
 
 # Save the model
-model_path = os.path.join(projectfile_path, 'CustomModel_InstanceSegmentation.pt')
+model_path = os.path.join(projectfile_path, 'CustomModel_InstanceSegmentation.onnx')
 model.save(model_path)
