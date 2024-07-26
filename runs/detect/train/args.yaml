@@ -1,7 +1,7 @@
 task: detect
 mode: train
-model: yolov9c.pt
-data: /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/CustomObjectDetection_Data/data.yaml
+model: Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt
+data: /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/Custom_Detection_Model/CustomObjectDetection_Data/data.yaml
 epochs: 10
 time: null
 patience: 100
