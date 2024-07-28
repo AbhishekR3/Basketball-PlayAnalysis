@@ -21,8 +21,10 @@ Pygame Simulation Frame
 
 ![Simulation Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Basketball%20Simulation%20Image.png)
 
-![Object Tracking Simulation](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/object_tracking_video.mp4)
-
+<video width="640" height="480" controls>
+  <source src="https://github.com/AbhishekR3/Basketball-PlayAnalysis/raw/DEV_Code/assets/ObjectTracking_Demo.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Table of Contents
 
