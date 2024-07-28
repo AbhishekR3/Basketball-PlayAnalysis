@@ -291,6 +291,17 @@ try:
 except Exception as e:
     logger.error("Error in creating logging configuration: %s", e)
 
+######################################## GIT ACTION TESTING ######################################
+import os
+
+print(f"Current working directory: {os.getcwd()}")
+print(f"Contents of current directory: {os.listdir('.')}")
+print(f"Contents of parent directory: {os.listdir('..')}")
+
+
+
+
+######################################## GIT ACTION TESTING ######################################
 
 #%% Initialize Simulation Variables
 
@@ -379,22 +390,6 @@ max_cosine_distance = 0.3
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
-
-"""
-# GPU Accelerated CuDF
-detected_objects = cudf.DataFrame({
-    'TrackID': cudf.Series([], dtype=np.int32),
-    'ClassID': cudf.Series([], dtype=np.int32),
-    'Mean': cudf.Series([], dtype='object'),
-    'Co-Variance': cudf.Series([], dtype='object'),
-    'ConfidenceScore': cudf.Series([], dtype=np.float32),
-    'State': cudf.Series([], dtype=np.int32),
-    'Hits': cudf.Series([], dtype=np.int32),
-    'Age': cudf.Series([], dtype=np.int32),
-    'Features': cudf.Series([], dtype='object'),
-    'Time': cudf.Series([], dtype=np.float32)
-})
-"""
 
 detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
 
