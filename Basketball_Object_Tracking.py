@@ -460,9 +460,11 @@ try:
     logger.debug (f"Total number of objects that should have been tracked {n_objects}")
     logger.debug (f"Percentage of objects tracked: {count_tracked_objects:.4f}%")
     logger.debug ("Object Tracking succeeded")
+    print("Object Tracking succeeded")
 
 except Exception as e:
     logger.error (f"An error occurred when processing the video frame: {e}")
+    print("Object Tracking failed")
 
 finally:
     logger.debug ("Total time taken: %f seconds", time.time() - start_time)

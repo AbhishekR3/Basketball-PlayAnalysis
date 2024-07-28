@@ -700,7 +700,7 @@ def initialize_simulation():
 #%% Configuring logging
 
 try: 
-    log_file_path = 'game_simulation_output.log'
+    log_file_path = 'passing_simulation_output.log'
 
     # Remove log file if it exists
     if os.path.exists(log_file_path):
@@ -910,14 +910,16 @@ try:
 
         # GitHub Actions specific code
         if os.getenv('GITHUB_ACTIONS') is True and frames_captured > 0:
-            logger.debug("Simulation stopped after 2 frames, as it's running in GitHub Actions")
+            logger.debug("Simulation stopped after first frame, as it's running in GitHub Actions")
             break
 
 
     logger.debug("Game Simulation succeeded")
+    print("Game Simulation succeeded")
 
 except Exception as e:
     logger.error("Error during simulation: %s", e)
+    print("Game Simulation failed")
 
 finally:
     out.release()
