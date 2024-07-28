@@ -892,11 +892,6 @@ try:
             logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
             break
 
-        # For git actions testing, stop simulation to focus on testing code
-        if frames_captured > 0 and os.getenv('GITHUB_ACTIONS') == 'true':
-            logger.debug("Simulation stopped, due to being tested in github actions")
-            break
-
         # Capture frame
         frame = pygame.surfarray.array3d(pygame.display.get_surface())
         frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
@@ -909,7 +904,7 @@ try:
         frames_captured += 1
 
         # GitHub Actions specific code
-        if os.getenv('GITHUB_ACTIONS') is True and frames_captured > 0:
+        if os.getenv('GITHUB_ACTIONS') == 'true' and frames_captured > 0:
             logger.debug("Simulation stopped after first frame, as it's running in GitHub Actions")
             break
 

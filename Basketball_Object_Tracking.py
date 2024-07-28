@@ -296,7 +296,7 @@ except Exception as e:
 
 # Path to the video file / basketball court diagram
 
-if os.getenv('GITHUB_ACTIONS') is True:
+if os.getenv('GITHUB_ACTIONS') == 'true':
     # If running through github actions update script_directory
     script_directory = os.getcwd()
     script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
@@ -355,7 +355,7 @@ transform = transforms.Compose([
 
 # Set model to GPU/CPU depending on environemnt
 # If testing through github actions set to CPU
-if os.getenv('GITHUB_ACTIONS') is True:
+if os.getenv('GITHUB_ACTIONS') == 'true':
     device = torch.device("cpu")
     print("CPU is being used")
 # If GPU is available:
@@ -461,7 +461,7 @@ try:
             break
         
         # GitHub Actions specific code
-        if os.getenv('GITHUB_ACTIONS') is True and n_frames > 0:
+        if os.getenv('GITHUB_ACTIONS') == 'true' and n_frames > 0:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
 
