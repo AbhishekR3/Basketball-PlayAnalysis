@@ -294,10 +294,39 @@ except Exception as e:
 ######################################## GIT ACTION TESTING ######################################
 import os
 
-print(f"Current working directory: {os.getcwd()}")
-print(f"Contents of current directory: {os.listdir('.')}")
-print(f"Contents of parent directory: {os.listdir('..')}")
+def print_directory_contents(path):
+    print(f"Contents of {path}:")
+    try:
+        for item in os.listdir(path):
+            print(f"  {item}")
+    except Exception as e:
+        print(f"Error listing directory contents: {e}")
 
+if os.getenv('GITHUB_ACTIONS') == 'true':
+    # If running through github actions update script_directory
+    script_directory = os.getcwd()
+    script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
+
+    print(f"Current working directory: {script_directory}")
+    print(f"Contents of current directory: {os.listdir('.')}")
+    print(f"Contents of parent directory: {os.listdir('..')}")
+
+
+assets_directory = os.path.join(script_directory, 'assets')
+video_path = os.path.join(assets_directory, 'simulation.mp4')
+
+print(f"Script directory: {script_directory}")
+print(f"Assets directory: {assets_directory}")
+print(f"Video path: {video_path}")
+
+print_directory_contents(assets_directory)
+
+if not os.path.exists(video_path):
+    print(f"Error: Video file not found at {video_path}")
+    print("Checking for other video files in assets directory:")
+    for file in os.listdir(assets_directory):
+        if file.endswith(('.mp4', '.avi', '.mov')):
+            print(f"  Found video file: {file}")
 
 
 
