@@ -396,6 +396,9 @@ encoder = gdet.create_box_encoder(model_filename, input_name="images", output_na
 n_missed = 0
 n_miscount = 0
 
+# GIT Action
+os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
+
 #%%
 
 start_time = time.time()
