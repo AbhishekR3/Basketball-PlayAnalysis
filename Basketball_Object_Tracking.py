@@ -306,6 +306,8 @@ else:
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
+print(f"Video path: {video_path}")
+
 # Open the video file
 cap = cv2.VideoCapture(video_path)
 
