@@ -353,15 +353,15 @@ transform = transforms.Compose([
 ])
 
 
-# Set model
-
-# If GPU is available:
-if torch.backends.mps.is_available():
-    device = torch.device("mps")
-    print("GPU is being used")
+# Set model to GPU/CPU depending on environemnt
+# If testing through github actions set to CPU
 if os.getenv('GITHUB_ACTIONS') is True:
     device = torch.device("cpu")
     print("CPU is being used")
+# If GPU is available:
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("GPU is being used")
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
