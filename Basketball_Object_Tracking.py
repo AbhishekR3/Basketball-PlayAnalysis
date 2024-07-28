@@ -311,6 +311,7 @@ print(f"Video path: {video_path}")
 # Open the video file
 cap = cv2.VideoCapture(video_path)
 
+'''
 # Create a mask to remove basketball court diagram from the video
 try:
     mask = cv2.imread(basketball_court_diagram, cv2.IMREAD_GRAYSCALE)
@@ -323,6 +324,7 @@ try:
 except Exception as e:
     logger.error (f"Error: Couldn't open the basketball court diagram file. {e}")
     exit()
+'''
 
 # Parameter values to test
 param1_value = 12 # 12/13 - Best results
