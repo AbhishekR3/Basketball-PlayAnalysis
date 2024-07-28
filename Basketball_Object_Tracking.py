@@ -345,7 +345,10 @@ if not cap.isOpened():
 output_path = os.path.join(script_directory, 'assets/simulation_tracked.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
-out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
+try:
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
+except:
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (500, 500))
 
 # Transformation pipeline for each video frame for compatability
 transform = transforms.Compose([
@@ -402,9 +405,6 @@ encoder = gdet.create_box_encoder(model_filename, input_name="images", output_na
 # DEBUG Values
 n_missed = 0
 n_miscount = 0
-
-# GIT Action
-os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = 0.0
 
 #%%
 
