@@ -295,7 +295,14 @@ except Exception as e:
 #%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
-script_directory = os.getcwd()
+
+if os.getenv('GITHUB_ACTIONS') is True:
+    # If running through github actions update script_directory
+    script_directory = os.getcwd()
+    script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
+else:
+    script_directory = os.getcwd()
+
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
