@@ -299,7 +299,11 @@ except Exception as e:
 if os.getenv('GITHUB_ACTIONS') is True:
     # If running through github actions update script_directory
     script_directory = os.getcwd()
+<<<<<<< HEAD
     script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
+=======
+    video_path = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
+>>>>>>> 121906f77a04313c692c251a1408dd5eb56badee
 else:
     script_directory = os.getcwd()
 
