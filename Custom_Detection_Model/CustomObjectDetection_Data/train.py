@@ -1,12 +1,10 @@
 '''
-Training the YOLO model on the custom dataset
+Training/Testing the YOLO model on the custom dataset
 
 Key Concepts Implemented:
 - Augmentations (refer README.dataset.txt for more info)
 - Logging GPU memory usage
 '''
-
-# Training/Testing the YOLO model on the custom dataset
 
 # Import Libraries
 import torch
@@ -14,7 +12,6 @@ from ultralytics import YOLO
 import os
 import numpy as np
 import random
-from sklearn.model_selection import KFold
 
 # Check Pytorch version and ensure GPU is being used on device (macOS users)
 print(f"PyTorch version: {torch.__version__}")
@@ -47,7 +44,7 @@ else:
     device = torch.device("cpu")
     print("MPS not available, using CPU")
 
-# Build YOLOv10m model from pre-trained weight
+# Build YOLO model from pre-trained weight
 YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt'
 model = YOLO(YOLO_pretrained_model_path)
 
@@ -78,6 +75,10 @@ print()
 metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)
 
-# Save the model
-model_path = os.path.join(projectfile_path, 'CustomModel_InstanceSegmentation.onnx')
-model.save(model_path)
+# Specify the file name
+metrics_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'metrics.txt')
+
+# Write metrics to TXT file
+with open(metrics_path, 'w') as file:
+    for key, value in metrics.items():
+        file.write(f'{key}: {value}\n')

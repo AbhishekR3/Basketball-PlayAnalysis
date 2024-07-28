@@ -6,9 +6,14 @@ I also use this as a document to note down things I need to research and general
 ######################### Upcoming Release - v0.1.1 #########################
 - Multi-object tracking has been implemented with DeepSORT algorithm
 - Created a custom model with image segmentation based on YOLOv10m to prioritize accuracy
-- Validation Metrics: mAP50 - 98.5% || MAPSE - XX% || MOTP - XX%
+- Validation Metrics: mAP50 - 98.50% || MAPSE - XX.YY% || MOTP - XX.YY%
 - Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
-- Implemented GPU accelerated programming
+- Implemented GPU accelerated programming reducing object tracking time by 57.56%
+--> Improved Time:
+YOLOv10m based not custom model
+Simulation - 4 seconds
+Tracking Time w/o  GPU - 35.397447s
+Tracking Time with GPU - 15.029425s
 - General optimizations/bug fixing
 
 

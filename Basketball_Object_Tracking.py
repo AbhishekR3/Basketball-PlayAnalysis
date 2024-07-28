@@ -8,113 +8,21 @@ Key Concepts Implemented:
 --> Implemented a custom model with 94.8% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
 --> Implementing validation
-
-'''
-
-'''
-Upcoming Implementations:
-
-0. 
-Create validation test cases for object detection / deepsort tracking
-
-Sequences: Passing, Dribbling
-Sequence Level Splitting keep temporal continuity
-- 30fps: 1-22: Train, 22-27: Test, 27-30: Validation
-
-Metrics to track
-- MOTA
---> This is considers 3 major error ratios
---> MOTA = 1 - (FalseNegatives + FalsePositives + IDSwitches) / GroundTruth
-
-- MOTP 
---> This measures the preecision of object localization
---> MOTP = Σ(Distance_between_objects) / Σ(count_matches)
-
-- IDF1
---> This is the ratio between correctly identified detections and average ground-truth+computed detections
---> IDF1 = 2 * ID_TruePositive /  (2 * ID_TruePositive + ID_FalseNegative + ID_FalsePositive)
-
-- Track Completness
---> This measures the completeness of length of trajectory
-
-- Intersection over Union (IoU)
-- Center error
-- Track completeness
-- ID switches
-- False positives/negatives
-
-- Sequences of different lengths
-
-Challenging Situations
-- Occlusion
-
-Augmentations needs to be applied to the entire video not varying per frame
-
-K-fold cross-validation
-
-
-If validation test good, continue with integrating current_time as a feature for the object detection then Cloud Migration.
-If validation test not good, fix it with the below in mind
----------
-0. Change from mars128 feature extractor to custom YOLO model
-<PLANNING>
-1. Remove the mars128 feature extractor.
-2. Modify the YOLO model to output features along with detections.
-3. Update the `object_tracking` function to use YOLO features instead of mars128 features.
-4. Adjust the DeepSORT tracker to work with the new feature format.
-5. Test the changes and fine-tune as needed.
-</PLANNING>
-
-1. Fix the movement of the basketball 
-- when receiving a pass
-- 
-
-2.
-Improve custom model implement: K-Fold Cross Validation?
-
-3.
-Feature Extractor Model
-- ResNet50
-- EfficientNet
-
-4.
-Alpha Blending in game simulation
-- Alpha Blending - Rendering semi-transparent objects when there is overlap to increase object detection/tracking
-
--1. Image segmentation
--2. Perform edge detection to strengthen outline of the circle
--3. Alpha Blending
-
-
-5.
-Optimize parameters
-
-Grid Search
-- Kalman filter parameters
-- max_dist
-
-Include Kalman filter state as a feature for object tracking?
 '''
 
 #%%
 
-"Import Libraries"
+#Import Libraries
 
 import cv2
 import numpy as np
 import os
 import time
 import logging
-import random
 import torch
-import torch.nn as nn
-import torchvision.models as models
 import torchvision.transforms as transforms
 from ultralytics import YOLO
 import pandas as pd
-import onnx
-import onnxruntime
-#import cudf
 
 # DeepSORT code from local files
 from deep_sort.deep_sort import nn_matching
@@ -154,6 +62,18 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
         logger.error("Error in preprocessing the frame: %s", e)
 
 def prepare_frame_for_display(frame):
+    """
+    Objective:
+
+    
+    Parameters:
+
+    
+    Returns:
+
+    x
+    """
+        
     # If it's a PyTorch tensor
     if isinstance(frame, torch.Tensor):
         # Move to CPU and convert to numpy
@@ -198,15 +118,14 @@ def prepare_frame_for_display(frame):
 
 #%%
 
-def export_dataframe_to_csv(df, file_path, index=False):
+def export_dataframe_to_csv(df, file_path):
     """
     Objective:
     Create a csv file of the objects tracked and its relevant features
     
     Parameters:
     [] df - Dataframe containing object's tracked and reelvant data
-    [] file_path - 
-    [] index - 
+    [] file_path - File path of where the csv file should be saved at
     
     """
     try:
@@ -214,7 +133,7 @@ def export_dataframe_to_csv(df, file_path, index=False):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         
         # Export the DataFrame to CSV
-        df.to_csv(file_path, index=index)
+        df.to_csv(file_path)
         print(f"DataFrame successfully exported to {file_path}")
     except Exception as e:
         print(f"An error occurred while exporting the DataFrame: {e}")
@@ -222,7 +141,7 @@ def export_dataframe_to_csv(df, file_path, index=False):
 
 #%%
 
-def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects):
+def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     """
     Objective:
     Perform deepsort object tracking on each video frame.
@@ -232,12 +151,12 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
     [class model] model - YOLO detection with the custom model
     [class deepsort] tracker - DeepSORT Tracker
     [function] encoder - Extracts relevant information (features) from the given frame 
-    [int] n_tracked - number of objects that are tracked (debugging purposes)
+    [int] n_missed - number of objects that are tracked (debugging purposes)
     [dataframe] detected_objects - pandas dataframe to store information on detected objects
 
     Returns:
     [array] frame - video frame after object tracking
-    [int] n_tracked - number of objects that are tracked (debugging purposes)
+    [int] n_missed - number of objects that are tracked (debugging purposes)
     [dataframe] detected_objects - pandas dataframe to store information on detected objects
     """
     
@@ -266,7 +185,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
     class_names = [class_names_dict[int(i)] for i in class_ids]
 
     # Filter the detections based on confidence threshold
-    mask = scores > 0.65
+    mask = scores > 0.6 #Confidence Threshold
     boxes = boxes[mask]
     scores = scores[mask]
     class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
@@ -279,16 +198,16 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
 
     for box, score, feature, class_name in zip(boxes, scores, features, class_names):
         # Create a new Detection object
-            detection = Detection(
-                box, 
-                score, 
-                feature,
-                class_name)
-            detections.append(detection)
+        detection = Detection(
+            box,
+            score,
+            feature,
+            class_name)
+        detections.append(detection)
     
     if detections is None:
         print('No circle features were detected in the frame')
-        logger.debug("No circle features were detected in the frame: %s", e)
+        logger.debug("No circle features were detected in the frame at:", np.float32(n_frames/30), "seconds")
 
     # Update tracker
     tracker.predict()
@@ -296,22 +215,19 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
 
     # Calculate number of objects tracked
     print('Number objects tracked:', len(tracker.tracks))
-    n_tracked += len(tracker.tracks)
-
-    # Add each tracked object's data in the detected_objects dataframe
-    tracked_objects = []
+    n_missed += abs((len(tracker.tracks))-11)
 
     # Verify the tracks
-    for ith_value, track in enumerate(tracker.tracks):        
+    for ith_value, track in enumerate(tracker.tracks):
         try:
             # Calculate the object's detection confidence score
             confidence_score = scores[ith_value]
         
-        except:
+        except Exception as e:
             # Calculate the object's detection confidence score
             confidence_score = 0.0
 
-        # Add a new detected object to the detected_objects array
+        # Add a new detected object to the detected_objects dataframe
         ith_object_details = [
             track.track_id, #TrackID
             track.class_id, #ClassID - Basketball, Team_A, Team_B
@@ -345,7 +261,7 @@ def object_tracking(frame, model, tracker, encoder, n_tracked, detected_objects)
         cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-    return frame, n_tracked, detected_objects
+    return frame, n_missed, detected_objects
 
 #%% Configuring logging
 
@@ -435,12 +351,7 @@ if torch.backends.mps.is_available():
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
-
-#model_path = os.path.join(script_directory, 'CustomModel_InstanceSegmentation.onnx')
-#model = onnx.load("path/to/your/yolo_model.onnx")
-
-model_path = os.path.join(script_directory, 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt')
-#model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
 model = YOLO(model_path)
 model.to(device) # Move model to GPU
 model.info() # Model Information
@@ -473,7 +384,8 @@ model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'mod
 encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
 
 # DEBUG Values
-n_tracked = 0
+n_missed = 0
+n_miscount = 0
 
 #%%
 
@@ -489,7 +401,8 @@ try:
 
         # If frame is read correctly ret is True
         if ret:
-            frame_colored = transform(frame_colored).unsqueeze(0).to(device)
+            #frame_colored = transform(frame_colored).unsqueeze(0).to(device)
+            frame_colored = frame_colored
         if not ret:
             break
 
@@ -505,12 +418,12 @@ try:
         #inpainted_frame = preprocess_frame(inpainted_frame, greyed = True, blur = 'median')
 
         # Perform DeepSort (Object Tracking)
-        tracked_frame, n_tracked, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_tracked, detected_objects)
+        tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
 
 
         # After processing your frame and before calling cv2.imshow
 
-        tracked_frame = prepare_frame_for_display(tracked_frame)
+        #tracked_frame = prepare_frame_for_display(tracked_frame)
 
         # Display Video Frame
         cv2.imshow('Basketball Object Tracking', tracked_frame)
@@ -541,7 +454,8 @@ try:
 
     # Log results summary
     n_objects = n_frames*11
-    count_tracked_objects = n_tracked/n_objects*100
+    count_tracked_objects = (1 - (n_missed / (n_frames*11)))*100
+
 
     logger.debug (f"Total number of objects that should have been tracked {n_objects}")
     logger.debug (f"Percentage of objects tracked: {count_tracked_objects:.4f}%")

@@ -9,7 +9,6 @@ batch: 16
 imgsz: 640
 save: true
 save_period: -1
-val_period: 1
 cache: false
 device: mps
 workers: 8

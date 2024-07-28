@@ -198,7 +198,8 @@ def main():
         input_var = tf.placeholder(
             tf.uint8, (None, 128, 64, 3), name="images")
         image_var = tf.map_fn(
-            lambda x: _preprocess(x), tf.cast(input_var, tf.float32),
+            #lambda x: _preprocess(x), tf.cast(input_var, tf.float32),
+            _preprocess, tf.cast(input_var, tf.float32),
             back_prop=False)
 
         factory_fn = _network_factory()
