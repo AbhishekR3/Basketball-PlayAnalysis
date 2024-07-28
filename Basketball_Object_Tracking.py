@@ -426,14 +426,14 @@ try:
         '''
         if n_frames>=5:
             print('DEBUG')
-        '''
 
         # Perform background subtraction (Remove basketball court)
         #inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
         # Preprocess Frame for optimal tracking
         #inpainted_frame = preprocess_frame(inpainted_frame, greyed = True, blur = 'median')
-
+        '''
+        
         # Perform DeepSort (Object Tracking)
         tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
 
