@@ -163,8 +163,8 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     """
     #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
     tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
-    B_O_T.py - scores>0.65, max_cosine_distance=0.3, nn_metric=cosine
-    --> model=YOLOv9c based custom model
+    B_O_T.py - scores>0.6, max_cosine_distance=0.3, nn_metric=cosine
+    --> model=YOLOv10m based custom model
 
     Check these if need more fine-tuning
     Kalman filter parameters
@@ -353,10 +353,15 @@ transform = transforms.Compose([
 ])
 
 
-# Switch model to GPU if available
+# Set model
+
+# If GPU is available:
 if torch.backends.mps.is_available():
     device = torch.device("mps")
     print("GPU is being used")
+if os.getenv('GITHUB_ACTIONS') is True:
+    device = torch.device("cpu")
+    print("CPU is being used")
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
