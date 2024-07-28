@@ -25,8 +25,32 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r Requirements.txt
     
-    - name: Run Basketball Game Simulation test
-      run: python Basketball_Game_Simulation.py
+    - name: Run Basketball Passing Simulation test
+      run: python Basketball_Passing_Simulation.py
+
+    - name: Check Basketball Passing Simulation log
+      run: |
+        if grep -q "succeeded" game_simulation_output.log; then
+          echo "Basketball Game Simulation test succeeded"
+        elif grep -q "failed" passing_simulation_output.log; then
+          echo "Basketball Game Simulation test failed"
+          exit 1
+        else
+          echo "Unable to determine test result"
+          exit 1
+        fi
     
     - name: Run Basketball Object Tracking test
       run: python Basketball_Object_Tracking.py
+
+    - name: Check Basketball Object Tracking log
+      run: |
+        if grep -q "succeeded" object_tracking_output.log; then
+          echo "Basketball Object Tracking test succeeded"
+        elif grep -q "failed" object_tracking_output.log; then
+          echo "Basketball Object Tracking test failed"
+          exit 1
+        else
+          echo "Unable to determine test result"
+          exit 1
+        fi
