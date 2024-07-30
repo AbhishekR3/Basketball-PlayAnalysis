@@ -6,10 +6,20 @@
 [![GitHub Actions](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/overall-test.yaml/badge.svg)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/overall-test.yaml)
 
 
-## Project Description
+## Table of Contents
+- [Project Description](#project-description)
+- [Installation](#installation)
+- [Prerequisites](#prerequisites)
+- [Dependencies](#dependencies)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [License](#license)
 
-This project aims to analyze and classify the type of offensive and defensive plays executed by basketball teams using object tracking techniques
-and neural networks. This project will create simulations for training data using pygame.
+
+## Project-Description
+
+This project aims to analyze and classify the type of offensive and defensive plays executed by basketball teams.
+This will be performed using various algorithms such as multi-object tracking, spatial databases, and neural networks/transformers.
 
 The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 
@@ -21,13 +31,13 @@ Object Tracking on a Basketball Simulation created with Pygame
 
 ![ObjectTracking_Demo](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/ObjectTracking%20Demo.gif)
 
-## Table of Contents
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Description](#project-description)
-- [Project Structure](#project-structure)
-- [License](#license)
+![DataFlowDiagram](assets/PlayBook-AI%20Data%20Flow%20Diagram.png)
+
+
+For the project outline containing detailed information on the relevant concepts/algorithms applied in this project, please refer the following
+https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline
+(Do note this outline is also used for project planning and note taking)
 
 ## Installation
 
@@ -49,6 +59,7 @@ cd Basketball-PlayAnalysis
 
 ## Usage
 
+These files were built on a MacOS build. 
 First run Basketball_Game_Simulation.py to generate video simulation
 Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
 
@@ -57,45 +68,32 @@ python Basketball_Game_Simulation.py
 python Basketball_Object_Tracking.py
 ```
 
-## Project-Description
-
-The goal of this project is to create an algorithm that classifies offensive and defensive basketball plays. The project creates simulations (similar to Clippers CourtVision) and will eventually use these custom simulations to develop a classification model.
-
-The project will use a temporal-spatial based classification model. The simulations are created using pygame for generating training data.
-
-The project outline contains detailed information on the relevant concepts/algorithms applied in this project.
-https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline
-
-I am open to contributions. Please contact me at <abhishektips3@gmail.com> for contributions. 
-
-Contributions are welcome in the following areas:
-
-- Creating different offensive/defensive plays using pygame.
-
-- Developing the neural network for the classification of the objects.
-
-- Other ideas that can improve and expand the project.
-
 ## Project-Structure
 Important files for this project
 
 ```bash
 Basketball-PlayAnalysis/
-├── Basketball_Passing_Simulation.py                # Script for simulating basketball plays
-├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
-├── README.md                                       # Project documentation
-├── Requirements.txt                                # Project requirements
+├── .github/workflows                               # Git Actions
+│   ├── CI_Testing.yml
+├── assets/                                         # Containing referenced images and diagrams
+│   ├── simulation.mp4
+│   ├── simulation_tracked.mp4
+│   ├── detected_objects.csv                        # Features of the detected objects in the simulation
+├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
+│   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom object detection model
+│   ├── Object Tracking Metrics/                    # Training data for Object Tracking validation
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 │   ├── deep_sort/
 │   ├── tools/
-├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
-├── References/                                     # References for the developemtn of the project
-├── assets/                                         # Containing referenced images and diagrams
-│   ├── Basketball Court Diagram.jpg
-│   ├── object_tracking_video.mp4
-│   ├── simulation.mp4
-├── .github/workflows                               # Git Actions
-│   ├── overall-test.yaml
+│   ├── model_data/
+├── References/                                     # References for the development of the project
+├── Basketball_Passing_Simulation.py                # Script for simulating basketball plays
+├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
+├── object_tracking_output.log                      # Object Tracking Log Details containing relevant metrics
+├── PlayBook AI: Basketball Intelligence Outline    # Project Outline
+├── README.md                                       # Project documentation
+├── Requirements.txt                                # Project library requirements
+├── YOLOv10m_custom.pt                              # Custom YOLO detection model based on YOLOv10m
 ```
 
 ## License

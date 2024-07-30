@@ -1,0 +1,128 @@
+This is my idea outline for this project.
+Some of these are things I read online and thought might be applicable.
+I also use this as a document to note down things I need to research and general planning.
+
+
+######################### Upcoming Release - v0.1.1 #########################
+- Multi-object tracking has been implemented with DeepSORT algorithm
+- Created a custom model with image segmentation based on YOLOv10m to prioritize accuracy
+- Validation Metrics: mAP50 - 98.50% || MAPSE - XX.YY% || MOTP - XX.YY%
+- Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
+- Implemented GPU accelerated programming reducing object tracking time by 57.56%
+--> Improved Time:
+YOLOv10m based custom model
+Simulation - 4 seconds
+Tracking Time w/o  GPU - 35.397447s
+Tracking Time with GPU - 15.029425s
+- General optimizations/bug fixing
+
+
+######################### Project Outline #########################
+Create simulations of plays using Pygame
+Example:
+- Pass
+- Hockey Pass
+- Steal
+- Screens
+- Pick and roll
+- Delay action
+
+Object Detections
+- Create a mask of the basketball court image
+
+Image Segmentation
+- Built custom model on YOLOv9c
+
+Object Tracking
+- Deep Sort (helps considering occuluion)
+- With custom model
+
+Improving accuracy in custom model training: Train.py
+- K-Fold Cross Validation
+- Hyperparamter fine tuning
+- Learning Rate scheduling
+- Early stopping mechanism to prevent overfitting
+
+Hyperparameter Tuning
+- Adam optimizer
+- Grid Search
+
+Neural Networks
+- C3D
+- LSTM 
+- TCN
+
+Transformers
+- 
+
+Model Efficiency/Compression
+- Quantization
+- Pruning
+- Efficient Interface? Research more
+- Neural Network on every other frame or every 5 frames?
+- Feature Reduction: PCA / anything else?
+- Ensemble methods
+
+Augmentations
+- geometric: rotate + flipping + pyramid scale + translation + cropping (bottom part of image) 
+- noise injection
+- normalization
+- blur/distortion
+- cutmix
+- color space transformation
+
+Optimize learning rate
+- Cosine 
+- /10 after every 20 epochs
+
+Features to be extracted
+- basketball + player - coordinate, color, velocity, acceleration
+- distance between circles
+- time spent in specific zones of the court
+- player in posession of the ball 
+
+Data Processing
+- Parralel/Batch processing?
+- Distributed processing
+- GPU accelerated libraries
+- Spatial Databases
+
+Simulation Optimization
+- Change video dimensions???
+- Change video resolution to 240p?
+- Consider switching to 60/higher FPS
+
+
+GPU Accelerated Libraries
+- MOT - CuPy, Numba, PyCUDA
+- NN - 
+
+######################### Bugs #########################
+1. Resolve issue moving ball to another side of the player
+- In the 'Basketball Game Simulation' file
+--> Refer to (https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/2b7e567e77899a0dd13cdb5800985b20e8852113/Basketball_Game_Simulation.py)
+
+2. Update CI testing so both python files are executed in the same GIT Action
+
+######################### Optimization #########################
+1. Others player move away from current_player if too close
+
+2. Object Detection color
+- Set the center and outer circle color in the first frame
+- Figure out the best color
+
+######################### Notes #########################
+1. Deep Sort Paper
+- Combinations of big/small objects doesnt work well. 
+Think about making the objects closer in size? It has a scale threshold too
+
+- Scale threshold (important) + reduction threshold
+
+- Current frame-previous frame matching search takes the longest time to process
+So you should reduce the dimensions
+-> Dimensions
+- Basketball - color + x_coordinate + y_coordinates - x1
+- Player - color + x_coordinate + y_coordinates - x10
+-> Algorithms
+- PCA (For efficiency)
+- t-SNE (For Visualization)

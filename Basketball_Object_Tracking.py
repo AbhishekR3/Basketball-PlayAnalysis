@@ -3,7 +3,6 @@ Basketball Object Tracking
 This file tracks the positions/features of each player and the basketball.
 
 Key Concepts Implemented:
-- Hough Circle Transform - Object Detection specifically for Circles
 - YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
 --> Implemented a custom model with 94.8% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
