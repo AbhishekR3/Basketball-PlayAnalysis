@@ -1,7 +1,7 @@
 names:
 - Basketball
-- Player_A
-- Player_B
+- Team_A
+- Team_B
 nc: 3
 test: ../test/images
 train: ../train/images

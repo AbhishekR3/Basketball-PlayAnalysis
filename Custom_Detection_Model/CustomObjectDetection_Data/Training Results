@@ -3,20 +3,20 @@ Latest Training Results Data
 Model: YOLOv10m
 YOLOv10m summary (fused): 369 layers, 16,453,858 parameters, 0 gradients, 63.4 GFLOPs
 
-Epochs: 10
+Epochs: 15
 Image Size: 640x640
 
 Performance:
 
 | Class      | Images | Instances | Box(P) | R     | mAP50 | mAP50-95 |
 |------------|--------|-----------|-------|-------|-------|----------|
-| all        | 6      | 66        | 0.788 | 0.822 | 0.948 | 0.720    |
-| Basketball | 6      | 6         | 0.774 | 0.500 | 0.885 | 0.617    |
-| Team_A     | 6      | 30        | 0.830 | 0.967 | 0.965 | 0.781    |
-| Team_B     | 6      | 30        | 0.760 | 1.000 | 0.995 | 0.762    |
+| all        | 13     | 143       | 0.951 | 0.944 | 0.961 | 0.863    |
+| Basketball | 13     | 13        | 0.892 | 0.846 | 0.909 | 0.732    |
+| Team_A     | 13     | 65        | 0.968 | 0.985 | 0.978 | 0.926    |
+| Team_B     | 13     | 65        | 0.993 | 1.000 | 0.995 | 0.931    |
 
 Speed per image:
-- 5.8ms preprocess
-- 385ms inference
+- 60.7ms preprocess
+- 411.4ms inference
 - 0.0ms loss
-- 0.5ms postprocess
+- 20.5ms postprocess

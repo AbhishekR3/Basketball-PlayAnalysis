@@ -290,58 +290,10 @@ try:
 except Exception as e:
     logger.error("Error in creating logging configuration: %s", e)
 
-######################################## GIT ACTION TESTING ######################################
-import os
-
-def print_directory_contents(path):
-    print(f"Contents of {path}:")
-    try:
-        for item in os.listdir(path):
-            print(f"  {item}")
-    except Exception as e:
-        print(f"Error listing directory contents: {e}")
-
-if os.getenv('GITHUB_ACTIONS') == 'true':
-    # If running through github actions update script_directory
-    script_directory = os.getcwd()
-    script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
-
-    print(f"Current working directory: {script_directory}")
-    print(f"Contents of current directory: {os.listdir('.')}")
-    print(f"Contents of parent directory: {os.listdir('..')}")
-
-
-assets_directory = os.path.join(script_directory, 'assets')
-video_path = os.path.join(assets_directory, 'simulation.mp4')
-
-print(f"Script directory: {script_directory}")
-print(f"Assets directory: {assets_directory}")
-print(f"Video path: {video_path}")
-
-print_directory_contents(assets_directory)
-
-if not os.path.exists(video_path):
-    print(f"Error: Video file not found at {video_path}")
-    print("Checking for other video files in assets directory:")
-    for file in os.listdir(assets_directory):
-        if file.endswith(('.mp4', '.avi', '.mov')):
-            print(f"  Found video file: {file}")
-
-
-
-######################################## GIT ACTION TESTING ######################################
-
 #%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
-
-if os.getenv('GITHUB_ACTIONS') == 'true':
-    # If running through github actions update script_directory
-    script_directory = os.getcwd()
-    script_directory = script_directory.replace("/Basketball-PlayAnalysis/Basketball-PlayAnalysis", "/Basketball-PlayAnalysis", 1)
-else:
-    script_directory = os.getcwd()
-
+script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
@@ -387,7 +339,7 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 try:
     out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 except:
-    out = cv2.VideoWriter(output_path, fourcc, FPS, (500, 500))
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (640, 640))
 
 # Transformation pipeline for each video frame for compatability
 transform = transforms.Compose([
@@ -410,6 +362,7 @@ elif torch.backends.mps.is_available():
 # Initialize Deep SORT components
 script_directory = os.getcwd()
 model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
+#model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
 model = YOLO(model_path)
 model.to(device) # Move model to GPU
 model.info() # Model Information

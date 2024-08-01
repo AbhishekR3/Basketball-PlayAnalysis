@@ -3,7 +3,7 @@ Training/Testing the YOLO model on the custom dataset
 
 Key Concepts Implemented:
 - Augmentations (refer README.dataset.txt for more info)
-- Logging GPU memory usage
+- Enabled GPU-accelerated programming
 '''
 
 # Import Libraries
@@ -60,10 +60,21 @@ print("Memory usage before training:")
 log_memory_usage()
 print()
 
-# Train dataset
+# Train dataset with parameters 
 projectfile_path = os.getcwd()
 trainingdata_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'data.yaml')
-results = model.train(data=trainingdata_path, epochs=10, imgsz=640, device=device)  # train the model
+
+results = model.train(
+    data=trainingdata_path, 
+    epochs=15, 
+    imgsz=640, 
+    device=device,
+    lr0=0.01,
+    lrf=0.01,
+    cos_lr=True,  # Cosine Learning rate
+    patience=4,  # Early Stopping
+    save_period=1,
+    verbose=True)
 
 # GPU memory usage after training
 print()
@@ -74,11 +85,3 @@ print()
 # Use the model
 metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)
-
-# Specify the file name
-metrics_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'metrics.txt')
-
-# Write metrics to TXT file
-with open(metrics_path, 'w') as file:
-    for key, value in metrics.items():
-        file.write(f'{key}: {value}\n')
