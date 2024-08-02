@@ -3,8 +3,6 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Release Badge](https://img.shields.io/github/v/release/AbhishekR3/Basketball-PlayAnalysis.svg?color=orange)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/releases)
-[![GitHub Actions](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/overall-test.yaml/badge.svg)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/overall-test.yaml)
-
 
 ## Table of Contents
 - [Project Description](#project-description)
@@ -64,7 +62,7 @@ First run Basketball_Game_Simulation.py to generate video simulation
 Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
 
 ```bash
-python Basketball_Game_Simulation.py
+python Basketball_Passing_Simulation.py
 python Basketball_Object_Tracking.py
 ```
 
@@ -73,15 +71,14 @@ Important files for this project
 
 ```bash
 Basketball-PlayAnalysis/
-├── .github/workflows                               # Git Actions
-│   ├── CI_Testing.yml
 ├── assets/                                         # Containing referenced images and diagrams
 │   ├── simulation.mp4
 │   ├── simulation_tracked.mp4
 │   ├── detected_objects.csv                        # Features of the detected objects in the simulation
+│   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
 ├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
-│   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom object detection model
-│   ├── Object Tracking Metrics/                    # Training data for Object Tracking validation
+│   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom YOLO object detection model
+│   ├── Object Tracking Metrics/                    # Multi-Object Tracking (DeepSORT) validation
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 │   ├── deep_sort/
 │   ├── tools/

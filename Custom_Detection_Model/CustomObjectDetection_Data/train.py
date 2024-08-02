@@ -4,6 +4,7 @@ Training/Testing the YOLO model on the custom dataset
 Key Concepts Implemented:
 - Augmentations (refer README.dataset.txt for more info)
 - Enabled GPU-accelerated programming
+- Early Stopping + Cosine Learning Rate for model training
 '''
 
 # Import Libraries
@@ -63,6 +64,7 @@ print()
 # Train dataset with parameters 
 projectfile_path = os.getcwd()
 trainingdata_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'data.yaml')
+#trainingdata_path = os.path.join(projectfile_path, 'CustomObjectDetection_Data-1', 'data.yaml')
 
 results = model.train(
     data=trainingdata_path, 
@@ -70,7 +72,7 @@ results = model.train(
     imgsz=640, 
     device=device,
     lr0=0.01,
-    lrf=0.01,
+    lrf=0.05,
     cos_lr=True,  # Cosine Learning rate
     patience=4,  # Early Stopping
     save_period=1,

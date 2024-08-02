@@ -4,9 +4,9 @@ This file tracks the positions/features of each player and the basketball.
 
 Key Concepts Implemented:
 - YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
---> Implemented a custom model with 94.8% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
+--> Implemented a custom model with 97.7% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
---> Implementing validation
+--> Validation Metrics: MOTA: MOTP: 1DF1:
 '''
 
 #%%
@@ -70,7 +70,6 @@ def prepare_frame_for_display(frame):
     
     Returns:
 
-    x
     """
         
     # If it's a PyTorch tensor
@@ -184,7 +183,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     class_names = [class_names_dict[int(i)] for i in class_ids]
 
     # Filter the detections based on confidence threshold
-    mask = scores > 0.6 #Confidence Threshold
+    mask = scores > 0.65 #Confidence Threshold
     boxes = boxes[mask]
     scores = scores[mask]
     class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
@@ -295,6 +294,7 @@ except Exception as e:
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
+video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 print(f"Video path: {video_path}")
@@ -367,7 +367,7 @@ model = YOLO(model_path)
 model.to(device) # Move model to GPU
 model.info() # Model Information
 model.iou = 0.45
-max_cosine_distance = 0.3
+max_cosine_distance = 0.4
 nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
@@ -451,7 +451,6 @@ try:
     n_objects = n_frames*11
     count_tracked_objects = (1 - (n_missed / (n_frames*11)))*100
 
-
     logger.debug (f"Total number of objects that should have been tracked {n_objects}")
     logger.debug (f"Percentage of objects tracked: {count_tracked_objects:.4f}%")
     logger.debug ("Object Tracking succeeded")
@@ -467,5 +466,3 @@ finally:
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()
-
-# %%
