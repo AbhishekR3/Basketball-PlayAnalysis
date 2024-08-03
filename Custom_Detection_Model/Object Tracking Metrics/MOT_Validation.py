@@ -9,6 +9,7 @@ This file calculates the following metrics:
 #%%
 
 #Import Libraries
+import pandas as pd
 import xml.etree.ElementTree as ET
 import numpy as np
 from collections import defaultdict
@@ -25,15 +26,17 @@ def parse_cvat_xml(xml_file):
     [???] xml_file - 
     
     Returns:
-    [???] annotations - 
+    [dictionary] annotations - Dictionary collection of the annotations 
     """
         
     tree = ET.parse(xml_file)
     root = tree.getroot()
-    
+
     annotations = defaultdict(list)
+    
     for track in root.findall('.//track'):
         track_id = int(track.get('id'))
+        label = track.get('label')
         for box in track.findall('box'):
             frame = int(box.get('frame'))
             xtl = float(box.get('xtl'))
@@ -42,9 +45,41 @@ def parse_cvat_xml(xml_file):
             ybr = float(box.get('ybr'))
             annotations[frame].append({
                 'id': track_id,
-                'bbox': [xtl, ytl, xbr, ybr]
+                'bbox': [xtl, ytl, xbr, ybr],
+                'class': [label]
             })
+
     return annotations
+
+#%%
+
+def annotation_dataframe(annotations, annotation_data):
+    """
+    Objective:
+    Convert annotations into panads dataframe
+    
+    Parameters:
+    [dictionary] annotations - Dictionary collection of the annotations 
+    [dataframe] annotation_data - Pandas dataframe to contain annotated data
+
+    Returns:
+    [dataframe] annotation_data - Pandas dataframe to contain annotated data
+    """
+
+    data = []
+    for key1 in annotations:
+        for key2 in annotations[key1]:
+            # Extract the values
+            id_value = key2['id']
+            bbox_value = key2['bbox']
+            class_value = key2['class']
+            
+            # Append the values as a tuple to the rows list
+            data.append((id_value, bbox_value, class_value))
+
+    annotation_data = pd.DataFrame(data, columns=['id', 'bbox', 'class'])
+
+    return annotation_data
 
 #%%
 
@@ -158,10 +193,15 @@ def calculate_metrics(annotations, detections):
 #%%
 
 def main():
-    cvat_xml_file = 'path/to/your/cvat_annotations.xml'
-    detections_file = 'path/to/your/detections.json'  # Adjust based on your format
-    
+
+    # Load and convert annotations to pandas dataframe
+    cvat_xml_file = 'Custom_Detection_Model/Object Tracking Metrics/annotations_10s.xml'
+    annotation_data = pd.DataFrame(columns=['id', 'bbox', 'class'])
     annotations = parse_cvat_xml(cvat_xml_file)
+    annotation_data = annotation_dataframe(annotations, annotation_data)
+
+    # Load and convert object detections's features to pandas dataframe
+    detections_file = 'path/to/your/detections.json'  # Adjust based on your format
     detections = load_detections(detections_file)
     
     mota, motp, idf1 = calculate_metrics(annotations, detections)

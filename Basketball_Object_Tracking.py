@@ -205,7 +205,8 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     
     if detections is None:
         print('No circle features were detected in the frame')
-        logger.debug("No circle features were detected in the frame at:", np.float32(n_frames/30), "seconds")
+        frame_time = np.float32(n_frames/30)
+        logger.debug("No circle features were detected in the frame at:", frame_time, "seconds")
 
     # Update tracker
     tracker.predict()
@@ -236,11 +237,11 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
             track.hits, # Total objects successfully matched to the track
             track.age, # Total number of frames since the track was initialized
             track.features, # Features detected in the object
-            np.float32(n_frames/30) #Time
+            n_frames #Nth Frame
         ]
 
         new_object = pd.DataFrame([ith_object_details], columns=
-                                  ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
+                                  ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
         detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
 
         # Check if
@@ -294,7 +295,7 @@ except Exception as e:
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
-video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation.mp4')
+video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
 print(f"Video path: {video_path}")
@@ -372,7 +373,7 @@ nn_budget = None
 metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
 tracker = Tracker(metric)
 
-detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Time'])
+detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
 
 # Training model and feature extractor
 model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
@@ -443,9 +444,17 @@ try:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
 
-    # Export dataframe into csv
+    # Export extracted features to dataframe into csv
     file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
     export_dataframe_to_csv(detected_objects, file_path)
+
+    '''
+    # Export dataframes
+    detected_objects['trackid']
+    detected_objects['mean'][0:3]
+    detected_objects['class']
+    '''
+
 
     # Log results summary
     n_objects = n_frames*11

@@ -17,7 +17,7 @@
 ## Project-Description
 
 This project aims to analyze and classify the type of offensive and defensive plays executed by basketball teams.
-This will be performed using various algorithms such as multi-object tracking, spatial databases, and neural networks/transformers.
+This will be performed with the help of multi-object tracking, spatial databases, and neural networks/transformers.
 
 The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 
@@ -29,13 +29,13 @@ Object Tracking on a Basketball Simulation created with Pygame
 
 ![ObjectTracking_Demo](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/ObjectTracking%20Demo.gif)
 
+Data Flow Diagram
 
 ![DataFlowDiagram](assets/PlayBook-AI%20Data%20Flow%20Diagram.png)
 
+I have a project outline containing detailed information on the relevant concepts/algorithms applied in this project
 
-For the project outline containing detailed information on the relevant concepts/algorithms applied in this project, please refer the following
-https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline
-(Do note this outline is also used for project planning and note taking)
+[Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline)
 
 ## Installation
 
@@ -45,11 +45,11 @@ https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Pla
 
 ### Dependencies
 
-Ensure you have the following packages installed:
+Ensure you have the following installed:
 
-Refer Requirements.txt file and install the libraries mentioned
+1. Refer Requirements.txt file and install the libraries mentioned
 
-Clone the Repository
+2. Clone the Repository
 ```bash
 git clone https://github.com/AbhishekR3/Basketball-PlayAnalysis.git
 cd Basketball-PlayAnalysis
@@ -58,7 +58,7 @@ cd Basketball-PlayAnalysis
 ## Usage
 
 These files were built on a MacOS build. 
-First run Basketball_Game_Simulation.py to generate video simulation
+First run Basketball_Passing_Simulation.py to generate video simulations of passes
 Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
 
 ```bash
@@ -78,7 +78,7 @@ Basketball-PlayAnalysis/
 │   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
 ├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
 │   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom YOLO object detection model
-│   ├── Object Tracking Metrics/                    # Multi-Object Tracking (DeepSORT) validation
+│   ├── Object Tracking Metrics/                    # Multi-Object Tracking (DeepSORT) validation metrics and relevant video
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 │   ├── deep_sort/
 │   ├── tools/
@@ -96,4 +96,3 @@ Basketball-PlayAnalysis/
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.
-
