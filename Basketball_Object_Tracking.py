@@ -63,56 +63,60 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
 def prepare_frame_for_display(frame):
     """
     Objective:
-
+    Prepare the frame for display, which is required due to GPU accelerated programming
     
     Parameters:
-
+    [array]  frame - video frame
     
     Returns:
+    [array]  frame - video frame    
 
     """
+    try:
+        # If it's a PyTorch tensor
+        if isinstance(frame, torch.Tensor):
+            # Move to CPU and convert to numpy
+            frame = frame.detach().cpu().numpy()
+            
+            # If it's a batch, take the first item
+            if frame.ndim == 4:
+                frame = frame[0]
+            
+            # Rearrange dimensions if necessary (CHW -> HWC)
+            if frame.shape[0] == 3:
+                frame = np.transpose(frame, (1, 2, 0))
+            
+            # Scale to 0-255 if in float format
+            if frame.dtype == np.float32 or frame.dtype == np.float64:
+                frame = (frame * 255).astype(np.uint8)
         
-    # If it's a PyTorch tensor
-    if isinstance(frame, torch.Tensor):
-        # Move to CPU and convert to numpy
-        frame = frame.detach().cpu().numpy()
+        # Ensure it's a numpy array
+        if not isinstance(frame, np.ndarray):
+            raise TypeError("Frame must be a numpy array or PyTorch tensor")
         
-        # If it's a batch, take the first item
-        if frame.ndim == 4:
-            frame = frame[0]
+        # Ensure it's in uint8 format
+        if frame.dtype != np.uint8:
+            frame = frame.astype(np.uint8)
         
-        # Rearrange dimensions if necessary (CHW -> HWC)
-        if frame.shape[0] == 3:
-            frame = np.transpose(frame, (1, 2, 0))
+        # Ensure it's in HWC format
+        if frame.ndim == 2:
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        elif frame.shape[2] == 1:
+            frame = frame.squeeze()
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        elif frame.shape[2] == 4:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
         
-        # Scale to 0-255 if in float format
-        if frame.dtype == np.float32 or frame.dtype == np.float64:
-            frame = (frame * 255).astype(np.uint8)
-    
-    # Ensure it's a numpy array
-    if not isinstance(frame, np.ndarray):
-        raise TypeError("Frame must be a numpy array or PyTorch tensor")
-    
-    # Ensure it's in uint8 format
-    if frame.dtype != np.uint8:
-        frame = frame.astype(np.uint8)
-    
-    # Ensure it's in HWC format
-    if frame.ndim == 2:
-        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-    elif frame.shape[2] == 1:
-        frame = frame.squeeze()
-        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-    elif frame.shape[2] == 4:
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
-    
-    # Clip values to valid range
-    frame = np.clip(frame, 0, 255)
-    
-    # Ensure the array is contiguous
-    frame = np.ascontiguousarray(frame)
-    
-    return frame
+        # Clip values to valid range
+        frame = np.clip(frame, 0, 255)
+        
+        # Ensure the array is contiguous
+        frame = np.ascontiguousarray(frame)
+        
+        return frame
+
+    except Exception as e:
+        print(f"An error occurred when prepping frame for display: {e}")
 
 #%%
 
@@ -122,8 +126,8 @@ def export_dataframe_to_csv(df, file_path):
     Create a csv file of the objects tracked and its relevant features
     
     Parameters:
-    [] df - Dataframe containing object's tracked and reelvant data
-    [] file_path - File path of where the csv file should be saved at
+    [dataframe] df - Dataframe containing object's tracked and reelvant data
+    [string] file_path - File path of where the csv file should be saved at
     
     """
     try:
@@ -135,6 +139,73 @@ def export_dataframe_to_csv(df, file_path):
         print(f"DataFrame successfully exported to {file_path}")
     except Exception as e:
         print(f"An error occurred while exporting the DataFrame: {e}")
+
+
+#%%
+
+def export_validation_metrics(detected_objects):
+    """
+    Objective:
+    Create a csv file of the objects tracked and its relevant features
+    
+    Parameters:
+    [dataframe] df - Dataframe containing object's tracked and reelvant data
+    [string] file_path - File path of where the csv file should be saved at
+    
+    """
+
+    try:
+        # Filter Metrics Objects
+        validation_metrics_objects = detected_objects[['TrackID', 'Mean', 'ClassID', 'Frame']]
+
+        validation_metrics_objects.loc[:, 'Mean'] = validation_metrics_objects['Mean'].apply(calculate_bbox) # Extract the boundingbox 
+
+        validation_metrics_objects = validation_metrics_objects.rename(columns={'Mean': 'BBox'}) #Rename Mean to BBox for bounding box
+
+        return validation_metrics_objects
+    
+    except Exception as e:
+        print(f"An error occured while creating validation metrics: {e}")
+
+#%%
+
+def calculate_bbox(deepsort_mean):
+    """
+    Calculate bounding box coordinates from DeepSORT mean state.
+    
+    Parameters:
+    deepsort_mean (np.array): Array of 8 values from DeepSORT.
+    
+    Returns:
+    tuple: (top_left, top_right, bottom_left, bottom_right) coordinates.
+    """
+    try:
+        # Split the string and store the values as floats
+        deepsort_mean = deepsort_mean.strip('[]')
+        deepsort_mean = [float(x) for x in deepsort_mean.split()]
+
+        x, y, aspect_ratio, height = deepsort_mean[:4]
+
+        # Calculate width from aspect ratio and height
+        width = aspect_ratio * height
+
+        # Calculate half width and half height
+        half_width = width / 2
+        half_height = height / 2
+
+        # Calculate coordinates
+        top_left = (x - half_width, y - half_height)
+        bottom_right = (x + half_width, y + half_height)
+
+        xtl = top_left[0]
+        ytl = top_left[1]
+        xbr = bottom_right[0]
+        ybr = bottom_right[1]
+
+        return np.array([xtl, ytl, xbr, ybr])
+
+    except Exception as e:
+        logger.error("An error occured when calculating bounding box: %s", e)
 
 
 #%%
@@ -161,7 +232,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     """
     #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
     tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
-    B_O_T.py - scores>0.6, max_cosine_distance=0.3, nn_metric=cosine
+    B_O_T.py - scores>0.85, max_cosine_distance=0.3, nn_metric=cosine
     --> model=YOLOv10m based custom model
 
     Check these if need more fine-tuning
@@ -169,98 +240,102 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     max_dist
     """
 
-    # Process the current frame with the YOLO model without gradient computation
-    with torch.no_grad():
-        results = model(frame)
+    try:
+        # Process the current frame with the YOLO model without gradient computation
+        with torch.no_grad():
+            results = model(frame)
 
-    # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
-    boxes = results[0].boxes.xyxy.cpu().numpy()
-    scores = results[0].boxes.conf.cpu().numpy()
-    class_ids = results[0].boxes.cls.cpu().numpy()
+        # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
+        boxes = results[0].boxes.xyxy.cpu().numpy()
+        scores = results[0].boxes.conf.cpu().numpy()
+        class_ids = results[0].boxes.cls.cpu().numpy()
 
-    # Convert class indices to class names
-    class_names_dict = results[0].names
-    class_names = [class_names_dict[int(i)] for i in class_ids]
+        # Convert class indices to class names
+        class_names_dict = results[0].names
+        class_names = [class_names_dict[int(i)] for i in class_ids]
 
-    # Filter the detections based on confidence threshold
-    mask = scores > 0.65 #Confidence Threshold
-    boxes = boxes[mask]
-    scores = scores[mask]
-    class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
-    
-    # Compute features for Deep SORT
-    features = encoder(frame, boxes)
-
-    # Create detections for Deep SORT
-    detections = []
-
-    for box, score, feature, class_name in zip(boxes, scores, features, class_names):
-        # Create a new Detection object
-        detection = Detection(
-            box,
-            score,
-            feature,
-            class_name)
-        detections.append(detection)
-    
-    if detections is None:
-        print('No circle features were detected in the frame')
-        frame_time = np.float32(n_frames/30)
-        logger.debug("No circle features were detected in the frame at:", frame_time, "seconds")
-
-    # Update tracker
-    tracker.predict()
-    tracker.update(detections)
-
-    # Calculate number of objects tracked
-    print('Number objects tracked:', len(tracker.tracks))
-    n_missed += abs((len(tracker.tracks))-11)
-
-    # Verify the tracks
-    for ith_value, track in enumerate(tracker.tracks):
-        try:
-            # Calculate the object's detection confidence score
-            confidence_score = scores[ith_value]
+        # Filter the detections based on confidence threshold
+        mask = scores > 0.85 #Confidence Threshold
+        boxes = boxes[mask]
+        scores = scores[mask]
+        class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
         
-        except Exception as e:
-            # Calculate the object's detection confidence score
-            confidence_score = 0.0
+        # Compute features for Deep SORT
+        features = encoder(frame, boxes)
 
-        # Add a new detected object to the detected_objects dataframe
-        ith_object_details = [
-            track.track_id, #TrackID
-            track.class_id, #ClassID - Basketball, Team_A, Team_B
-            track.mean, #Track State - 8-dimensional vector: [x, y, a, h, vx, vy, va, vh]
-            track.covariance, #Covariance between Track State variables
-            confidence_score, #Confidence Score of object
-            track.state, #Track Status - Tentative, Confirmed, Deleted
-            track.hits, # Total objects successfully matched to the track
-            track.age, # Total number of frames since the track was initialized
-            track.features, # Features detected in the object
-            n_frames #Nth Frame
-        ]
+        # Create detections for Deep SORT
+        detections = []
 
-        new_object = pd.DataFrame([ith_object_details], columns=
-                                  ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
-        detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
+        for box, score, feature, class_name in zip(boxes, scores, features, class_names):
+            # Create a new Detection object
+            detection = Detection(
+                box,
+                score,
+                feature,
+                class_name)
+            detections.append(detection)
+        
+        if detections is None:
+            print('No circle features were detected in the frame')
+            frame_time = np.float32(n_frames/30)
+            logger.debug("No circle features were detected in the frame at:", frame_time, "seconds")
 
-        # Check if
-        # not track.is_confirmed()    : Check that an object track has not been found
-        # track.time_since_update > 1 : Check the track has not been updated for more than one frame
-        if not track.is_confirmed() or track.time_since_update > 1:
-            continue
+        # Update tracker
+        tracker.predict()
+        tracker.update(detections)
 
-        # Calculate the coordinates' border of the object
-        bbox = track.to_tlbr()
+        # Calculate number of objects tracked
+        print('Number objects tracked:', len(tracker.tracks))
+        n_missed += abs((len(tracker.tracks))-11)
 
-        # Label color for detected object's track_id and confidence score
-        color = (255, 255, 255)  # BGR format
+        # Verify the tracks
+        for ith_value, track in enumerate(tracker.tracks):
+            try:
+                # Calculate the object's detection confidence score
+                confidence_score = scores[ith_value]
+            
+            except Exception as e:
+                # Calculate the object's detection confidence score
+                confidence_score = 0.0
 
-        # Draw bounding boxes and IDs
-        cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            # Add a new detected object to the detected_objects dataframe
+            ith_object_details = [
+                track.track_id, #TrackID
+                track.class_id, #ClassID - Basketball, Team_A, Team_B
+                track.mean, #Track State - 8-dimensional vector: [x, y, a, h, vx, vy, va, vh]
+                track.covariance, #Covariance between Track State variables
+                confidence_score, #Confidence Score of object
+                track.state, #Track Status - Tentative, Confirmed, Deleted
+                track.hits, # Total objects successfully matched to the track
+                track.age, # Total number of frames since the track was initialized
+                track.features, # Features detected in the object
+                n_frames #Nth Frame
+            ]
 
-    return frame, n_missed, detected_objects
+            new_object = pd.DataFrame([ith_object_details], columns=
+                                    ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
+            detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
+
+            # Check if
+            # not track.is_confirmed()    : Check that an object track has not been found
+            # track.time_since_update > 1 : Check the track has not been updated for more than one frame
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+
+            # Calculate the coordinates' border of the object
+            bbox = track.to_tlbr()
+
+            # Label color for detected object's track_id and confidence score
+            color = (255, 255, 255)  # BGR format
+
+            # Draw bounding boxes and IDs
+            cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        return frame, n_missed, detected_objects
+    
+    except Exception as e:
+        logger.error("Error in the object tracking: %s", e)
 
 #%% Configuring logging
 
@@ -340,7 +415,7 @@ FPS = cap.get(cv2.CAP_PROP_FPS)
 try:
     out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
 except:
-    out = cv2.VideoWriter(output_path, fourcc, FPS, (640, 640))
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (470, 500))
 
 # Transformation pipeline for each video frame for compatability
 transform = transforms.Compose([
@@ -389,6 +464,7 @@ start_time = time.time()
 
 """ Main Simulation - Object Tracking """
 try:
+
     # Loop through each frame in the video
     while cap.isOpened():
 
@@ -445,16 +521,15 @@ try:
             break
 
     # Export extracted features to dataframe into csv
-    file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
-    export_dataframe_to_csv(detected_objects, file_path)
+    detectedobjects_file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
+    export_dataframe_to_csv(detected_objects, detectedobjects_file_path)
 
-    '''
-    # Export dataframes
-    detected_objects['trackid']
-    detected_objects['mean'][0:3]
-    detected_objects['class']
-    '''
 
+    # Export MOT validation metrics dataframe into csv
+    detected_objects = pd.read_csv(os.path.join(os.getcwd(), 'assets', 'detected_objects.csv'))
+    MOTvalidation_file_path = os.path.join(os.getcwd(), 'Custom_Detection_Model', 'Object Tracking Metrics', 'MOT_validationmetrics.csv')
+    detected_objects_filtered = export_validation_metrics(detected_objects)
+    export_dataframe_to_csv(detected_objects_filtered, MOTvalidation_file_path)
 
     # Log results summary
     n_objects = n_frames*11

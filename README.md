@@ -16,8 +16,22 @@
 
 ## Project-Description
 
-This project aims to analyze and classify the type of offensive and defensive plays executed by basketball teams.
-This will be performed with the help of multi-object tracking, spatial databases, and neural networks/transformers.
+Project Goals:
+
+PlayBook AI will help basketball professionals:
+* Analyze offensive and defensive plays executed by teams
+* Assess potential player fit within a team
+* Understand play patterns in critical game moments
+* Identify a team's most/least successful plays
+
+Project Overview:
+1. Simulate basketball plays with Pygame for training data
+2. Implementing computer vision techniques for multi-object tracking
+3. Leveraging spatial databases for efficient data management
+4. Applying feature engineering for ML model optimization
+5. Using Neural Networks (LSTM, TCN, C3D) and Transformers (TimeSformer, STN)
+6. Enhancing model efficiency through quantization and pruning 
+7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines 
 
 The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 
@@ -33,7 +47,7 @@ Data Flow Diagram
 
 ![DataFlowDiagram](assets/PlayBook-AI%20Data%20Flow%20Diagram.png)
 
-I have a project outline containing detailed information on the relevant concepts/algorithms applied in this project
+I have a project outline containing detailed information on the relevant concepts/algorithms planned for this project
 
 [Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline)
 

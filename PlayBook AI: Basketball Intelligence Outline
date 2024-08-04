@@ -6,7 +6,9 @@ I also use this as a document to note down things I need to research and general
 ######################### Upcoming Release - v0.1.1 #########################
 - Multi-object tracking has been implemented with DeepSORT algorithm
 - Created a custom model with image segmentation based on YOLOv10m
-- Validation Metrics: mAP50 - 98.50% || MAPSE - XX.YY% || MOTP - XX.YY%
+- Validation Metrics:
+--- YOLO Object Detection - mAP50 (0.977), Precision (0.973), Recall (0.891)
+--- DeepSORT - MAPSE (-0.8017), MOTP (0.4706), IDF1 (0.0618)
 - Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
 - Implemented GPU accelerated programming reducing object tracking time by 57.56%
 - General optimizations/bug fixing
@@ -26,7 +28,7 @@ Object Detections
 - Create a mask of the basketball court image
 
 Image Segmentation
-- Built custom model on YOLOv9c
+- Built custom model on YOLOv10m
 
 Object Tracking
 - Deep Sort (helps considering occuluion)
@@ -48,7 +50,8 @@ Neural Networks
 - TCN
 
 Transformers
-- 
+- STN
+- TimeSformer
 
 Model Efficiency/Compression
 - Quantization
@@ -85,20 +88,6 @@ Simulation Optimization
 GPU Accelerated Libraries
 - MOT - CuPy, Numba, PyCUDA
 - NN - 
-
-######################### Bugs #########################
-1. Resolve issue moving ball to another side of the player
-- In the 'Basketball Game Simulation' file
---> Refer to (https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/2b7e567e77899a0dd13cdb5800985b20e8852113/Basketball_Game_Simulation.py)
-
-2. Update CI testing so both python files are executed in the same GIT Action
-
-######################### Optimization #########################
-1. Others player move away from current_player if too close
-
-2. Object Detection color
-- Set the center and outer circle color in the first frame
-- Figure out the best color
 
 ######################### Notes #########################
 1. Deep Sort Paper
