@@ -1,0 +1,28 @@
+######################### Abhishek Notes #########################
+**Deep Sort Paper**
+
+Detection
+- randomly sampling a pyramid scale - skipped
+- pooling is skipped
+- multi-region strategies to combine features at different scales and levels - skipped
+---> But it's better
+
+Appearence Feature
+Input
+- Size - 96x96
+- pool5 layer is 3x3
+Output
+- fully connected layer
+
+Tracker
+- Kalman filter + Kuhn-Munkres algorithm
+- Since the Kuhn-Munkres algorithm attempts to yield the global optimal result, it may fail when some detections are missing. 
+To this end, we use a two-stage matching strategy, which divides T t−1 into high tracking
+quality set Tt−1 and low quality set Tt−1.
+
+Combinations of big/small objects doesnt work well. 
+Think about making the objects closer in size. 
+
+Current frame-previous frame matching search takes the longest time to process
+So you should reduce the dimensions
+

@@ -1,16 +1,33 @@
-# Basketball Object Tracking
+'''
+Basketball Object Tracking
+This file tracks the positions/features of each player and the basketball.
 
-# Utilizing OpenCV, track players and basketball.
+Key Concepts Implemented:
+- YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
+--> Implemented a custom model with 97.7% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
+- DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
+--> Validation Metrics: MOTA: MOTP: 1DF1:
+'''
 
 #%%
 
-"Import Libraries"
+#Import Libraries
 
 import cv2
 import numpy as np
 import os
 import time
 import logging
+import torch
+import torchvision.transforms as transforms
+from ultralytics import YOLO
+import pandas as pd
+
+# DeepSORT code from local files
+from deep_sort.deep_sort import nn_matching
+from deep_sort.deep_sort.detection import Detection
+from deep_sort.deep_sort.tracker import Tracker
+from deep_sort.tools import generate_detections as gdet
 
 #%%
 
@@ -43,167 +60,292 @@ def preprocess_frame(frame, greyed = True, blur = 'median'):
     except Exception as e:
         logger.error("Error in preprocessing the frame: %s", e)
 
-
-#%%
-
-def create_optimal_tracking_color(object_bgr):
+def prepare_frame_for_display(frame):
     """
-    Objective: 
-    Return the perimeter color and center color of the detected circle. 
-    This is to improve the detection object tracking.
-    Perimeter color is a darker shade. Center color is a lighter shade.
-
+    Objective:
+    Prepare the frame for display, which is required due to GPU accelerated programming
+    
     Parameters:
-    [tuple] object_bgr - object color in bgr
-
+    [array]  frame - video frame
     
     Returns:
-    [tuple] perimeter_color - perimeter color in rgb
-    [tuple] center_color - center color in rgb
+    [array]  frame - video frame    
+
     """
-
     try:
-        #Ensuring the color stays within the 0-255 color range
-        def adjust_color_value(color_value, factor):
-            return min(max(int(color_value * factor), 0), 255)
+        # If it's a PyTorch tensor
+        if isinstance(frame, torch.Tensor):
+            # Move to CPU and convert to numpy
+            frame = frame.detach().cpu().numpy()
 
-        b, g, r = object_bgr
-
-        # Calculate the darker shade for the perimeter
-        perimeter_color = (
-            adjust_color_value(r, 0.7),
-            adjust_color_value(g, 0.7),
-            adjust_color_value(b, 0.7)
-        )
-
-        # Calculate the lighter shade for the center
-        center_color = (
-            adjust_color_value(r + (255 - r) * 0.5, 1),
-            adjust_color_value(g + (255 - g) * 0.5, 1),
-            adjust_color_value(b + (255 - b) * 0.5, 1)
-        )
+            # If it's a batch, take the first item
+            if frame.ndim == 4:
+                frame = frame[0]
+            
+            # Rearrange dimensions if necessary (CHW -> HWC)
+            if frame.shape[0] == 3:
+                frame = np.transpose(frame, (1, 2, 0))
+            
+            # Scale to 0-255 if in float format
+            if frame.dtype == np.float32 or frame.dtype == np.float64:
+                frame = (frame * 255).astype(np.uint8)
+        
+        # Ensure it's a numpy array
+        if not isinstance(frame, np.ndarray):
+            raise TypeError("Frame must be a numpy array or PyTorch tensor")
+        
+        # Ensure it's in uint8 format
+        if frame.dtype != np.uint8:
+            frame = frame.astype(np.uint8)
+        
+        # Ensure it's in HWC format
+        if frame.ndim == 2:
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        elif frame.shape[2] == 1:
+            frame = frame.squeeze()
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        elif frame.shape[2] == 4:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+        
+        # Clip values to valid range
+        frame = np.clip(frame, 0, 255)
+        
+        # Ensure the array is contiguous
+        frame = np.ascontiguousarray(frame)
+        
+        return frame
 
     except Exception as e:
-        logger.error("Error in calculating optimal color for object detection: %s", e)
+        print(f"An error occurred when prepping frame for display: {e}")
 
-    return perimeter_color, center_color
+#%%
+
+def export_dataframe_to_csv(df, file_path):
+    """
+    Objective:
+    Create a csv file of the objects tracked and its relevant features
+    
+    Parameters:
+    [dataframe] df - Dataframe containing object's tracked and reelvant data
+    [string] file_path - File path of where the csv file should be saved at
+    
+    """
+    try:
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        # Export the DataFrame to CSV
+        df.to_csv(file_path)
+        print(f"DataFrame successfully exported to {file_path}")
+    except Exception as e:
+        print(f"An error occurred while exporting the DataFrame: {e}")
 
 
 #%%
 
-def circle_detection(p1, p2, results, frame_with_color):
+def export_validation_metrics(detected_objects):
     """
     Objective:
-    Performs object detection using HoughCircles for each frame of the video
-    Create a border and a center dot in the circle
-
+    Create a csv file of the objects tracked and its relevant features
+    
     Parameters:
-    [int]   p1 - param1 for HoughCircles()
-    [int]   p2 - param2 for HoughCircles()
-    [dict]  results - number of circles counted for the given param1, param2 values
-    [array] frame_with_color - video frame
-
-    Returns:
-    [dict]  results - number of circles counted for the given param1, param2 values
-    [array] frame_with_color - video frame
+    [dataframe] df - Dataframe containing object's tracked and reelvant data
+    [string] file_path - File path of where the csv file should be saved at
+    
     """
 
     try:
-        frame_greyed = preprocess_frame(frame_with_color)
+        # Filter Metrics Objects
+        validation_metrics_objects = detected_objects[['TrackID', 'Mean', 'ClassID', 'Frame']]
 
-        frame_hsv = cv2.cvtColor(frame_with_color, cv2.COLOR_BGR2HSV)
+        validation_metrics_objects.loc[:, 'Mean'] = validation_metrics_objects['Mean'].apply(calculate_bbox) # Extract the boundingbox 
 
-        circles_detected = cv2.HoughCircles(frame_greyed, cv2.HOUGH_GRADIENT, 1, minDist = 3, param1 = p1, param2 = p2, minRadius = 10, maxRadius = 20)
+        validation_metrics_objects = validation_metrics_objects.rename(columns={'Mean': 'BBox'}) #Rename Mean to BBox for bounding box
 
-        # If no circles were detected, set circle_count to 0
-        if circles_detected is None:
-            circle_count = 0
+        return validation_metrics_objects
+    
+    except Exception as e:
+        print(f"An error occured while creating validation metrics: {e}")
 
-        # If circles were detected, create border and a center dot around the detected circle
-        else:
-            circles_detected = np.uint16(np.around(circles_detected))
-            circle_count = len(circles_detected[0])
+#%%
 
-            #"""
-            # Display for each detected circles
-            for ith_circle in circles_detected[0, :]:
+def calculate_bbox(deepsort_mean):
+    """
+    Calculate bounding box coordinates from DeepSORT mean state.
+    
+    Parameters:
+    deepsort_mean (np.array): Array of 8 values from DeepSORT.
+    
+    Returns:
+    tuple: (top_left, top_right, bottom_left, bottom_right) coordinates.
+    """
+    try:
+        # Split the string and store the values as floats
+        deepsort_mean = deepsort_mean.strip('[]')
+        deepsort_mean = [float(x) for x in deepsort_mean.split()]
 
-                x_coordinate = ith_circle[0]
-                y_coordinate = ith_circle[1]
-                radius = ith_circle[2]
+        x, y, aspect_ratio, height = deepsort_mean[:4]
 
-                # Color of circle
-                center_color_hue = frame_hsv[y_coordinate, x_coordinate][0] # Set color hue of the circle
-                detection_color = color_detection(center_color_hue) # Set border color
+        # Calculate width from aspect ratio and height
+        width = aspect_ratio * height
 
-                perimeter_detection_color, center_detection_color = create_optimal_tracking_color(detection_color) #
+        # Calculate half width and half height
+        half_width = width / 2
+        half_height = height / 2
 
-                # Outer Circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), radius, perimeter_detection_color, 2)
+        # Calculate coordinates
+        top_left = (x - half_width, y - half_height)
+        bottom_right = (x + half_width, y + half_height)
 
-                # Center of circle
-                cv2.circle(frame_with_color, (x_coordinate, y_coordinate), 2, center_detection_color, 3)
-            #"""
+        xtl = top_left[0]
+        ytl = top_left[1]
+        xbr = bottom_right[0]
+        ybr = bottom_right[1]
 
-        # Add the number of circles detected to the results
-        results[(p1, p2)] += circle_count
-
-        return results, frame_with_color
+        return np.array([xtl, ytl, xbr, ybr])
 
     except Exception as e:
-        logger.error("Error in circle detection: %s", e)
+        logger.error("An error occured when calculating bounding box: %s", e)
 
 
 #%%
 
-def color_detection(color_hue):
+def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     """
     Objective:
-    Returns the BGR value for a given hue color.
-    Switch Red and Blue values to create a distnct circle around the players.
-
+    Perform deepsort object tracking on each video frame.
+    
     Parameters:
-    [int] color_hue - Hue value
+    [array] frame - video frame before object tracking
+    [class model] model - YOLO detection with the custom model
+    [class deepsort] tracker - DeepSORT Tracker
+    [function] encoder - Extracts relevant information (features) from the given frame 
+    [int] n_missed - number of objects that are tracked (debugging purposes)
+    [dataframe] detected_objects - pandas dataframe to store information on detected objects
 
     Returns:
-    [tuple] color_detected - Color detected is represented in (x, x, x) format
+    [array] frame - video frame after object tracking
+    [int] n_missed - number of objects that are tracked (debugging purposes)
+    [dataframe] detected_objects - pandas dataframe to store information on detected objects
     """
+    
+    '''
+    #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
+    tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
+    B_O_T.py - scores>0.85, max_cosine_distance=0.3, nn_metric=cosine
+    --> model=YOLOv10m based custom model
+
+    Check these if need more fine-tuning
+    Kalman filter parameters
+    max_dist
+    '''
 
     try:
-        # Red detected -> Return BLue
-        if color_hue < 10 or color_hue > 170:
-            color_detected = (255, 0, 0)
+        # Process the current frame with the YOLO model without gradient computation
+        with torch.no_grad():
+            results = model(frame)
 
-        # Orange
-        elif 10 <= color_hue <= 30:
-            color_detected = (255, 165, 0)
+        # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
+        boxes = results[0].boxes.xyxy.cpu().numpy()
+        scores = results[0].boxes.conf.cpu().numpy()
+        class_ids = results[0].boxes.cls.cpu().numpy()
 
-        # Blue
-        elif 100 <= color_hue <= 140:
-            color_detected = (0, 0, 255)
+        # Convert class indices to class names
+        class_names_dict = results[0].names
+        class_names = [class_names_dict[int(i)] for i in class_ids]
 
-        else:
-            logger.debug("Color hue outside of range: %s", color_hue)
-            color_detected = (0,0,0)
+        # Filter the detections based on confidence threshold
+        mask = scores > 0.85 #Confidence Threshold
+        boxes = boxes[mask]
+        scores = scores[mask]
+        class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
+        
+        # Compute features for Deep SORT
+        features = encoder(frame, boxes)
 
-        return color_detected
+        # Create detections for Deep SORT
+        detections = []
 
+        for box, score, feature, class_name in zip(boxes, scores, features, class_names):
+            # Create a new Detection object
+            detection = Detection(
+                box,
+                score,
+                feature,
+                class_name)
+            detections.append(detection)
+        
+        if detections is None:
+            print('No circle features were detected in the frame')
+            frame_time = np.float32(n_frames/30)
+            logger.debug("No circle features were detected in the frame at:", frame_time)
+
+        # Update tracker
+        tracker.predict()
+        tracker.update(detections)
+
+        # Calculate number of objects tracked
+        print('Number objects tracked:', len(tracker.tracks))
+        n_missed += abs((len(tracker.tracks))-11)
+
+        # Verify the tracks
+        for ith_value, track in enumerate(tracker.tracks):
+            try:
+                # Calculate the object's detection confidence score
+                confidence_score = scores[ith_value]
+
+            except:
+                # Calculate the object's detection confidence score
+                confidence_score = 0.0
+
+            # Add a new detected object to the detected_objects dataframe
+            ith_object_details = [
+                track.track_id, #TrackID
+                track.class_id, #ClassID - Basketball, Team_A, Team_B
+                track.mean, #Track State - 8-dimensional vector: [x, y, a, h, vx, vy, va, vh]
+                track.covariance, #Covariance between Track State variables
+                confidence_score, #Confidence Score of object
+                track.state, #Track Status - Tentative, Confirmed, Deleted
+                track.hits, # Total objects successfully matched to the track
+                track.age, # Total number of frames since the track was initialized
+                track.features, # Features detected in the object
+                n_frames #Nth Frame
+            ]
+
+            new_object = pd.DataFrame([ith_object_details], columns=
+                                    ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
+            detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
+
+            # Check if
+            # not track.is_confirmed()    : Check that an object track has not been found
+            # track.time_since_update > 1 : Check the track has not been updated for more than one frame
+            if not track.is_confirmed() or track.time_since_update > 1:
+                continue
+
+            # Calculate the coordinates' border of the object
+            bbox = track.to_tlbr()
+
+            # Label color for detected object's track_id and confidence score
+            color = (255, 255, 255)  # BGR format
+
+            # Draw bounding boxes and IDs
+            cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+        return frame, n_missed, detected_objects
+    
     except Exception as e:
-        logger.error("Error in detecting color: %s", e)
-
+        logger.error("Error in the object tracking: %s", e)
 
 #%% Configuring logging
 
 try:
     log_file_path = 'object_tracking_output.log'
 
-    # Check if the file exists
+    # If the log file exists, delete it
     if os.path.exists(log_file_path):
-        # Delete the file
         os.remove(log_file_path)
-        print(f"The file {log_file_path} has been deleted.")
-    else:
-        print(f"No file found with the name {log_file_path}.")
+        print(f"The file {log_file_path} has been found thus deleted for the new run.")
 
     # Create a logger object
     logger = logging.getLogger('ObjectTrackingLogger')
@@ -223,40 +365,41 @@ try:
 except Exception as e:
     logger.error("Error in creating logging configuration: %s", e)
 
-
 #%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
 video_path = os.path.join(script_directory, 'assets/simulation.mp4')
+video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
+
+print(f"Video path: {video_path}")
 
 # Open the video file
 cap = cv2.VideoCapture(video_path)
 
+'''
 # Create a mask to remove basketball court diagram from the video
 try:
     mask = cv2.imread(basketball_court_diagram, cv2.IMREAD_GRAYSCALE)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     mask = cv2.resize(mask, (width, height))
-    _, mask = cv2.threshold(mask, 30, 255, cv2.THRESH_BINARY) # First number represents the level of removal of the masked image
+    _, mask = cv2.threshold(mask, 255, 255, cv2.THRESH_BINARY) # First number represents the threshold level of removal of the masked image
     mask = mask.astype(np.uint8)
 
 except Exception as e:
     logger.error (f"Error: Couldn't open the basketball court diagram file. {e}")
     exit()
+'''
 
 # Parameter values to test
-param1_values = [12] # 12/13 - Best results
-param2_values = [15] # 15 - Best results
+param1_value = 12 # 12/13 - Best results
+param2_value = 15 # 15 - Best results
 
 # Initialize results dictionary
 resulting_values = {}
-
-for param1 in param1_values:
-    for param2 in param2_values:
-        resulting_values[(param1, param2)] = 0
+resulting_values[(param1_value, param2_value)] = 0
 
 n_frames = 0 # Initialize n_frames to count the number of frames in the video
 
@@ -266,10 +409,54 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(script_directory, 'assets/object_tracking_video.mp4')
+output_path = os.path.join(script_directory, 'assets/simulation_tracked.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
-out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
+try:
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
+except:
+    out = cv2.VideoWriter(output_path, fourcc, FPS, (470, 500))
+
+# Transformation pipeline for each video frame for compatability
+transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((640, 640)),  # Resize to YOLO's expected input size
+    transforms.ToTensor(),
+])
+
+
+# Set model to GPU/CPU depending on environemnt
+# If testing through github actions set to CPU
+if os.getenv('GITHUB_ACTIONS') == 'true':
+    device = torch.device("cpu")
+    print("CPU is being used")
+# If GPU is available:
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+    print("GPU is being used")
+
+# Initialize Deep SORT components
+script_directory = os.getcwd()
+model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
+#model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+model = YOLO(model_path)
+model.to(device) # Move model to GPU
+model.info() # Model Information
+model.iou = 0.45
+max_cosine_distance = 0.4
+nn_budget = None
+metric = nn_matching.NearestNeighborDistanceMetric("euclidean", max_cosine_distance, nn_budget)
+tracker = Tracker(metric)
+
+detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
+
+# Training model and feature extractor
+model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
+encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
+
+# DEBUG Values
+n_missed = 0
+n_miscount = 0
 
 #%%
 
@@ -277,52 +464,89 @@ start_time = time.time()
 
 """ Main Simulation - Object Tracking """
 try:
+
     # Loop through each frame in the video
     while cap.isOpened():
+
         # Read a frame from the video
         ret, frame_colored = cap.read()
 
         # If frame is read correctly ret is True
+        if ret:
+            #frame_colored = transform(frame_colored).unsqueeze(0).to(device)
+            frame_colored = frame_colored
         if not ret:
             break
 
-        # Inpaint the frame using the mask
-        inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
+        '''
+        if n_frames>=5:
+            print('DEBUG')
 
-        # Test different param values in the for loop
-        for param1 in param1_values:
-            for param2 in param2_values:
-                resulting_values, inpainted_frame  = circle_detection(param1, param2, resulting_values, inpainted_frame) # Perform circle detection
+        # Perform background subtraction (Remove basketball court)
+        #inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
-        cv2.imshow('Basketball Object Tracking', inpainted_frame)
+        # Preprocess Frame for optimal tracking
+        #inpainted_frame = preprocess_frame(inpainted_frame, greyed = True, blur = 'median')
+        '''
+        
+        # Perform DeepSort (Object Tracking)
+        tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
 
-        out.write(inpainted_frame)
 
-        n_frames += 1 # Increase frame count
+        # After processing your frame and before calling cv2.imshow
+
+        #tracked_frame = prepare_frame_for_display(tracked_frame)
+
+        # Display Video Frame
+        cv2.imshow('Basketball Object Tracking', tracked_frame)
+        cv2.waitKey(1)  # Add a small delay to allow the window to update
+
+        # Write the output frame
+        out.write(tracked_frame)
+
+        # Increase frame count
+        n_frames += 1
+
+        if n_frames > 120:
+            break
 
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")
             break
-
-        # For git actions testing, stop simulation to focus on testing code
-        if n_frames > 0 and os.getenv('GITHUB_ACTIONS') is True:
+        
+        # GitHub Actions specific code
+        if os.getenv('GITHUB_ACTIONS') == 'true' and n_frames > 0:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
 
+    # Export extracted features to dataframe into csv
+    detectedobjects_file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
+    export_dataframe_to_csv(detected_objects, detectedobjects_file_path)
+
+
+    # Export MOT validation metrics dataframe into csv
+    detected_objects = pd.read_csv(os.path.join(os.getcwd(), 'assets', 'detected_objects.csv'))
+    MOTvalidation_file_path = os.path.join(os.getcwd(), 'Custom_Detection_Model', 'Object Tracking Metrics', 'MOT_validationmetrics.csv')
+    detected_objects_filtered = export_validation_metrics(detected_objects)
+    export_dataframe_to_csv(detected_objects_filtered, MOTvalidation_file_path)
+
     # Log results summary
-    logger.debug (f"Total number of circles that should have been detected {n_frames*11}")
+    n_objects = n_frames*11
+    count_tracked_objects = (1 - (n_missed / (n_frames*11)))*100
 
-    for (param1, param2), count in resulting_values.items():
-        logger.debug (f"param1={param1}, param2={param2} -> {count} circles detected. Detected {count/(n_frames*11)*100:.2f}%")
-
-    logger.debug("Object Tracking succeeded")
+    logger.debug (f"Total number of objects that should have been tracked {n_objects}")
+    logger.debug (f"Percentage of objects tracked: {count_tracked_objects:.4f}%")
+    logger.debug ("Object Tracking succeeded")
+    print("Object Tracking succeeded")
 
 except Exception as e:
-    logger.error (f"An error occurred: {e}")
+    logger.error (f"An error occurred when processing the video frame: {e}")
+    print("Object Tracking failed")
 
 finally:
     logger.debug ("Total time taken: %f seconds", time.time() - start_time)
+
     # Release the video capture object and close all windows
     cap.release()
     cv2.destroyAllWindows()

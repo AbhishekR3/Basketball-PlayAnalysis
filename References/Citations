@@ -1,0 +1,60 @@
+**************************************************************************************************************************************
+DeepSort Implementation
+
+@inproceedings{Wojke2017simple,
+  title={Simple Online and Realtime Tracking with a Deep Association Metric},
+  author={Wojke, Nicolai and Bewley, Alex and Paulus, Dietrich},
+  booktitle={2017 IEEE International Conference on Image Processing (ICIP)},
+  year={2017},
+  pages={3645--3649},
+  organization={IEEE},
+  doi={10.1109/ICIP.2017.8296962}
+}
+
+@inproceedings{Wojke2018deep,
+  title={Deep Cosine Metric Learning for Person Re-identification},
+  author={Wojke, Nicolai and Bewley, Alex},
+  booktitle={2018 IEEE Winter Conference on Applications of Computer Vision (WACV)},
+  year={2018},
+  pages={748--756},
+  organization={IEEE},
+  doi={10.1109/WACV.2018.00087}
+}
+
+Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
+
+**************************************************************************************************************************************
+YOLOv10 - Object Detection Algorithm 
+
+@article{wang2024yolov10,
+  title={YOLOv10: Real-Time End-to-End Object Detection},
+  author={Wang, Ao and Chen, Hui and Liu, Lihao and Chen, Kai and Lin, Zijia and Han, Jungong and Ding, Guiguang},
+  journal={arXiv preprint arXiv:2405.14458},
+  year={2024}
+}
+
+**************************************************************************************************************************************
+
+Roboflow - Creating image annotations used in custom object detection model
+
+@misc{
+  customobjectdetection_data_dataset,
+  title = { CustomObjectDetection_Data Dataset },
+  type = { Open Source Dataset },
+  author = { BasketballPlayAnalysis },
+  howpublished = { \url{ https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data } },
+  url = { https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data },
+  journal = { Roboflow Universe },
+  publisher = { Roboflow },
+  year = { 2024 },
+  month = { jul },
+  note = { visited on 2024-07-17 },
+  }
+  
+**************************************************************************************************************************************
+
+CVAT (Computer Vision Annotation Tool) - Creating object tracking validation metrics
+
+This project uses [CVAT (Computer Vision Annotation Tool)](https://github.com/cvat-ai/cvat), an open-source annotation tool for computer vision.
+
+**************************************************************************************************************************************
