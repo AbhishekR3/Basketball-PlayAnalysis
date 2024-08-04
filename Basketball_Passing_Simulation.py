@@ -4,7 +4,8 @@ Utilizing pygame, simulating basketball plays executed
 '''
 
 #%%
-"Import Libraries"
+
+#Import Libraries
 
 import pygame
 import math
@@ -19,7 +20,7 @@ import logging
 #%%
 
 class Player:
-    "Class for players" 
+    "Class for players"
 
     def __init__(self, x, y, radius, color):
         """

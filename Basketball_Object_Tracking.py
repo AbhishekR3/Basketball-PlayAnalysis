@@ -77,7 +77,7 @@ def prepare_frame_for_display(frame):
         if isinstance(frame, torch.Tensor):
             # Move to CPU and convert to numpy
             frame = frame.detach().cpu().numpy()
-            
+
             # If it's a batch, take the first item
             if frame.ndim == 4:
                 frame = frame[0]
@@ -229,7 +229,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     [dataframe] detected_objects - pandas dataframe to store information on detected objects
     """
     
-    """
+    '''
     #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
     tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
     B_O_T.py - scores>0.85, max_cosine_distance=0.3, nn_metric=cosine
@@ -238,7 +238,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     Check these if need more fine-tuning
     Kalman filter parameters
     max_dist
-    """
+    '''
 
     try:
         # Process the current frame with the YOLO model without gradient computation
@@ -278,7 +278,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         if detections is None:
             print('No circle features were detected in the frame')
             frame_time = np.float32(n_frames/30)
-            logger.debug("No circle features were detected in the frame at:", frame_time, "seconds")
+            logger.debug("No circle features were detected in the frame at:", frame_time)
 
         # Update tracker
         tracker.predict()
@@ -293,8 +293,8 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
             try:
                 # Calculate the object's detection confidence score
                 confidence_score = scores[ith_value]
-            
-            except Exception as e:
+
+            except:
                 # Calculate the object's detection confidence score
                 confidence_score = 0.0
 
@@ -329,7 +329,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
             color = (255, 255, 255)  # BGR format
 
             # Draw bounding boxes and IDs
-            cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10), 
+            cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         return frame, n_missed, detected_objects
@@ -505,7 +505,7 @@ try:
         out.write(tracked_frame)
 
         # Increase frame count
-        n_frames += 1 
+        n_frames += 1
 
         if n_frames > 120:
             break

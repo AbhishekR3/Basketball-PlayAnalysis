@@ -10,3 +10,4 @@ torchvision==0.18.0
 pytest==7.4.0
 pandas==2.1.4
 motmetrics==1.4.0
+defusedxml==0.7.1

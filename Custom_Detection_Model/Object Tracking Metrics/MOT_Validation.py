@@ -10,7 +10,7 @@ This file calculates the following metrics:
 
 #Import Libraries
 import pandas as pd
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 import numpy as np
 from collections import defaultdict
 import motmetrics as mm
@@ -104,7 +104,7 @@ def string_to_array(string_data):
     """
 
     string_data = string_data.strip('[]').split()
-    array_data = np.array(s, dtype=float)
+    array_data = np.array(string_data, dtype=float)
 
     return array_data
 

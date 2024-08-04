@@ -37,6 +37,7 @@ def log_memory_usage():
         print(f"Memory allocated: {torch.mps.current_allocated_memory() / 1e6:.2f} MB")
         print(f"Memory reserved: {torch.mps.driver_allocated_memory() / 1e6:.2f} MB")
 
+
 # Check if GPU (MPS) is available
 if torch.backends.mps.is_available():
     device = torch.device("mps")
