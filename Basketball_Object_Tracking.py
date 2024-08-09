@@ -6,7 +6,7 @@ Key Concepts Implemented:
 - YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
 --> Implemented a custom model with 97.7% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
---> Validation Metrics: MOTA: MOTP: 1DF1:
+--> Validation Metrics: MOTA, MOTP, 1DF1
 '''
 
 #%%
@@ -207,6 +207,41 @@ def calculate_bbox(deepsort_mean):
     except Exception as e:
         logger.error("An error occured when calculating bounding box: %s", e)
 
+#%%
+
+def filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.8):
+    '''
+    Objective:
+
+
+    Parameters:
+    [array] scores
+    [float]
+    [float]
+
+    Returns:
+    [array] mask - Array of boolean values on which values to remove 
+    '''
+
+    try:
+        mask = []
+        result = np.column_stack((class_names, scores)) #Combine into 2D array
+
+        for ith in result:
+            if ith[0] == 'Basketball':
+                if float(ith[1]) > basketball_score:
+                    mask.append(True)
+                else:
+                    mask.append(False)
+            else:
+                if float(ith[1]) > player_score:
+                    mask.append(True)
+                else:
+                    mask.append(False)
+        return mask
+
+    except Exception as e:
+        logger.error("Error in filtering: %s", e)
 
 #%%
 
@@ -252,10 +287,10 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
 
         # Convert class indices to class names
         class_names_dict = results[0].names
-        class_names = [class_names_dict[int(i)] for i in class_ids]
+        class_names = np.array([class_names_dict[int(i)] for i in class_ids])
 
-        # Filter the detections based on confidence threshold
-        mask = scores > 0.85 #Confidence Threshold
+        # Filter the detections based on confidence threshold        
+        mask = filter_lowconfidence(class_names, scores, basketball_score=0.4, player_score=0.7) # Set confidence threshold for player and basketball, basketball is commonly occluded
         boxes = boxes[mask]
         scores = scores[mask]
         class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
@@ -369,7 +404,7 @@ except Exception as e:
 
 # Path to the video file / basketball court diagram
 script_directory = os.getcwd()
-video_path = os.path.join(script_directory, 'assets/simulation.mp4')
+#video_path = os.path.join(script_directory, 'assets/simulation.mp4')
 video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
 basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
 
@@ -437,8 +472,9 @@ elif torch.backends.mps.is_available():
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
-model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
+model_path = os.path.join(script_directory, 'YOLOv10m_custom2.pt')
 #model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+#model_path = os.path.join(script_directory, 'epoch1.pt')
 model = YOLO(model_path)
 model.to(device) # Move model to GPU
 model.info() # Model Information
@@ -507,8 +543,10 @@ try:
         # Increase frame count
         n_frames += 1
 
+        '''
         if n_frames > 120:
             break
+        '''
 
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):

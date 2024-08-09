@@ -1,8 +1,14 @@
 names:
 - Basketball
-- Player_A
-- Player_B
+- Team_A
+- Team_B
 nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: customobjectdetection_data
+  url: https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data/dataset/5
+  version: 5
+  workspace: basketballplayanalysis
 test: ../test/images
 train: ../train/images
 val: ../valid/images
