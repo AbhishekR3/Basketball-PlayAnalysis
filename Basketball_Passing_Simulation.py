@@ -787,7 +787,7 @@ initialize_simulation()
 start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
-video_format = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
+video_format = cv2.VideoWriter_fourcc(*'XVID')
 video_location = os.path.join(script_directory, 'assets/simulation.mp4')
 out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
@@ -888,15 +888,12 @@ try:
         pygame.display.flip() #Update pygame simulation frame
         clock.tick(FPS) # Maintain frame rate (FPS)
 
-        # Stop simulation after simulation limit time as been met
-        if elapsed_time_simulation > simulation_limit*60:
-            logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
-            break
-
         # Capture frame
         frame = pygame.surfarray.array3d(pygame.display.get_surface())
         frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
+
+        print('hi')
 
         # Do not include the first frame so the simulation could stabalize for effective analysis 
         if frames_captured > 0:
@@ -904,10 +901,17 @@ try:
             out.write(frame)
         frames_captured += 1
 
+        '''
         # GitHub Actions specific code
         if os.getenv('GITHUB_ACTIONS') == 'true' and frames_captured > 0:
             logger.debug("Simulation stopped after first frame, as it's running in GitHub Actions")
             break
+
+        # Stop simulation after simulation limit time as been met
+        if elapsed_time_simulation > simulation_limit*60:
+            logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
+            break
+        '''
 
 
     logger.debug("Game Simulation succeeded")

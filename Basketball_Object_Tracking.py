@@ -290,7 +290,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         class_names = np.array([class_names_dict[int(i)] for i in class_ids])
 
         # Filter the detections based on confidence threshold        
-        mask = filter_lowconfidence(class_names, scores, basketball_score=0.4, player_score=0.7) # Set confidence threshold for player and basketball, basketball is commonly occluded
+        mask = filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.8) # Set confidence threshold for player and basketball, basketball is commonly occluded
         boxes = boxes[mask]
         scores = scores[mask]
         class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
@@ -335,7 +335,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
 
             # Add a new detected object to the detected_objects dataframe
             ith_object_details = [
-                track.track_id, #TrackID
+                int(track.track_id)-1, #TrackID
                 track.class_id, #ClassID - Basketball, Team_A, Team_B
                 track.mean, #Track State - 8-dimensional vector: [x, y, a, h, vx, vy, va, vh]
                 track.covariance, #Covariance between Track State variables
@@ -472,9 +472,8 @@ elif torch.backends.mps.is_available():
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
-model_path = os.path.join(script_directory, 'YOLOv10m_custom2.pt')
+model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
 #model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
-#model_path = os.path.join(script_directory, 'epoch1.pt')
 model = YOLO(model_path)
 model.to(device) # Move model to GPU
 model.info() # Model Information
