@@ -1,0 +1,20 @@
+# Use a slim Python image
+FROM python:3.9-slim
+
+# Set working directory in the container
+WORKDIR /app
+
+# Copy the Python script and all necessary files
+COPY Basketball_Object_Tracking.py .
+COPY YOLOv10m_custom.pt .
+COPY deep_sort/ ./deep_sort/
+
+# Install required packages
+RUN pip install --no-cache-dir opencv-python-headless numpy pandas torch torchvision ultralytics
+
+# Set up volume for input and output
+VOLUME /app/input
+VOLUME /app/output
+
+# Run the script
+CMD ["python", "Basketball_Object_Tracking.py"]

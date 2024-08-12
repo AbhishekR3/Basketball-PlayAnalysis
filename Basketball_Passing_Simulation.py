@@ -82,6 +82,7 @@ class Player:
                     self.next_angle -= cryptographic_normal(90, 1.5, True) #Update next angle change
         except Exception as e:
             logger.error("Error in updating player speed and angle: %s", e)
+            raise
 
     def move(self, basketball):
         """
@@ -107,6 +108,7 @@ class Player:
 
         except Exception as e:
             logger.error("Error in moving player: %s", e)
+            raise
 
     def draw(self):
         """
@@ -126,6 +128,7 @@ class Player:
 
         except Exception as e:
             logger.error("Error in drawing player: %s", e)
+            raise
 
 #%%
 
@@ -187,6 +190,7 @@ class Basketball:
             )
         except Exception as e:
             logger.error("Error in updating basketball position: %s", e)
+            raise
 
     def draw(self):
         """
@@ -205,6 +209,7 @@ class Basketball:
 
         except Exception as e:
             logger.error("Error in drawing basketball: %s", e)
+            raise
 
 
 #%%
@@ -259,6 +264,7 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
 
     except Exception as e:
         logger.error("Error in drawing basketball: %s", e)
+        raise
 
 
 #%%
@@ -323,6 +329,7 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
 
     except Exception as e:
         logger.error("Error in creating basketball dribbling motion: %s", e)
+        raise
 
 
 #%%
@@ -373,6 +380,7 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
     
     except Exception as e:
         logger.error("Error in moving basketball to the specified coordinate: %s", e)
+        raise
 
 
 #%%
@@ -401,6 +409,7 @@ def ball_reached_player(ball, target, speed):
         
     except Exception as e:
         logger.error("Error in calculating if basketball reached the player: %s", e)
+        raise
 
 #%% 
 
@@ -424,6 +433,7 @@ def reverse_color(circle_color):
 
     except Exception as e:
         logger.error("Error in calculating the inverse of the given color: %s", e)
+        raise
 
 #%% 
 
@@ -477,6 +487,7 @@ def ball_reached_position(ball, target_x, target_y):
         
     except Exception as e:
         logger.error("Error in calculating if basketball reached the given coordinate: %s", e)
+        raise
 
 #%%
 
@@ -516,6 +527,7 @@ def cryptographic_normal(mu, sigma, radian=False):
     except Exception as e:
         logger.error("Error in calculating normal radians using secrets")
         logger.debug("Exception details: %s", str(e))
+        raise
 
 
 #%%
@@ -560,6 +572,7 @@ def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclu
 
     except Exception as e:
         logger.error("Error in adjusting basketball movement: %s", e)
+        raise
 
 #%%
 
@@ -593,6 +606,7 @@ def is_valid_placement(new_player, existing_players):
     
     except Exception as e:
         logger.error("Error in finding valid placement for a player: %s", e)
+        raise
 
 def place_circle_with_constraints(existing_players, radius, color, simulation_width, simulation_height):
     """
@@ -626,6 +640,7 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
 
     except Exception as e:
         logger.error("Error in placing the players without exceeding overlap threshold: %s", e)
+        raise
 
 
 #%%
@@ -658,6 +673,7 @@ def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
 
     except Exception as e:
         logger.error("Error in calculating if circles overlapped: %s", e)
+        raise
 
 #%%
 
@@ -696,12 +712,28 @@ def initialize_simulation():
 
     except Exception as e:
         logger.error("Error in initializing the simulation: %s", e)
+        raise
 
 
+#%% Configure Docker containerization
+
+video_output_dir = os.environ.get('VIDEO_OUTPUT_DIR', 'assets')
+log_output_dir = os.environ.get('LOG_OUTPUT_DIR', '.')
+
+video_location = os.path.join(video_output_dir, 'simulation.mp4')
+log_file_path = os.path.join(log_output_dir, 'passing_simulation_output.log')
+
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+# Use it before writing files
+ensure_dir(video_output_dir)
+ensure_dir(log_output_dir)
 #%% Configuring logging
 
 try: 
-    log_file_path = 'passing_simulation_output.log'
+    #log_file_path = 'passing_simulation_output.log'
 
     # Remove log file if it exists
     if os.path.exists(log_file_path):
@@ -724,6 +756,7 @@ try:
 
 except Exception as e:
     logger.error("Error in creating logging configuration: %s", e)
+    raise
 
 
 
@@ -741,13 +774,15 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 
 # Load and transform Basketball court diagram
 script_directory = os.getcwd()
-image_location = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
+image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
+image_location = '/app/assets/Basketball_Court_Diagram.jpg'
 
 try:
     background_image = pygame.image.load(image_location)
     background_image = pygame.transform.scale(background_image, SCREEN_DIMENSIONS)
 except Exception as e:
     logger.error(f"An error occurred when loading basketball court diagram. {e}")
+    raise
 
 
 # Simulation Constants
@@ -789,6 +824,7 @@ start_time_simulation = time.time()
 # Define the codec and create VideoWriter object
 video_format = cv2.VideoWriter_fourcc(*'XVID')
 video_location = os.path.join(script_directory, 'assets/simulation.mp4')
+video_location = os.path.join(video_output_dir, 'simulation.mp4')
 out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
@@ -920,6 +956,7 @@ try:
 except Exception as e:
     logger.error("Error during simulation: %s", e)
     print("Game Simulation failed")
+    raise
 
 finally:
     out.release()

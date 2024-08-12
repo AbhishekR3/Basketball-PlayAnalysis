@@ -1,0 +1,22 @@
+# Use a slim Python image
+FROM python:3.9-slim
+
+# Set working directory in the container
+WORKDIR /app
+
+# Copy the Python script and Basketall Court Diagram image
+COPY Basketball_Passing_Simulation.py .
+COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
+
+# Install required packages
+RUN pip install --no-cache-dir pygame numpy opencv-python
+
+# Create Environment Variables
+ENV VIDEO_OUTPUT_DIR=/app/output
+ENV LOG_OUTPUT_DIR=/app/logs
+
+# Set up volume for output
+VOLUME /app/output
+
+# Run the script
+CMD ["python", "Basketball_Passing_Simulation.py"]

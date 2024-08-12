@@ -32,7 +32,7 @@ Project Overview:
 4. Applying feature engineering for ML model optimization
 5. Using Neural Networks (LSTM, TCN, C3D) and Transformers (TimeSformer, STN)
 6. Enhancing model efficiency through quantization and pruning 
-7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines 
+7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines, and Docker for containerization
 
 The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 

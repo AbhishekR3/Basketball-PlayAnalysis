@@ -6,7 +6,7 @@ Key Concepts Implemented:
 - YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
 --> Implemented a custom model with 97.7% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
 - DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
---> Validation Metrics: MOTA, MOTP, 1DF1
+--> Validation Metrics can be found in Custom_Detection_Model/Object Tracking Metrics/MOT_Validation.py
 '''
 
 #%%
@@ -333,6 +333,9 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
                 # Calculate the object's detection confidence score
                 confidence_score = 0.0
 
+            # Convert track.features to numpy array
+            #track.features = track.features[0]
+
             # Add a new detected object to the detected_objects dataframe
             ith_object_details = [
                 int(track.track_id)-1, #TrackID
@@ -349,6 +352,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
 
             new_object = pd.DataFrame([ith_object_details], columns=
                                     ['TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
+            
             detected_objects = pd.concat([detected_objects, new_object], ignore_index=True)
 
             # Check if

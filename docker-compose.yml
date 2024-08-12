@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  # Simulation Container
+  simulation:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulation
+    volumes:
+      - ./output:/app/output
+    networks:
+      - basketball_net
+
+  # Tracking Container
+  tracking:
+    build:
+      context: .
+      dockerfile: Dockerfile.tracking
+    volumes:
+      - ./output:/app/input
+      - ./tracking_output:/app/output
+    depends_on:
+      - simulation
+    networks:
+      - basketball_net
+
+networks:
+  basketball_net:
