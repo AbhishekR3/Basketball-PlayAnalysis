@@ -3,7 +3,9 @@ Feature Engineering
 This file performs various extractions/transformations to the dataset for a better model
 
 Key Concepts Implemented:
-- One Hot Encoded
+- Categorical / One Hot Encoding 
+- Normalize/Log Transformation
+- Temporal Encoding
 '''
 
 
@@ -322,7 +324,131 @@ def process_covariance(df):
 
 #%%
 
-def feature_transformation(dataset):
+def log_transformation(df, column_names):
+    try:
+        for ith_col in column_names:
+            df[ith_col] = np.log(df[ith_col])
+        return df
+
+    except Exception as e:
+        logger.error("Error in performing log transformation on dataset: %s", e)
+        raise
+
+#%%
+
+def reliability(group, window_size = 30):
+    '''
+    Objective:
+    Calculate the recent consistency of a track for it's reliability.
+    Take the last 30 frames for a specific detected track.
+    Calculate hits / age to give recent consistency.
+
+    Parameters:
+
+
+    Returns:
+
+    
+    '''
+    try:
+        group = group.sort_values('Frame')
+
+        rolling_avg = group['DetectionConsistency'].rolling(
+                window=min(window_size, len(group)),
+                min_periods=1
+            ).mean()
+        
+        return rolling_avg
+
+    except Exception as e:
+        logger.error("Error when calculating recent reliability metric: %s", e)
+        raise 
+
+def rolling_detection_consistency(df, window_size=30):
+    """
+    Objective:
+    Calculate the rolling average of 'DetectionConsistency' for each 'TrackID' in the DataFrame
+
+    Parameters:
+    df (pd.DataFrame): Input DataFrame containing 'TrackID', 'Frame', and 'DetectionConsistency' columns
+    window_size (int): The maximum number of frames to consider for the rolling average
+
+    Returns:
+    pd.Series: A series with the rolling average of 'DetectionConsistency' for all TrackIDs
+    """
+    try:
+        # Apply the reliability function to each group
+        result = df.groupby('TrackID', group_keys=False).apply(
+            lambda x: reliability(x, window_size), include_groups=False
+        ).reset_index(level=0, drop=True)
+
+        return result
+
+    except Exception as e:
+        logger.error("Error in calculating rolling detection consistency: %s", e)
+        raise
+
+def recent_reliability_correction(row):
+    try:
+        if row['Age'] < 30:
+            return row['Age'] / 30
+        
+        else:
+            return row['RecentReliability']
+        
+    except Exception as e:
+        logger.error("Error in calculating correcting rolling detection: %s", e)
+        raise
+        
+#%%
+
+def hits_age(df):
+    try:
+        # Fill Hits/Age with 0 in case there are null values
+        df['Hits'] = df['Hits'].fillna(0)
+        df['Age'] = df['Age'].fillna(0)
+
+        # Calculate Occlusion Frequency, Detection Consistency, Recent Reliability
+        df['OcclusionFrequency'] = (df['Age']-df['Hits'])/df['Age']
+        df['DetectionConsistency'] = df['Hits']/df['Age']
+        df['RecentReliability'] = rolling_detection_consistency(df, window_size = 30)
+        df['RecentReliability'] = df.apply(recent_reliability_correction, axis=1) # Update recent reliability so tracked frames < 30 are updated accordingly
+
+        return df
+    
+    except Exception as e:
+        logger.error("Error in performing log transformation on dataset: %s", e)
+        raise
+
+def extract_acceleration(df):
+    try:
+        df = df.sort_values(['TrackID', 'Frame'], ascending=[True, False])
+
+        # Calculate the previous velocity value for acceleration calculation 
+        df['prev_vel_x'] = df.groupby('TrackID')['vel_x'].shift(-1)
+        df['prev_vel_y'] = df.groupby('TrackID')['vel_y'].shift(-1)
+        df['prev_vel_aspect'] = df.groupby('TrackID')['vel_aspect'].shift(-1)
+        df['prev_vel_height'] = df.groupby('TrackID')['vel_height'].shift(-1)
+
+        df = df.fillna(0)
+
+        # Calculate acceleration
+        df['accel_x'] = ((df['vel_x']-df['prev_vel_x'])/df['vel_x'])/df['delta_time']
+        df['accel_y'] = ((df['vel_x']-df['prev_vel_y'])/df['vel_y'])/df['delta_time']
+        df['accel_aspect'] = ((df['vel_aspect']-df['prev_vel_aspect'])/df['vel_aspect'])/df['delta_time']
+        df['accel_height'] = ((df['vel_height']-df['prev_vel_height'])/df['vel_height'])/df['delta_time']
+
+        df = df.sort_values(['TrackID', 'Frame'], ascending=[True, True])
+
+        return df
+    
+    except Exception as e:
+        logger.error("Error in performing log transformation on dataset: %s", e)
+        raise
+
+#%%
+
+def feature_extraction(dataset):
     try:
         transformed_dataset = one_hot_encode_class_id(dataset)
         transformed_dataset = extract_mean_values(transformed_dataset)
@@ -331,6 +457,9 @@ def feature_transformation(dataset):
         transformed_dataset = process_temporal_features(transformed_dataset)
         transformed_dataset = extract_feature_statistics(transformed_dataset)
         transformed_dataset = process_covariance(transformed_dataset)
+        transformed_dataset = hits_age(transformed_dataset)
+        transformed_dataset = log_transformation(transformed_dataset, ['Age', 'Hits'])
+        transformed_dataset = extract_acceleration(transformed_dataset)
         return transformed_dataset
 
     except Exception as e:
@@ -356,7 +485,6 @@ def convert_string_to_array(string_data):
         logger.error("Error in converting features from string to array: %s", e)
         raise 
 
-
 #%%
 
 def prep_transformation(dataset):
@@ -379,9 +507,9 @@ def optimize_dataset(dataset):
         dataset = dataset.drop(columns=columns_dropped)
 
         # Convert NaN values to 0 for delta time
-        dataset['delta_time'] = dataset['delta_time'].fillna(0)
-        dataset['feature_mean'] = dataset['feature_mean'].fillna(0)
-        dataset['feature_std'] = dataset['feature_std'].fillna(0)
+        dataset = dataset.fillna(0)
+
+        dataset = dataset.reset_index(drop = True)
 
         return dataset
 
@@ -430,7 +558,7 @@ def main():
         prepped_dataset = prep_transformation(raw_dataset)
 
         # Extracting features from the dataset
-        extracted_feature_dataset = feature_transformation(prepped_dataset)
+        extracted_feature_dataset = feature_extraction(prepped_dataset)
 
         # Optimize / Clean up the dataset with all the extracted features
         cleaned_feature_dataset = optimize_dataset(extracted_feature_dataset)

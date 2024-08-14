@@ -1,4 +1,4 @@
-2024-08-11 20:51:07,040 - DEBUG - Total number of objects that should have been tracked 3311
-2024-08-11 20:51:07,040 - DEBUG - Percentage of objects tracked: 87.4358%
-2024-08-11 20:51:07,040 - DEBUG - Object Tracking succeeded
-2024-08-11 20:51:07,040 - DEBUG - Total time taken: 77.994001 seconds
+2024-08-13 10:08:44,602 - DEBUG - Total number of objects that should have been tracked 3311
+2024-08-13 10:08:44,602 - DEBUG - Percentage of objects tracked: 87.4358%
+2024-08-13 10:08:44,602 - DEBUG - Object Tracking succeeded
+2024-08-13 10:08:44,603 - DEBUG - Total time taken: 122.971365 seconds

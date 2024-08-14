@@ -463,7 +463,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-
+'''
 # Set model to GPU/CPU depending on environemnt
 # If testing through github actions set to CPU
 if os.getenv('GITHUB_ACTIONS') == 'true':
@@ -473,13 +473,14 @@ if os.getenv('GITHUB_ACTIONS') == 'true':
 elif torch.backends.mps.is_available():
     device = torch.device("mps")
     print("GPU is being used")
+'''
 
 # Initialize Deep SORT components
 script_directory = os.getcwd()
 model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
 #model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
 model = YOLO(model_path)
-model.to(device) # Move model to GPU
+#model.to(device) # Move model to GPU
 model.info() # Model Information
 model.iou = 0.45
 max_cosine_distance = 0.4
@@ -520,12 +521,13 @@ try:
         '''
         if n_frames>=5:
             print('DEBUG')
+        
 
         # Perform background subtraction (Remove basketball court)
         #inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
 
         # Preprocess Frame for optimal tracking
-        #inpainted_frame = preprocess_frame(inpainted_frame, greyed = True, blur = 'median')
+        inpainted_frame = preprocess_frame(frame_colored, greyed = True, blur = 'median')
         '''
         
         # Perform DeepSort (Object Tracking)
