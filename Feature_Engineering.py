@@ -4,10 +4,9 @@ This file performs various extractions/transformations to the dataset for a bett
 
 Key Concepts Implemented:
 - Categorical / One Hot Encoding 
-- Log Transformation
+- Normalization/Log Transformation
 - Temporal Encoding
 - PCA (Principal Component Analysis)
-- Exponential Decay Temporal Encoding
 '''
 
 
@@ -441,6 +440,7 @@ def feature_extraction(dataset):
         transformed_dataset = hits_age(transformed_dataset)
         transformed_dataset = log_transformation(transformed_dataset, ['Age', 'Hits'])
         transformed_dataset = extract_acceleration(transformed_dataset)
+        transformed_dataset = trackid_temporal_encoding(transformed_dataset)
         return transformed_dataset
 
     except Exception as e:
@@ -488,6 +488,9 @@ def optimize_dataset(dataset):
 
         dataset = dataset.reset_index(drop = True)
 
+        # Normalize data
+        dataset = normalize_numerical_columns(dataset)
+
         # Perform PCA
         feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=13, variance_threshold=0.85)
 
@@ -497,10 +500,11 @@ def optimize_dataset(dataset):
             print(f"Total explained variance ratio: {sum(pca_model.explained_variance_ratio_):.4f}")
 
         # Remove unecessary columns (Including PCA analysis)
-        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID', 'prev_vel_y', 'prev_vel_height',
-                           'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height', 'RecentReliability', 'Age', 'Hits', 
-                            'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'delta_time', 'feature_min',
-                            'cov_vel_variance_acceleration']
+        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
+                            'prev_vel_y', 'prev_vel_height','RecentReliability', 'Hits', 'delta_time', 'feature_min',
+                            'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',
+                            'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'cov_vel_variance_acceleration'
+                            ]
         dataset = dataset.drop(columns=columns_dropped)
 
         return dataset
@@ -573,7 +577,58 @@ def perform_pca(df, n_components=14, variance_threshold=0.9):
 
     except Exception as e:
         logger.error("Error in performing PCA: %s", e)
-        return None, None, None
+        raise
+    
+#%%
+
+def trackid_temporal_encoding(df):
+    try:
+        # Calculate max number of frames
+        max_frame = df['Frame'].max()
+
+        # Calculate normalized time based on current_frame/max_frame
+        df['Normalized_Time_Frame'] = df['Frame']/max_frame
+
+        # Calculate TrackID with Temporal Factor
+        df['Temporal_TrackID'] = df['Normalized_Time_Frame']+df['TrackID']
+
+        return df
+
+    except Exception as e:
+        logger.error("Error when peforming temporal encoding for an exponential decay on TrackID: %s", e)
+        raise
+
+#%%
+
+def normalize_numerical_columns(df):
+    """
+    Objective:
+    Normalize all numerical columns in the given DataFrame to a range between 0 and 1,
+    replacing the original columns with their normalized versions.
+
+    Parameters:
+    [pd.DataFrame] df - Input DataFrame containing the columns to be normalized
+
+    Returns:
+    [pd.DataFrame] df - Original DataFrame with numerical columns replaced by their normalized versions
+    """
+
+    try:
+        # Initialize the MinMaxScaler
+        scaler = MinMaxScaler()
+        
+        # Identify numerical columns
+        numerical_columns = df.select_dtypes(include=[np.number]).columns
+        
+        # Apply normalization to numerical columns and replace original columns
+        df[numerical_columns] = scaler.fit_transform(df[numerical_columns])
+        
+        return df
+    
+    except Exception as e:
+        print(f"An error occurred during normalization: {e}")
+        raise
+
 #%% Configuring logging
 
 try:
