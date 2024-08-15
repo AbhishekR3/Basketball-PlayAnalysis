@@ -4,8 +4,10 @@ This file performs various extractions/transformations to the dataset for a bett
 
 Key Concepts Implemented:
 - Categorical / One Hot Encoding 
-- Normalize/Log Transformation
+- Log Transformation
 - Temporal Encoding
+- PCA (Principal Component Analysis)
+- Exponential Decay Temporal Encoding
 '''
 
 
@@ -14,9 +16,12 @@ Key Concepts Implemented:
 # Import libraries
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 import os
 import logging
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
 
 
 #%%
@@ -112,29 +117,6 @@ def extract_mean_values(df):
 
     except Exception as e:
         logger.error("Error in extracing object's position: %s", e)    
-        raise
-
-#%%
-
-def normalize_confidence_score(df):
-    """
-    Objective:
-    Normalize confidence score
-    
-    Parameters:
-    [dataframe] df - Dataframe containing object's tracked and relvant data
-
-    Returns:
-    [dataframe] df - Dataframe containing normalized confidence score
-    """
-
-    try:
-        scaler = MinMaxScaler()
-        df['ConfidenceScore_normalized'] = scaler.fit_transform(df['ConfidenceScore'].values.reshape(-1, 1))
-        return df
-
-    except Exception as e:
-        logger.error("Error in performing features transformation: %s", e)    
         raise
 
 #%%
@@ -452,7 +434,6 @@ def feature_extraction(dataset):
     try:
         transformed_dataset = one_hot_encode_class_id(dataset)
         transformed_dataset = extract_mean_values(transformed_dataset)
-        transformed_dataset = normalize_confidence_score(transformed_dataset)
         transformed_dataset = transform_state(transformed_dataset)
         transformed_dataset = process_temporal_features(transformed_dataset)
         transformed_dataset = extract_feature_statistics(transformed_dataset)
@@ -502,14 +483,25 @@ def prep_transformation(dataset):
 
 def optimize_dataset(dataset):
     try:
-        # Remove unecessary columns
-        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID']
-        dataset = dataset.drop(columns=columns_dropped)
-
-        # Convert NaN values to 0 for delta time
+        # Convert NaN values to 0
         dataset = dataset.fillna(0)
 
         dataset = dataset.reset_index(drop = True)
+
+        # Perform PCA
+        feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=13, variance_threshold=0.85)
+
+        if feature_covariation is not None:
+            export_dataframe_to_csv(feature_covariation, 'assets/feature_covariation.csv')
+            print(f"\nNumber of components: {pca_model.n_components_}")
+            print(f"Total explained variance ratio: {sum(pca_model.explained_variance_ratio_):.4f}")
+
+        # Remove unecessary columns (Including PCA analysis)
+        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID', 'prev_vel_y', 'prev_vel_height',
+                           'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height', 'RecentReliability', 'Age', 'Hits', 
+                            'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'delta_time', 'feature_min',
+                            'cov_vel_variance_acceleration']
+        dataset = dataset.drop(columns=columns_dropped)
 
         return dataset
 
@@ -517,6 +509,71 @@ def optimize_dataset(dataset):
         logger.error("Error in optimizing/cleaning dataset: %s", e)
         raise
 
+#%%
+
+def perform_pca(df, n_components=14, variance_threshold=0.9):
+    """
+    Objective:
+    Perform Principal Component Analysis (PCA) on the input dataset.
+
+    Parameters:
+    [pd.DataFrame] df - Input dataframe containing numeric columns for PCA
+    [int] n_components - Number of components to keep
+    [float] variance_threshold - Minimum cumulative varianace ratio
+
+    Returns:
+    [pd.DataFrame] feature_importance - Dataframe showing the importance of original features in each principal component
+    [PCA] pca_model - The fitted PCA model
+    """
+    try:
+        # Select numeric columns
+        numeric_columns = df.select_dtypes(include=[np.number]).columns
+        X = df[numeric_columns]
+
+        # Standardize the features
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        # Initialize PCA
+        pca = PCA(n_components)
+
+        # Fit PCA on the scaled data
+        X_pca = pca.fit_transform(X_scaled)
+
+        # Get feature importance
+        loadings = pd.DataFrame(
+            data=pca.components_.T,
+            columns=[f'PC{i+1}' for i in range(n_components)],
+            index=numeric_columns
+        )
+
+        # Calculate importance score of each feature 
+        importance = loadings.abs().sum(axis=1).sort_values(ascending=False)
+        feature_importance = pd.DataFrame({
+            'Feature': importance.index,
+            'Importance': importance.values
+        })
+        print('Feature Importance')
+        print(feature_importance)
+        logger.debug(feature_importance)
+        print("")
+
+        # Plot explained variance
+        plt.figure(figsize=(10, 6))
+        plt.plot(range(1, len(pca.explained_variance_ratio_) + 1), 
+                 np.cumsum(pca.explained_variance_ratio_))
+        plt.xlabel('Number of Components')
+        plt.ylabel('Cumulative Explained Variance Ratio')
+        plt.title('Explained Variance vs. Number of Components')
+        plt.axhline(y=variance_threshold, color='r', linestyle='--')
+        plt.axvline(x=n_components, color='r', linestyle='--')
+        plt.show()
+
+        return feature_importance, loadings, pca
+
+    except Exception as e:
+        logger.error("Error in performing PCA: %s", e)
+        return None, None, None
 #%% Configuring logging
 
 try:

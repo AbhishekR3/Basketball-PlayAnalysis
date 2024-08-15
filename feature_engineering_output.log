@@ -1,1 +1,51 @@
-2024-08-14 01:00:18,787 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-14 19:33:03,873 - DEBUG -                           Feature    Importance
+0                      vel_aspect  1.658369e+00
+1                 prev_vel_aspect  1.658095e+00
+2                     feature_std  1.588206e+00
+3                           pos_x  1.573547e+00
+4              OcclusionFrequency  1.561086e+00
+5            DetectionConsistency  1.561086e+00
+6                      prev_vel_x  1.504931e+00
+7                 cov_determinant  1.500937e+00
+8                           vel_x  1.493731e+00
+9                   is_Basketball  1.487365e+00
+10                   aspect_ratio  1.470683e+00
+11                         height  1.413923e+00
+12                        TrackID  1.410093e+00
+13                        accel_y  1.406106e+00
+14                   feature_mean  1.394342e+00
+15                          pos_y  1.391179e+00
+16                    feature_max  1.388504e+00
+17                    feature_min  1.385267e+00
+18                   accel_aspect  1.346060e+00
+19                        accel_x  1.345749e+00
+20  cov_vel_variance_acceleration  1.325939e+00
+21                prev_vel_height  1.263678e+00
+22                    key_frame_s  1.262385e+00
+23                     prev_vel_y  1.252601e+00
+24                     vel_height  1.248804e+00
+25                          vel_y  1.240628e+00
+26                     Unnamed: 0  1.111117e+00
+27               time_since_start  1.108540e+00
+28                          Frame  1.108540e+00
+29                   accel_height  1.107014e+00
+30                          State  1.019197e+00
+31                state_tentative  1.019197e+00
+32                state_confirmed  1.019197e+00
+33                     delta_time  9.527174e-01
+34        cov_pos_variance_height  9.031385e-01
+35             cov_pos_variance_y  9.031385e-01
+36             cov_pos_variance_x  9.031385e-01
+37             cov_vel_variance_x  8.822191e-01
+38             cov_vel_variance_y  8.822191e-01
+39        cov_vel_variance_height  8.822191e-01
+40  cov_pos_variance_acceleration  8.812314e-01
+41                      cov_trace  8.808250e-01
+42                ConfidenceScore  8.338422e-01
+43                           Hits  8.298383e-01
+44              RecentReliability  8.282716e-01
+45                            Age  8.264182e-01
+46                      is_Team_B  5.219705e-16
+47                      is_Team_A  1.248063e-16
+2024-08-14 19:35:40,647 - DEBUG - DataFrame successfully exported to assets/feature_covariation.csv
+2024-08-14 19:35:40,698 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
