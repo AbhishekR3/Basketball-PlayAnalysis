@@ -5,6 +5,7 @@ This file performs various extractions/transformations to the dataset for a bett
 Key Concepts Implemented:
 - Categorical / One Hot Encoding 
 - Normalization/Log Transformation
+- Rolling averages
 - Temporal Encoding
 - PCA (Principal Component Analysis)
 '''
@@ -317,12 +318,11 @@ def log_transformation(df, column_names):
 
 #%%
 
-def reliability(group, window_size = 30):
+def rolling_average_calculation(group, window_size = 30, rolling_column = None):
     '''
     Objective:
-    Calculate the recent consistency of a track for it's reliability.
-    Take the last 30 frames for a specific detected track.
-    Calculate hits / age to give recent consistency.
+    Calculate the rolling average for a specific column
+    Take the last 30 frames for a specific detected track
 
     Parameters:
 
@@ -334,7 +334,7 @@ def reliability(group, window_size = 30):
     try:
         group = group.sort_values('Frame')
 
-        rolling_avg = group['DetectionConsistency'].rolling(
+        rolling_avg = group[rolling_column].rolling(
                 window=min(window_size, len(group)),
                 min_periods=1
             ).mean()
@@ -342,10 +342,40 @@ def reliability(group, window_size = 30):
         return rolling_avg
 
     except Exception as e:
-        logger.error("Error when calculating recent reliability metric: %s", e)
-        raise 
+        logger.error("Error when calculating rolling average: %s", e)
+        raise  
 
-def rolling_detection_consistency(df, window_size=30):
+def rolling_avgs(df):
+    try:
+        """
+        
+        """
+        rolling_avgs_columns = ["pos_x","pos_y","aspect_ratio","height","vel_x","vel_y","vel_aspect","vel_height",
+                                "feature_mean","feature_std","feature_max","cov_determinant",
+                                "prev_vel_x","prev_vel_aspect","accel_x","accel_y","accel_aspect","accel_height"]
+        
+        for col in rolling_avgs_columns:
+            column_name = col + '_rolling_avg'
+            df[column_name] = pd.Series(dtype='float64')
+
+            # Create a mask for the varying rolling average winow
+            condition = df['is_Basketball'] == 1
+
+            # Apply different window sizes based on the condition
+            df.loc[condition, column_name] = rolling_average(df, window_size = 3, rolling_column = col) #Basketball
+            df.loc[~condition, column_name] = rolling_average(df, window_size = 5, rolling_column = col) #Players
+        
+        # Remove the columns that have been converted to rolling average
+        df = df.drop(columns=rolling_avgs_columns)
+
+        return df
+
+    except Exception as e:
+        logger.error("Error when calculating rolling averages through rolling_avgs(): %s", e)
+        raise     
+
+
+def rolling_average(df, window_size=30, rolling_column = None):
     """
     Objective:
     Calculate the rolling average of 'DetectionConsistency' for each 'TrackID' in the DataFrame
@@ -360,7 +390,7 @@ def rolling_detection_consistency(df, window_size=30):
     try:
         # Apply the reliability function to each group
         result = df.groupby('TrackID', group_keys=False).apply(
-            lambda x: reliability(x, window_size), include_groups=False
+            lambda x: rolling_average_calculation(x, window_size, rolling_column), include_groups=False
         ).reset_index(level=0, drop=True)
 
         return result
@@ -392,7 +422,7 @@ def hits_age(df):
         # Calculate Occlusion Frequency, Detection Consistency, Recent Reliability
         df['OcclusionFrequency'] = (df['Age']-df['Hits'])/df['Age']
         df['DetectionConsistency'] = df['Hits']/df['Age']
-        df['RecentReliability'] = rolling_detection_consistency(df, window_size = 30)
+        df['RecentReliability'] = rolling_average(df, window_size = 30, rolling_column = 'DetectionConsistency')
         df['RecentReliability'] = df.apply(recent_reliability_correction, axis=1) # Update recent reliability so tracked frames < 30 are updated accordingly
 
         return df
@@ -441,6 +471,8 @@ def feature_extraction(dataset):
         transformed_dataset = log_transformation(transformed_dataset, ['Age', 'Hits'])
         transformed_dataset = extract_acceleration(transformed_dataset)
         transformed_dataset = trackid_temporal_encoding(transformed_dataset)
+        transformed_dataset = rolling_avgs(transformed_dataset)
+
         return transformed_dataset
 
     except Exception as e:
@@ -492,7 +524,7 @@ def optimize_dataset(dataset):
         dataset = normalize_numerical_columns(dataset)
 
         # Perform PCA
-        feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=13, variance_threshold=0.85)
+        feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
         if feature_covariation is not None:
             export_dataframe_to_csv(feature_covariation, 'assets/feature_covariation.csv')
@@ -515,7 +547,7 @@ def optimize_dataset(dataset):
 
 #%%
 
-def perform_pca(df, n_components=14, variance_threshold=0.9):
+def perform_pca(df, n_components=20, variance_threshold=0.9):
     """
     Objective:
     Perform Principal Component Analysis (PCA) on the input dataset.
