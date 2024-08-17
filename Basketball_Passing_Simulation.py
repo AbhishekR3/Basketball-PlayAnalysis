@@ -716,24 +716,28 @@ def initialize_simulation():
 
 
 #%% Configure Docker containerization
-
-video_output_dir = os.environ.get('VIDEO_OUTPUT_DIR', 'assets')
-log_output_dir = os.environ.get('LOG_OUTPUT_DIR', '.')
-
-video_location = os.path.join(video_output_dir, 'simulation.mp4')
-log_file_path = os.path.join(log_output_dir, 'passing_simulation_output.log')
+log_dir = os.environ.get('LOG_DIR', '/app/logs')
+video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
+assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
 
 def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+print(log_dir)
+print(video_dir)
+print(assets_dir)
+
 # Use it before writing files
-ensure_dir(video_output_dir)
-ensure_dir(log_output_dir)
+ensure_dir(video_dir)
+ensure_dir(log_dir)
+ensure_dir(assets_dir)
+
 #%% Configuring logging
 
 try: 
     #log_file_path = 'passing_simulation_output.log'
+    log_file_path = os.path.join(log_dir, 'simulation.log')
 
     # Remove log file if it exists
     if os.path.exists(log_file_path):
@@ -759,7 +763,6 @@ except Exception as e:
     raise
 
 
-
 #%% Set Simulation Parameters
 
 # Import Basketball Court image
@@ -773,9 +776,9 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 #Load and scale the image of the basketball court
 
 # Load and transform Basketball court diagram
-script_directory = os.getcwd()
-image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
-image_location = '/app/assets/Basketball_Court_Diagram.jpg'
+#script_directory = os.getcwd()
+#image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
+image_location = os.path.join(assets_dir, 'Basketball_Court_Diagram.jpg')
 
 try:
     background_image = pygame.image.load(image_location)
@@ -823,12 +826,12 @@ start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
 video_format = cv2.VideoWriter_fourcc(*'XVID')
-video_location = os.path.join(script_directory, 'assets/simulation.mp4')
-video_location = os.path.join(video_output_dir, 'simulation.mp4')
-out = cv2.VideoWriter(video_location, video_format, FPS, SCREEN_DIMENSIONS)
+#video_location = os.path.join(script_directory, 'assets/simulation.mp4')
+video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
+out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
-simulation_capture_max_time = 45 # x seconds the simulation will run to capture recordings
+simulation_capture_max_time = 15 # x seconds the simulation will run to capture recordings
 max_frames_caputured = FPS * simulation_capture_max_time
 
 try:
@@ -929,8 +932,6 @@ try:
         frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
 
-        print('hi')
-
         # Do not include the first frame so the simulation could stabalize for effective analysis 
         if frames_captured > 0:
             # Write the output frame
@@ -941,11 +942,6 @@ try:
         # GitHub Actions specific code
         if os.getenv('GITHUB_ACTIONS') == 'true' and frames_captured > 0:
             logger.debug("Simulation stopped after first frame, as it's running in GitHub Actions")
-            break
-
-        # Stop simulation after simulation limit time as been met
-        if elapsed_time_simulation > simulation_limit*60:
-            logger.debug("Simulation reached time limit of %s minutes. Stopping simulation", simulation_limit)
             break
         '''
 
