@@ -23,6 +23,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 
+print("Hi")
 
 #%%
 
@@ -661,10 +662,32 @@ def normalize_numerical_columns(df):
         print(f"An error occurred during normalization: {e}")
         raise
 
-#%% Configuring logging
-
+#%%
 try:
-    log_file_path = 'feature_engineering_output.log'
+    log_dir = os.environ.get('LOG_DIR', '/app/logs')
+    input_dir = os.environ.get('INPUT_DIR', '/app/assets')
+    processed_dir = os.environ.get('PROCESSED_DIR', '/app/processed')
+
+    def ensure_dir(directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    # Use it before writing files
+    ensure_dir(log_dir)
+    ensure_dir(input_dir)
+    ensure_dir(processed_dir)
+
+    print('Log Directory:', log_dir)
+    print('Input Directory:', input_dir)
+    print('Processed Features Directory:', processed_dir)
+
+except Exception as e:
+    print(f"Error in creating environment for containers: {e}")
+    raise
+
+#%% Configuring logging
+try:
+    log_file_path = os.path.join(log_dir, 'feature_engineering_output.log')
 
     # If the log file exists, delete it
     if os.path.exists(log_file_path):
@@ -687,15 +710,14 @@ try:
     logger.addHandler(file_handler)
 
 except Exception as e:
-    logger.error("Error in creating logging configuration: %s", e)
+    print(f"Error in creating logging: {e}")
     raise
-
-#%%
+#%% Main Function for Feature Engineering of the assets 
 
 def main():
     try:
         # Import detected objects dataset
-        raw_dataset_file_path = 'assets/detected_objects.csv'
+        raw_dataset_file_path = os.path.join(input_dir, 'detected_objects.csv')
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path)
 
         # Prep dataset for feature extraction
@@ -708,7 +730,7 @@ def main():
         cleaned_feature_dataset = optimize_dataset(extracted_feature_dataset)
 
         # Export the finalized dataset into a csv
-        processed_feature_dataset_file_path = 'assets/processed_features.csv'
+        processed_feature_dataset_file_path = os.path.join(processed_dir, 'processed_features.csv')
         export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
 
     except Exception as e:

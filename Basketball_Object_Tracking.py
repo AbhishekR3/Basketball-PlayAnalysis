@@ -279,6 +279,8 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         # Process the current frame with the YOLO model without gradient computation
         with torch.no_grad():
             results = model(frame)
+        
+        print(results)
 
         # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
         boxes = results[0].boxes.xyxy.cpu().numpy()
@@ -376,10 +378,37 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     except Exception as e:
         logger.error("Error in the object tracking: %s", e)
 
+#%% Configure Docker containerization
+base_dir = '/app'
+log_dir = os.environ.get('LOG_DIR', '/app/logs')
+tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking')
+assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
+deepsort_dir = os.environ.get('DeepSORT_DIR', '/app/deep_sort')
+
+# Set headless mode for OpenCV
+os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
+os.environ['OPENCV_VIDEOIO_PRIORITY_INTEL_MFX'] = '0'
+
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+# Use it before writing files
+ensure_dir(log_dir)
+ensure_dir(tracking_dir)
+ensure_dir(assets_dir)
+ensure_dir(deepsort_dir)
+
+print('Base Directory:', base_dir)
+print('Log Directory:', log_dir)
+print('Tracking Directory:', tracking_dir)
+print('Assets Directory:', assets_dir)
+print('DeepSORT Directory:', deepsort_dir)
+
 #%% Configuring logging
 
 try:
-    log_file_path = 'object_tracking_output.log'
+    log_file_path = os.path.join(log_dir, 'simulation.log')
 
     # If the log file exists, delete it
     if os.path.exists(log_file_path):
@@ -407,10 +436,10 @@ except Exception as e:
 #%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
-script_directory = os.getcwd()
-#video_path = os.path.join(script_directory, 'assets/simulation.mp4')
-video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
-basketball_court_diagram = os.path.join(script_directory, 'assets/Basketball Court Diagram.jpg')
+#script_directory = os.getcwd()
+#video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
+video_path = os.path.join(assets_dir, 'simulation.mp4')
+basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 
 print(f"Video path: {video_path}")
 
@@ -448,8 +477,8 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(script_directory, 'assets/simulation_tracked.mp4')
-fourcc = cv2.VideoWriter_fourcc(*'avc1') # Using avc1
+output_path = os.path.join(assets_dir, 'simulation_tracked.mp4')
+fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 try:
     out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
@@ -476,8 +505,8 @@ elif torch.backends.mps.is_available():
 '''
 
 # Initialize Deep SORT components
-script_directory = os.getcwd()
-model_path = os.path.join(script_directory, 'YOLOv10m_custom.pt')
+#script_directory = os.getcwd()
+model_path = os.path.join(assets_dir, 'YOLOv10m_custom.pt')
 #model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
 model = YOLO(model_path)
 #model.to(device) # Move model to GPU
@@ -491,7 +520,7 @@ tracker = Tracker(metric)
 detected_objects = pd.DataFrame(columns=['TrackID', 'ClassID' , 'Mean', 'Co-Variance', 'ConfidenceScore', 'State', 'Hits', 'Age', 'Features', 'Frame'])
 
 # Training model and feature extractor
-model_filename = os.path.join(os.path.dirname(__file__), '..', 'deep_sort', 'model_data', 'mars-small128.pb')
+model_filename = os.path.join(deepsort_dir, 'model_data/mars-small128.pb')
 encoder = gdet.create_box_encoder(model_filename, input_name="images", output_name="features", batch_size=1)
 
 # DEBUG Values
@@ -539,19 +568,19 @@ try:
         #tracked_frame = prepare_frame_for_display(tracked_frame)
 
         # Display Video Frame
-        cv2.imshow('Basketball Object Tracking', tracked_frame)
+        #cv2.imshow('Basketball Object Tracking', tracked_frame)
         cv2.waitKey(1)  # Add a small delay to allow the window to update
 
         # Write the output frame
-        out.write(tracked_frame)
+        #out.write(tracked_frame)
 
         # Increase frame count
         n_frames += 1
+        print('Frame number:', n_frames)
 
-        '''
-        if n_frames > 120:
+        # If 3 frames has been processed and present in Docker Environment, break
+        if n_frames > 3 and os.path.exists('/.dockerenv'):
             break
-        '''
 
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
@@ -564,15 +593,16 @@ try:
             break
 
     # Export extracted features to dataframe into csv
-    detectedobjects_file_path = os.path.join(os.getcwd(), 'assets', 'detected_objects.csv')
+    detectedobjects_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
     export_dataframe_to_csv(detected_objects, detectedobjects_file_path)
 
-
+    '''
     # Export MOT validation metrics dataframe into csv
     detected_objects = pd.read_csv(os.path.join(os.getcwd(), 'assets', 'detected_objects.csv'))
     MOTvalidation_file_path = os.path.join(os.getcwd(), 'Custom_Detection_Model', 'Object Tracking Metrics', 'MOT_validationmetrics.csv')
     detected_objects_filtered = export_validation_metrics(detected_objects)
     export_dataframe_to_csv(detected_objects_filtered, MOTvalidation_file_path)
+    '''
 
     # Log results summary
     n_objects = n_frames*11

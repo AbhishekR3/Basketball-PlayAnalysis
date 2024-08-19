@@ -1,15 +1,12 @@
-# Use a slim Python image
+# Use a ARM64 slim Python image
 FROM python:3.12-slim
 
 # Set working directory in the container
 WORKDIR /app
 
-# Copy the Python script and all necessary files
-COPY Basketball_Object_Tracking.py .
-COPY "assets/YOLOv10m_custom.pt" ./assets/
-COPY "assets/simulation.mp4" ./assets/
+# Copy the Python script and Basketall Court Diagram image
+COPY Basketball_Passing_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
-COPY deep_sort/ ./deep_sort/
 
 # Install system dependencies and build tools
 RUN apt-get update && apt-get install -y \
@@ -40,23 +37,22 @@ RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial"
 RUN pip install --no-cache-dir build
 
 # Install required packages
-RUN pip install --no-cache-dir opencv-python-headless numpy pandas torch torchvision ultralytics tensorflow ffmpeg
+RUN pip install --no-cache-dir pygame numpy opencv-python
 
 # Create Environment Variables
 ### Input
 ENV ASSETS_DIR=/app/assets
-ENV DeepSORT_DIR=/app/deep_sort
 
 ### Output
 ENV OUTPUT_DIR=/app/output
 ENV LOG_DIR=/app/output/logs
-ENV TRACKING_DIR=/app/output/tracking
+ENV VIDEO_DIR=/app/output/simulations
 
 # Create folder for directories
-RUN mkdir -p $LOG_DIR $TRACKING_DIR
+RUN mkdir -p $LOG_DIR $VIDEO_DIR
 
 # Create volume for output directory
 VOLUME $OUTPUT_DIR
 
 # Run the script
-CMD ["python", "./Basketball_Object_Tracking.py"]
+CMD ["python", "./Basketball_Passing_Simulation.py"]

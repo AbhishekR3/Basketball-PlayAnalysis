@@ -724,9 +724,9 @@ def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-print(log_dir)
-print(video_dir)
-print(assets_dir)
+print('Log Directory:', log_dir)
+print('Video Directory:', video_dir)
+print('Assets Directory:', assets_dir)
 
 # Use it before writing files
 ensure_dir(video_dir)
