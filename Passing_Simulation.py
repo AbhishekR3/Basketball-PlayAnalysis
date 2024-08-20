@@ -939,14 +939,6 @@ try:
             out.write(frame)
         frames_captured += 1
 
-        '''
-        # GitHub Actions specific code
-        if os.getenv('GITHUB_ACTIONS') == 'true' and frames_captured > 0:
-            logger.debug("Simulation stopped after first frame, as it's running in GitHub Actions")
-            break
-        '''
-
-
     logger.debug("Game Simulation succeeded")
     print("Game Simulation succeeded")
 

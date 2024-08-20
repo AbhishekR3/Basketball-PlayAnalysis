@@ -683,9 +683,9 @@ except Exception as e:
 #%% Configuring logging
 try:
     try:
-        log_file_path = os.path.join(log_dir, 'feature_engineering_output.log')
+        log_file_path = os.path.join(log_dir, 'feature_engineering.log')
     except:
-        log_file_path = 'feature_engineering_output.log'
+        log_file_path = 'feature_engineering.log'
 
     # If the log file exists, delete it
     if os.path.exists(log_file_path):
@@ -738,6 +738,9 @@ def main():
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
         export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
+        
+        print("Feature Engineering succeeded")
+        logger.debug("Feature Engineering succeeded")
 
     except Exception as e:
         logger.error (f"Error occured in main function: {e}")

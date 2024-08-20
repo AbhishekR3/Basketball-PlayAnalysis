@@ -11,16 +11,14 @@ WORKDIR /app
 COPY requirements.txt .
 COPY run_sequence.sh .
 # Simulation
-COPY Basketball_Passing_Simulation.py .
+COPY Passing_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
 # Tracking
-COPY Basketball_Object_Tracking.py .
+COPY Object_Tracking.py .
 COPY "assets/YOLOv10m_custom.pt" ./assets/
-COPY "assets/simulation.mp4" ./assets/
 COPY deep_sort/ ./deep_sort/
 # Feature Engineering
 COPY Feature_Engineering.py .
-COPY "assets/detected_objects.csv" ./assets/
 
 
 # Install system dependencies and build tools

@@ -41,3 +41,7 @@ docker volume rm $(docker volume ls -q)
 
 # Prune the system (removes all unused data)
 docker system prune -a --volumes
+
+# Building + Running docker
+docker build -t basketball-analysis .
+docker run -v basketball_data:/app/data basketball-analysis
