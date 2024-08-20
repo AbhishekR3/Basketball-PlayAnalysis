@@ -3,6 +3,7 @@ Feature Engineering
 This file performs various extractions/transformations to the dataset for a better model
 
 Key Concepts Implemented:
+- Mean, SD, Max, Min, Skewness, Kurtosis 
 - Categorical / One Hot Encoding 
 - Normalization/Log Transformation
 - Rolling averages
@@ -16,14 +17,14 @@ Key Concepts Implemented:
 # Import libraries
 import pandas as pd
 import numpy as np
+from scipy.stats import skew
+from scipy.stats import kurtosis
 import os
 import logging
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-
-print("Hi")
 
 #%%
 
@@ -200,7 +201,7 @@ def calculate_feature_stats(feature_series):
             stats['feature_max'] = np.max(feature_series)
         except Exception:
             stats['feature_max'] = 0
-        
+
         return pd.Series(stats)
     
     except Exception as e:
@@ -391,7 +392,8 @@ def rolling_average(df, window_size=30, rolling_column = None):
     try:
         # Apply the reliability function to each group
         result = df.groupby('TrackID', group_keys=False).apply(
-            lambda x: rolling_average_calculation(x, window_size, rolling_column), include_groups=False
+            lambda x: rolling_average_calculation(x, window_size, rolling_column)
+            #include_groups=False
         ).reset_index(level=0, drop=True)
 
         return result
@@ -527,14 +529,9 @@ def optimize_dataset(dataset):
         # Perform PCA
         feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
-        if feature_covariation is not None:
-            export_dataframe_to_csv(feature_covariation, 'assets/feature_covariation.csv')
-            print(f"\nNumber of components: {pca_model.n_components_}")
-            print(f"Total explained variance ratio: {sum(pca_model.explained_variance_ratio_):.4f}")
-
         # Remove unecessary columns (Including PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
-                            'prev_vel_y', 'prev_vel_height','RecentReliability', 'Hits', 'delta_time', 'feature_min',
+                            'RecentReliability', 'Hits', 'delta_time', 'feature_min',
                             'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',
                             'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'cov_vel_variance_acceleration'
                             ]
@@ -663,10 +660,10 @@ def normalize_numerical_columns(df):
         raise
 
 #%%
+#'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
-    input_dir = os.environ.get('INPUT_DIR', '/app/assets')
-    processed_dir = os.environ.get('PROCESSED_DIR', '/app/processed')
+    tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
 
     def ensure_dir(directory):
         if not os.path.exists(directory):
@@ -674,20 +671,21 @@ try:
 
     # Use it before writing files
     ensure_dir(log_dir)
-    ensure_dir(input_dir)
-    ensure_dir(processed_dir)
+    ensure_dir(tracking_dir)
 
     print('Log Directory:', log_dir)
-    print('Input Directory:', input_dir)
-    print('Processed Features Directory:', processed_dir)
+    print('Tracking Data Directory:', tracking_dir)
 
 except Exception as e:
     print(f"Error in creating environment for containers: {e}")
     raise
-
+#'''
 #%% Configuring logging
 try:
-    log_file_path = os.path.join(log_dir, 'feature_engineering_output.log')
+    try:
+        log_file_path = os.path.join(log_dir, 'feature_engineering_output.log')
+    except:
+        log_file_path = 'feature_engineering_output.log'
 
     # If the log file exists, delete it
     if os.path.exists(log_file_path):
@@ -717,7 +715,11 @@ except Exception as e:
 def main():
     try:
         # Import detected objects dataset
-        raw_dataset_file_path = os.path.join(input_dir, 'detected_objects.csv')
+        try:
+            raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
+        except:
+            raw_dataset_file_path = 'assets/detected_objects.csv'
+
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path)
 
         # Prep dataset for feature extraction
@@ -728,9 +730,13 @@ def main():
 
         # Optimize / Clean up the dataset with all the extracted features
         cleaned_feature_dataset = optimize_dataset(extracted_feature_dataset)
-
+ 
         # Export the finalized dataset into a csv
-        processed_feature_dataset_file_path = os.path.join(processed_dir, 'processed_features.csv')
+        try:
+            processed_feature_dataset_file_path = os.path.join(tracking_dir, 'processed_features.csv')
+        except:
+            processed_feature_dataset_file_path = 'assets/processed_features.csv'
+
         export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
 
     except Exception as e:

@@ -379,36 +379,43 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         logger.error("Error in the object tracking: %s", e)
 
 #%% Configure Docker containerization
-base_dir = '/app'
-log_dir = os.environ.get('LOG_DIR', '/app/logs')
-tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking')
-assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
-deepsort_dir = os.environ.get('DeepSORT_DIR', '/app/deep_sort')
+try:
+    base_dir = '/app'
+    log_dir = os.environ.get('LOG_DIR', '/app/logs')
+    tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
+    assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
+    video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
+    deepsort_dir = os.environ.get('DeepSORT_DIR', '/app/deep_sort')
 
-# Set headless mode for OpenCV
-os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
-os.environ['OPENCV_VIDEOIO_PRIORITY_INTEL_MFX'] = '0'
+    # Set headless mode for OpenCV
+    os.environ['OPENCV_VIDEOIO_PRIORITY_MSMF'] = '0'
+    os.environ['OPENCV_VIDEOIO_PRIORITY_INTEL_MFX'] = '0'
 
-def ensure_dir(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+    def ensure_dir(directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-# Use it before writing files
-ensure_dir(log_dir)
-ensure_dir(tracking_dir)
-ensure_dir(assets_dir)
-ensure_dir(deepsort_dir)
+    # Use it before writing files
+    ensure_dir(log_dir)
+    ensure_dir(tracking_dir)
+    ensure_dir(assets_dir)
+    ensure_dir(video_dir)
+    ensure_dir(deepsort_dir)
 
-print('Base Directory:', base_dir)
-print('Log Directory:', log_dir)
-print('Tracking Directory:', tracking_dir)
-print('Assets Directory:', assets_dir)
-print('DeepSORT Directory:', deepsort_dir)
+    print('Base Directory:', base_dir)
+    print('Log Directory:', log_dir)
+    print('Tracking Directory:', tracking_dir)
+    print('Assets Directory:', assets_dir)
+    print('Simulations Directory:', video_dir)
+    print('DeepSORT Directory:', deepsort_dir)
 
+except Exception as e:
+    print(f"Error in creating environment for containers: {e}")
+    raise
 #%% Configuring logging
 
 try:
-    log_file_path = os.path.join(log_dir, 'simulation.log')
+    log_file_path = os.path.join(log_dir, 'tracking.log')
 
     # If the log file exists, delete it
     if os.path.exists(log_file_path):
@@ -436,9 +443,7 @@ except Exception as e:
 #%% Initialize Simulation Variables
 
 # Path to the video file / basketball court diagram
-#script_directory = os.getcwd()
-#video_path = os.path.join(script_directory, 'Custom_Detection_Model/Object Tracking Metrics/simulation_validation_10s.mp4')
-video_path = os.path.join(assets_dir, 'simulation.mp4')
+video_path = os.path.join(video_dir, 'simulation_video.mp4')
 basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 
 print(f"Video path: {video_path}")
@@ -477,7 +482,7 @@ if not cap.isOpened():
     exit()
 
 # Create a VideoWriter object to save the output video
-output_path = os.path.join(assets_dir, 'simulation_tracked.mp4')
+output_path = os.path.join(video_dir, 'simulation_tracked.mp4')
 fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 try:

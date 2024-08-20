@@ -724,6 +724,7 @@ def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
 print('Log Directory:', log_dir)
 print('Video Directory:', video_dir)
 print('Assets Directory:', assets_dir)

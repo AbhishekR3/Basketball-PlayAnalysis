@@ -1,12 +1,27 @@
 # Use a ARM64 slim Python image
-FROM python:3.12-slim
+FROM python:3.11-slim
+
 
 # Set working directory in the container
 WORKDIR /app
 
-# Copy the Python script and Basketall Court Diagram image
+
+### Copy the relevant files to process files
+# Dockerfile
+COPY requirements.txt .
+COPY run_sequence.sh .
+# Simulation
 COPY Basketball_Passing_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
+# Tracking
+COPY Basketball_Object_Tracking.py .
+COPY "assets/YOLOv10m_custom.pt" ./assets/
+COPY "assets/simulation.mp4" ./assets/
+COPY deep_sort/ ./deep_sort/
+# Feature Engineering
+COPY Feature_Engineering.py .
+COPY "assets/detected_objects.csv" ./assets/
+
 
 # Install system dependencies and build tools
 RUN apt-get update && apt-get install -y \
@@ -31,13 +46,10 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 ENV HDF5_DIR=/usr/lib/aarch64-linux-gnu/hdf5/serial
 
 # Install h5py separately with specific compile flags
-RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial" pip install --no-cache-dir h5py --no-binary=h5py
-
-# Install build dependencies for packages using pyproject.toml
-RUN pip install --no-cache-dir build
+RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial" pip install h5py --no-binary=h5py
 
 # Install required packages
-RUN pip install --no-cache-dir pygame numpy opencv-python
+RUN pip install -v -r requirements.txt
 
 # Create Environment Variables
 ### Input
@@ -47,12 +59,16 @@ ENV ASSETS_DIR=/app/assets
 ENV OUTPUT_DIR=/app/output
 ENV LOG_DIR=/app/output/logs
 ENV VIDEO_DIR=/app/output/simulations
+ENV TRACKING_DIR=/app/output/tracking_data
 
 # Create folder for directories
-RUN mkdir -p $LOG_DIR $VIDEO_DIR
+RUN mkdir -p ${LOG_DIR} ${VIDEO_DIR} ${TRACKING_DIR}
 
 # Create volume for output directory
 VOLUME $OUTPUT_DIR
 
+# Enable run sequence script is executable
+RUN chmod +x run_sequence.sh
+
 # Run the script
-CMD ["python", "./Basketball_Passing_Simulation.py"]
+CMD ["./run_sequence.sh"]
