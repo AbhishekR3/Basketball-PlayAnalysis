@@ -79,7 +79,7 @@ def read_dataframe_to_csv(file_path):
 def one_hot_encode_class_id(df):
     """
     Objective:
-    One Hot Encode the Class_ID to be converted to Team_A, Team_B, Basketball
+    One Hot Encode the Class_ID to be converted to separate columns for Team_A, Team_B, Basketball
     
     Parameters:
     [dataframe] df - Dataframe containing object's tracked and relvant data
@@ -89,8 +89,8 @@ def one_hot_encode_class_id(df):
     """
         
     try:
-        df['is_Team_A'] = (df['ClassID'] == 'Team_A').astype(int)
-        df['is_Team_B'] = (df['ClassID'] == 'Team_B').astype(int)
+        df['is_Team_A'] = (df['ClassID'] == 'Player_A').astype(int)
+        df['is_Team_B'] = (df['ClassID'] == 'Player_B').astype(int)
         df['is_Basketball'] = (df['ClassID'] == 'Basketball').astype(int)
         return df
 
@@ -471,7 +471,6 @@ def feature_extraction(dataset):
         transformed_dataset = extract_feature_statistics(transformed_dataset)
         transformed_dataset = process_covariance(transformed_dataset)
         transformed_dataset = hits_age(transformed_dataset)
-        transformed_dataset = log_transformation(transformed_dataset, ['Age', 'Hits'])
         transformed_dataset = extract_acceleration(transformed_dataset)
         transformed_dataset = trackid_temporal_encoding(transformed_dataset)
         transformed_dataset = rolling_avgs(transformed_dataset)
@@ -529,8 +528,8 @@ def optimize_dataset(dataset):
         # Perform PCA
         feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
-        # Remove unecessary columns (Including PCA analysis)
-        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
+        # Remove unecessary columns (Including information from PCA analysis)
+        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID', 'TrackID',
                             'RecentReliability', 'Hits', 'delta_time', 'feature_min',
                             'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',
                             'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'cov_vel_variance_acceleration'
@@ -649,6 +648,12 @@ def normalize_numerical_columns(df):
         
         # Identify numerical columns
         numerical_columns = df.select_dtypes(include=[np.number]).columns
+
+        #Don't normalize these columns
+        non_normalized_columns = ['Frame', 'Age', 'is_Team_A', 'is_Team_B', 'is_Basketball', 'state_tentative', 'state_confirmed',
+                                  'time_since_start', 'key_frame_s', 'OcclusionFrequency', 'DetectionConsistency']
+        
+        numerical_columns = numerical_columns.difference(non_normalized_columns)
         
         # Apply normalization to numerical columns and replace original columns
         df[numerical_columns] = scaler.fit_transform(df[numerical_columns])
@@ -660,7 +665,7 @@ def normalize_numerical_columns(df):
         raise
 
 #%%
-#'''
+'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -679,7 +684,7 @@ try:
 except Exception as e:
     print(f"Error in creating environment for containers: {e}")
     raise
-#'''
+'''
 #%% Configuring logging
 try:
     try:

@@ -5,7 +5,6 @@ FROM python:3.11-slim
 # Set working directory in the container
 WORKDIR /app
 
-
 ### Copy the relevant files to process files
 # Dockerfile
 COPY requirements.txt .

@@ -1,0 +1,53 @@
+2024-08-21 12:18:44,907 - DEBUG -                           Feature  Importance
+0               pos_x_rolling_avg    2.095022
+1             accel_y_rolling_avg    2.090601
+2     cov_determinant_rolling_avg    1.999335
+3                     key_frame_s    1.910726
+4     prev_vel_aspect_rolling_avg    1.816208
+5          vel_aspect_rolling_avg    1.815089
+6              height_rolling_avg    1.808032
+7         feature_std_rolling_avg    1.800058
+8        aspect_ratio_rolling_avg    1.798975
+9               pos_y_rolling_avg    1.795390
+10        feature_max_rolling_avg    1.702930
+11              vel_y_rolling_avg    1.658877
+12         vel_height_rolling_avg    1.655224
+13            accel_x_rolling_avg    1.654542
+14                      is_Team_A    1.648326
+15       feature_mean_rolling_avg    1.627194
+16                  is_Basketball    1.546910
+17                prev_vel_height    1.546462
+18                     prev_vel_y    1.540540
+19       accel_height_rolling_avg    1.515138
+20       accel_aspect_rolling_avg    1.513032
+21         prev_vel_x_rolling_avg    1.500580
+22              vel_x_rolling_avg    1.483162
+23                      is_Team_B    1.450496
+24                        TrackID    1.419374
+25               Temporal_TrackID    1.419228
+26  cov_vel_variance_acceleration    1.140117
+27                           Hits    1.137918
+28                            Age    1.136383
+29                    feature_min    1.122395
+30                     Unnamed: 0    1.040615
+31          Normalized_Time_Frame    1.025991
+32               time_since_start    1.025991
+33                          Frame    1.025991
+34           DetectionConsistency    1.015436
+35             OcclusionFrequency    1.015436
+36              RecentReliability    1.003398
+37  cov_pos_variance_acceleration    0.932197
+38                state_tentative    0.921300
+39                          State    0.921300
+40                state_confirmed    0.921300
+41                     delta_time    0.879037
+42                ConfidenceScore    0.834584
+43             cov_pos_variance_y    0.816452
+44             cov_pos_variance_x    0.816452
+45        cov_pos_variance_height    0.816452
+46             cov_vel_variance_x    0.797680
+47             cov_vel_variance_y    0.797680
+48        cov_vel_variance_height    0.797680
+49                      cov_trace    0.755558
+2024-08-21 12:18:47,353 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-21 12:18:47,354 - DEBUG - Feature Engineering succeeded
