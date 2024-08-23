@@ -29,13 +29,38 @@ Feature Engineering
 -- Cross-Validation
 
 Spatial Databases
-- Calculate distances between objects
----> How to optiamlly do this? Need to research this topic
-- Distributed processing?
-- Validation metrics
--- Spatial Index Efficiency
--- Nearest Neighbors
--- R-tree / Quad Tree
+- ACID
+--> Atomicity
+---- Inserts entire data or forefits
+---- Spatial indexing
+--> Consistent
+---- NOT NULL, Unique, Check
+---- Spatial constraints
+--> Isoluation
+---- Locking mechanism for concurrent spatial operations
+---- Spatial indexing
+--> Durability
+---- Commited spatial transactions perssisted
+
+- Spatial View 
+---- Have a view of pre-calculated distances between all objects
+
+- Spatial Indexing
+---- Quad Trees
+---- Cache included
+
+- Error Handling
+---- Data Integrity
+---- Performance related
+---- Data loading
+---- Spatial Indexing
+
+- Spatial Data Types
+---- Point - Individual Points
+---- Line String - Tracking
+
+- Temporal Aspect 
+---- Convert seconds to timestamp? Need to figure out how to optimally understand temporal aspect 
 
 Neural Networks
 - C3D

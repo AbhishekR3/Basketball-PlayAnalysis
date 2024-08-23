@@ -89,9 +89,9 @@ def one_hot_encode_class_id(df):
     """
         
     try:
-        df['is_Team_A'] = (df['ClassID'] == 'Player_A').astype(int)
-        df['is_Team_B'] = (df['ClassID'] == 'Player_B').astype(int)
-        df['is_Basketball'] = (df['ClassID'] == 'Basketball').astype(int)
+        df['is_Team_A'] = (df['ClassID'] == 'Player_A').astype(bool)
+        df['is_Team_B'] = (df['ClassID'] == 'Player_B').astype(bool)
+        df['is_Basketball'] = (df['ClassID'] == 'Basketball').astype(bool)
         return df
 
     except Exception as e:
@@ -136,8 +136,8 @@ def transform_state(df):
     """
 
     try:
-        df['state_tentative'] = (df['State'] == 1).astype(int)
-        df['state_confirmed'] = (df['State'] == 2).astype(int)
+        df['state_tentative'] = (df['State'] == 1).astype(bool)
+        df['state_confirmed'] = (df['State'] == 2).astype(bool)
         return df
 
     except Exception as e:
@@ -151,7 +151,7 @@ def process_temporal_features(df, fps=30):
     try:
         df['time_since_start'] = df['Frame'] / fps
         df['delta_time'] = df.groupby('TrackID')['time_since_start'].diff()
-        df['key_frame_s'] = (df['Frame'] % 30 == 0).astype(int)
+        df['key_frame_s'] = (df['Frame'] % 30 == 0).astype(bool)
         return df
 
     except Exception as e:
@@ -745,7 +745,7 @@ def main():
         export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
         
         print("Feature Engineering succeeded")
-        logger.debug("Feature Engineering succeeded")
+        logger.info("Feature Engineering succeeded")
 
     except Exception as e:
         logger.error (f"Error occured in main function: {e}")
@@ -753,3 +753,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#%%
+# Check the most common class type of each track_id, update the entire track to that specific class type
