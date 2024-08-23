@@ -1,4 +1,4 @@
-2024-08-23 01:28:02,847 - DEBUG -                           Feature  Importance
+2024-08-23 11:46:59,622 - DEBUG -                           Feature  Importance
 0        accel_aspect_rolling_avg    2.265819
 1        accel_height_rolling_avg    2.239060
 2             accel_x_rolling_avg    2.155880
@@ -21,8 +21,8 @@
 19        feature_max_rolling_avg    1.622927
 20                        TrackID    1.620962
 21               Temporal_TrackID    1.620643
-22             OcclusionFrequency    1.472635
-23           DetectionConsistency    1.472635
+22           DetectionConsistency    1.472635
+23             OcclusionFrequency    1.472635
 24                          State    1.389252
 25  cov_pos_variance_acceleration    1.346446
 26              RecentReliability    1.307016
@@ -33,15 +33,15 @@
 31  cov_vel_variance_acceleration    1.226834
 32                    feature_min    1.094018
 33                     Unnamed: 0    1.068207
-34          Normalized_Time_Frame    1.051212
+34               time_since_start    1.051212
 35                          Frame    1.051212
-36               time_since_start    1.051212
-37        cov_pos_variance_height    0.946590
+36          Normalized_Time_Frame    1.051212
+37             cov_pos_variance_x    0.946590
 38             cov_pos_variance_y    0.946590
-39             cov_pos_variance_x    0.946590
+39        cov_pos_variance_height    0.946590
 40                      cov_trace    0.889349
 41        cov_vel_variance_height    0.879860
-42             cov_vel_variance_x    0.879860
-43             cov_vel_variance_y    0.879860
-2024-08-23 01:28:05,269 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
-2024-08-23 01:28:05,269 - INFO - Feature Engineering succeeded
+42             cov_vel_variance_y    0.879860
+43             cov_vel_variance_x    0.879860
+2024-08-23 11:47:06,436 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-23 11:47:06,436 - INFO - Feature Engineering succeeded

@@ -536,6 +536,8 @@ def optimize_dataset(dataset):
                             ]
         dataset = dataset.drop(columns=columns_dropped)
 
+        dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
+
         return dataset
 
     except Exception as e:

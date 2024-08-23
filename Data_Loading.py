@@ -31,19 +31,19 @@ class TrackingData(Base):
     id = Column(Integer, primary_key=True)
     frame = Column(Integer, nullable=False)
     age = Column(Integer, nullable=False)
-    is_Team_A = Column(Boolean, nullable=False)
-    is_Team_B = Column(Boolean, nullable=False)
-    is_Basketball = Column(Boolean, nullable=False)
+    is_team_a = Column(Boolean, nullable=False)
+    is_team_b = Column(Boolean, nullable=False)
+    is_basketball = Column(Boolean, nullable=False)
     state_tentative = Column(Boolean, nullable=False)
     state_confirmed = Column(Boolean, nullable=False)
     key_frame_s = Column(Boolean, nullable=False)
-    occlusionFrequency = Column(Integer, nullable=False)
-    detectionConsistency = Column(Integer, nullable=False)
+    occlusionfrequency = Column(Float, nullable=False)
+    detectionconsistency = Column(Float, nullable=False)
     time_since_start = Column(Float, nullable=False)
     prev_vel_y = Column(Float, nullable=False)
     prev_vel_height = Column(Float, nullable=False)
-    normalized_Time_Frame = Column(Float, nullable=False)
-    temporal_TrackID = Column(Float, nullable=False)
+    normalized_time_frame = Column(Float, nullable=False)
+    temporal_trackid = Column(Float, nullable=False)
     pos_x_rolling_avg = Column(Float, nullable=False)
     pos_y_rolling_avg = Column(Float, nullable=False)
     aspect_ratio_rolling_avg = Column(Float, nullable=False)
@@ -78,7 +78,7 @@ def create_sqlalchemy_engine():
         connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
 
         # Create the SQLAlchemy engine
-        engine = create_engine(connection_string)
+        engine = create_engine(connection_string, pool_pre_ping=True)
 
         return engine
 
@@ -157,7 +157,7 @@ def read_dataframe_to_csv(file_path):
     """
 
     try:
-        raw_dataset = pd.read_csv(file_path)
+        raw_dataset = pd.read_csv(file_path, index_col=None)
 
         return raw_dataset
         
@@ -217,6 +217,53 @@ def preprocess_dataset(df):
         logger.error (f"Error occured when pre-processing dataset: {e}")
         raise
 
+def spatial_data_structure(data_row):
+    # Add data to spatial data structure
+    try:
+        tracking_data = TrackingData(
+            frame=data_row["Frame"],
+            age=data_row["Age"],
+            is_team_a=data_row["is_Team_A"],
+            is_team_b=data_row["is_Team_B"],
+            is_basketball=data_row["is_Basketball"],
+            state_tentative=data_row["state_tentative"],
+            state_confirmed=data_row["state_confirmed"],
+            key_frame_s=data_row["key_frame_s"],
+            occlusionfrequency=data_row["OcclusionFrequency"],
+            detectionconsistency=data_row["DetectionConsistency"],
+            time_since_start=data_row["time_since_start"],
+            prev_vel_y=data_row["prev_vel_y"],
+            prev_vel_height=data_row["prev_vel_height"],
+            normalized_time_frame=data_row["Normalized_Time_Frame"],
+            temporal_trackid=data_row["Temporal_TrackID"],
+            pos_x_rolling_avg=data_row["pos_x_rolling_avg"],
+            pos_y_rolling_avg=data_row["pos_y_rolling_avg"],
+            aspect_ratio_rolling_avg=data_row["aspect_ratio_rolling_avg"],
+            height_rolling_avg=data_row["height_rolling_avg"],
+            vel_x_rolling_avg=data_row["vel_x_rolling_avg"],
+            vel_y_rolling_avg=data_row["vel_y_rolling_avg"],
+            vel_aspect_rolling_avg=data_row["vel_aspect_rolling_avg"],
+            vel_height_rolling_avg=data_row["vel_height_rolling_avg"],
+            feature_mean_rolling_avg=data_row["feature_mean_rolling_avg"],
+            feature_std_rolling_avg=data_row["feature_std_rolling_avg"],
+            feature_max_rolling_avg=data_row["feature_max_rolling_avg"],
+            cov_determinant_rolling_avg=data_row["cov_determinant_rolling_avg"],
+            prev_vel_x_rolling_avg=data_row["prev_vel_x_rolling_avg"],
+            prev_vel_aspect_rolling_avg=data_row["prev_vel_aspect_rolling_avg"],
+            accel_x_rolling_avg=data_row["accel_x_rolling_avg"],
+            accel_y_rolling_avg=data_row["accel_y_rolling_avg"],
+            accel_aspect_rolling_avg=data_row["accel_aspect_rolling_avg"],
+            accel_height_rolling_avg=data_row["accel_height_rolling_avg"]
+        )
+
+        return tracking_data
+    
+    except:
+        logger.error(f"Failed storing data into tracking_data structure: {e}")
+        raise
+
+
+
 #%%
 
 def run_quick_SQL(conn):
@@ -252,56 +299,22 @@ def main():
         Session = sessionmaker(bind=engine)
         session = Session()
 
+
         # Add data to spatial data structure
         try:
             for _, row in processed_dataset.iterrows():
-                try:
-                    tracking_data = TrackingData(
-                        frame=row["Frame"],
-                        age=row["Age"],
-                        is_Team_A=row["is_Team_A"],
-                        is_Team_B=row["is_Team_B"],
-                        is_Basketball=row["is_Basketball"],
-                        state_tentative=row["state_tentative"],
-                        state_confirmed=row["state_confirmed"],
-                        key_frame_s=row["key_frame_s"],
-                        occlusionFrequency=row["OcclusionFrequency"],
-                        detectionConsistency=row["DetectionConsistency"],
-                        time_since_start=row["time_since_start"],
-                        prev_vel_y=row["prev_vel_y"],
-                        prev_vel_height=row["prev_vel_height"],
-                        normalized_Time_Frame=row["Normalized_Time_Frame"],
-                        temporal_TrackID=row["Temporal_TrackID"],
-                        pos_x_rolling_avg=row["pos_x_rolling_avg"],
-                        pos_y_rolling_avg=row["pos_y_rolling_avg"],
-                        aspect_ratio_rolling_avg=row["aspect_ratio_rolling_avg"],
-                        height_rolling_avg=row["height_rolling_avg"],
-                        vel_x_rolling_avg=row["vel_x_rolling_avg"],
-                        vel_y_rolling_avg=row["vel_y_rolling_avg"],
-                        vel_aspect_rolling_avg=row["vel_aspect_rolling_avg"],
-                        vel_height_rolling_avg=row["vel_height_rolling_avg"],
-                        feature_mean_rolling_avg=row["feature_mean_rolling_avg"],
-                        feature_std_rolling_avg=row["feature_std_rolling_avg"],
-                        feature_max_rolling_avg=row["feature_max_rolling_avg"],
-                        cov_determinant_rolling_avg=row["cov_determinant_rolling_avg"],
-                        prev_vel_x_rolling_avg=row["prev_vel_x_rolling_avg"],
-                        prev_vel_aspect_rolling_avg=row["prev_vel_aspect_rolling_avg"],
-                        accel_x_rolling_avg=row["accel_x_rolling_avg"],
-                        accel_y_rolling_avg=row["accel_y_rolling_avg"],
-                        accel_aspect_rolling_avg=row["accel_aspect_rolling_avg"],
-                        accel_height_rolling_avg=row["accel_height_rolling_avg"]
-                    )
-                except:
-                    print('failed')
-                session.add(tracking_data)
+                structured_data = spatial_data_structure(row)
+                session.add(structured_data)
 
             session.commit()
+            logger.info(f"Committed dataset to data structure")
+
         except Exception as e:
             session.rollback()
             logger.error(f"Error inserting data: {e}")
+
         finally:
             session.close()
-
 
         logger.info("Data Loading successful")
 
@@ -314,9 +327,7 @@ if __name__ == "__main__":
     main()
 
 
-#%% 
-# Setup commands to be executed #
-
+#%% Database setup commands executed #%%
 
 # create_basketball_table() - Created tracking_data table
 '''
@@ -335,21 +346,21 @@ def create_basketball_table(conn):
         sql_command = """
         CREATE TABLE tracking_data (
             id SERIAL PRIMARY KEY,
-            Frame INTEGER NOT NULL,
-            Age INTEGER NOT NULL,
-            is_Team_A BOOLEAN NOT NULL,
-            is_Team_B BOOLEAN NOT NULL,
-            is_Basketball BOOLEAN NOT NULL,
+            frame INTEGER NOT NULL,
+            age INTEGER NOT NULL,
+            is_team_a BOOLEAN NOT NULL,
+            is_team_b BOOLEAN NOT NULL,
+            is_basketball BOOLEAN NOT NULL,
             state_tentative BOOLEAN NOT NULL,
             state_confirmed BOOLEAN NOT NULL,
-            key_frame_s INTEGER NOT NULL,
-            OcclusionFrequency INTEGER NOT NULL,
-            DetectionConsistency INTEGER NOT NULL,
+            key_frame_s BOOLEAN NOT NULL,
+            occlusionfrequency FLOAT NOT NULL,
+            detectionconsistency FLOAT NOT NULL,
             time_since_start FLOAT NOT NULL,
             prev_vel_y FLOAT NOT NULL,
             prev_vel_height FLOAT NOT NULL,
-            Normalized_Time_Frame FLOAT NOT NULL,
-            Temporal_TrackID FLOAT NOT NULL,
+            normalized_time_frame FLOAT NOT NULL,
+            temporal_trackid FLOAT NOT NULL,
             pos_x_rolling_avg FLOAT NOT NULL,
             pos_y_rolling_avg FLOAT NOT NULL,
             aspect_ratio_rolling_avg FLOAT NOT NULL,
@@ -369,15 +380,15 @@ def create_basketball_table(conn):
             accel_aspect_rolling_avg FLOAT NOT NULL,
             accel_height_rolling_avg FLOAT NOT NULL,
 
-            CONSTRAINT unique_frame_object UNIQUE (Temporal_TrackID, is_Team_A, is_Team_B, is_Basketball),
+            CONSTRAINT unique_frame_object UNIQUE (temporal_trackid, is_team_a, is_team_b, is_basketball),
             CONSTRAINT check_team_basketball CHECK (
-                (CASE WHEN is_Team_A THEN 1 ELSE 0 END +
-                CASE WHEN is_Team_B THEN 1 ELSE 0 END +
-                CASE WHEN is_Basketball THEN 1 ELSE 0 END) = 1
+                (CASE WHEN is_team_a THEN 1 ELSE 0 END +
+                CASE WHEN is_team_b THEN 1 ELSE 0 END +
+                CASE WHEN is_basketball THEN 1 ELSE 0 END) = 1
             ),
-            CONSTRAINT check_occlusion_frequency CHECK (OcclusionFrequency >= 0 AND OcclusionFrequency <= 1),
-            CONSTRAINT check_detection_consistency CHECK (DetectionConsistency >= 0 AND DetectionConsistency <= 1),
-            CONSTRAINT check_normalized_time CHECK (Normalized_Time_Frame >= 0 AND Normalized_Time_Frame <= 1)
+            CONSTRAINT check_occlusion_frequency CHECK (occlusionfrequency >= 0 AND occlusionfrequency <= 1),
+            CONSTRAINT check_detection_consistency CHECK (detectionconsistency >= 0 AND detectionconsistency <= 1),
+            CONSTRAINT check_normalized_time CHECK (normalized_time_frame >= 0 AND normalized_time_frame <= 1)
         );
         """
 
