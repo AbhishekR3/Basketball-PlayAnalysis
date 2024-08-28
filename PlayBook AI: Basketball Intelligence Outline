@@ -40,7 +40,7 @@ Spatial Databases
 ---- Locking mechanism for concurrent spatial operations
 ---- Spatial indexing
 --> Durability
----- Commited spatial transactions perssisted
+---- Commited spatial transactions persisted
 
 - Spatial View 
 ---- Have a view of pre-calculated distances between all objects

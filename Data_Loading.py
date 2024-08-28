@@ -12,13 +12,15 @@ Key Concepts Implemented:
 # Import Libraries
 import numpy as np
 import pandas as pd
-import psycopg2
-from psycopg2 import sql
 import logging
 import os
+import threading
+import psycopg2
+from psycopg2 import sql
 from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, Float, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy import Column, Integer, Float, Boolean
+from sqlalchemy.exc import SQLAlchemyError
 from geoalchemy2 import Geometry
 
 #%% 
@@ -266,27 +268,136 @@ def spatial_data_structure(data_row):
 
 #%%
 
-def run_quick_SQL(conn):
+#run_select_query() - Run a select query
+def run_select_query(engine, sql_command, params=None):
+    try:
+        with engine.connect() as connection:
+            # Convert sql_command to SQL text
+            if isinstance(sql_command, str):
+                sql_command = text(sql_command)
+            
+            # If parameters exist, execute code with parameters 
+            if params:
+                result = connection.execute(sql_command, {"frame": params})
+            else:
+                result = connection.execute(sql_command)
+
+            rows = result.fetchall()
+
+            return rows
+    
+    except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy error occurred while performin select query: {str(e)}")
+        raise
+
+    except:
+        print('Messed up the select statement')
+        logger.error(f"Error in running select query: {e}")
+        raise
+
+#run_commit_query() - Run a commit query
+def run_commit_query(engine):
+    try:
+        # SQL command to create the spatial index
+        sql_command = text("""
+        CREATE TRIGGER set_point_geom
+        BEFORE INSERT ON tracking_data
+        FOR EACH ROW
+        EXECUTE FUNCTION update_point_geom();
+        """)
+
+        # Execute the SQL command
+        with engine.connect() as connection:
+            connection.execute(sql_command)
+            connection.commit()
+
+    except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy error occurred while committing the query: {str(e)}")
+        raise
+
+    except:
+        print('Messed up the commit statement')
+        logger.error(f"Error in committing the above query: {e}")
+        raise
+
+def get_basketball_for_frame(engine, frame):
     """
     Objective:
-    Run a specific SQL command generally to update data structure
+    Retrieve the basketball object for a given frame.
 
     Parameters:
-    [psycopg2.extensions.connection] conn - The database connection
+    engine (sqlalchemy.engine.base.Engine): SQLAlchemy database engine
+    frame_id (int): The frame number to query
 
     Returns:
-    [bool] success - True if the table was altered successfully, False otherwise
+    tuple: A tuple containing (id, point_geom) for the basketball, or None if not found
     """
     try:
-        sql_command = """
-        # SQL COMMAND
-        """
-        return execute_sql(conn, sql_command)
+        sql_command = text("""
+            SELECT id, point_geom
+            FROM public.tracking_data
+            WHERE is_basketball = TRUE AND frame = :frame;
+        """)
+        
+        result = run_select_query(engine, sql_command, frame)
+        
+        return result[0] if result else None
+    
     except Exception as e:
-        logger.error(f"Error in performing command: {e}")
-        return False
+        logging.error(f"Error occurred while getting basketball for frame {frame}: {str(e)}")
+        raise
 
+########## CREATE A SEPARATE FILE TO INPUT BASKETBALL DISTANCE
+def calculate_basketball_distances(engine):
+    try:
+        # Collect the distinct frame_ids
+        sql_command = text("""
+        SELECT DISTINCT frame FROM public.tracking_data ORDER BY frame;
+        """)
+
+        frames_list = run_select_query(engine, sql_command)
+
+        for (frame_id, ) in frames_list:
+            basketball_data = get_basketball_for_frame(engine, frame_id)
+            
+            # Find the basketball info for this frame
+            
+            if basketball_data is not None:
+                basketball_id, basketball_geom = basketball_data
+                print(basketball_id, basketball_geom)
+                # Calculate distances to all other objects in the same frame
+                ### INSERT Query with variables
+
+                '''
+                cur.execute("""
+                    INSERT INTO basketball_distances (frame_id, basketball_id, object_id, distance, rank)
+                    SELECT 
+                        %s,
+                        %s,
+                        o.id,
+                        ST_Distance(ST_GeomFromEWKB(%s), o.point_geom),
+                        ROW_NUMBER() OVER (ORDER BY ST_Distance(ST_GeomFromEWKB(%s), o.point_geom))
+                    FROM objects_table o
+                    WHERE o.frame = %s AND o.id != %s
+                    ORDER BY ST_Distance(ST_GeomFromEWKB(%s), o.point_geom) ASC
+                    LIMIT 3;
+                """, (frame_id, basketball_id, basketball_geom, basketball_geom, frame_id, basketball_id, basketball_geom))
+                '''
+            #conn.commit()
+        
+
+    except SQLAlchemyError as e:
+        logging.error(f"SQLAlchemy error occurred while committing the query: {str(e)}")
+        raise
+
+    except:
+        print('Messed up the commit statement')
+        logger.error(f"Error in committing the above query: {e}")
+        raise
+
+####################################################################
 def main():
+
     try:
         engine = create_sqlalchemy_engine()
 
@@ -299,26 +410,34 @@ def main():
         Session = sessionmaker(bind=engine)
         session = Session()
 
-
+        '''
         # Add data to spatial data structure
         try:
+            print('Starting data input')
             for _, row in processed_dataset.iterrows():
                 structured_data = spatial_data_structure(row)
                 session.add(structured_data)
 
             session.commit()
+            print('Completed data input')
             logger.info(f"Committed dataset to data structure")
+            # UPDATED: Include a log info of how many rows was imported + data table size
 
         except Exception as e:
             session.rollback()
             logger.error(f"Error inserting data: {e}")
+        '''
 
-        finally:
-            session.close()
+        calculate_basketball_distances(engine)
+
+        #run_select_query(engine)
+        #run_commit_query(engine)
+
+        session.close()
 
         logger.info("Data Loading successful")
 
-    except:
+    except Exception as e:
         logger.error(f"Error in main function: {e}")
         print("Error in main function")
 
@@ -328,6 +447,22 @@ if __name__ == "__main__":
 
 
 #%% Database setup commands executed #%%
+
+#setup query
+'''
+Spatial Index
+1. Create point_geom which represent the geospatial data of point_geom
+ALTER TABLE tracking_data ADD COLUMN point_geom geometry(POINT);
+
+2. Set the values in point_geom
+UPDATE tracking_data
+SET point_geom = ST_MakePoint(pos_x_rolling_avg, pos_y_rolling_avg);
+
+3. Create spatial index
+CREATE INDEX idx_tracking_data_point_geom ON tracking_data USING GIST (point_geom);
+
+'''
+
 
 # create_basketball_table() - Created tracking_data table
 '''
@@ -400,30 +535,6 @@ def create_basketball_table(conn):
         return False
 '''
 
-#create_spatial_index() - Created spatial index based on x, y coordinate (rolling average)
-'''
-def create_spatial_index(conn):
-    """
-    Objective:
-    Create a spatial index on the tracking_data table.
-
-    Parameters:
-    [psycopg2.extensions.connection] conn - The database connection
-
-    Returns:
-    [bool] success - True if the index was created successfully, False otherwise
-    """
-    try:
-        sql_command = """
-        CREATE INDEX idx_spatial_position ON tracking_data 
-        USING GIST (ST_SetSRID(ST_MakePoint(pos_x_rolling_avg, pos_y_rolling_avg), 4326));
-        """
-        return execute_sql(conn, sql_command)
-    except Exception as e:
-        logging.error(f"Error creating spatial index: {e}")
-        return False
-'''
-
 #enable_postgis() - Enable PostGIS extension for spatial databases
 '''
 def enable_postgis(conn):
@@ -444,6 +555,3 @@ def enable_postgis(conn):
         logging.error(f"Error enabling PostGIS extension: {e}")
         return False
 '''
-
-
-
