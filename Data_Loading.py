@@ -300,10 +300,7 @@ def run_commit_query(engine):
     try:
         # SQL command to create the spatial index
         sql_command = text("""
-        CREATE TRIGGER set_point_geom
-        BEFORE INSERT ON tracking_data
-        FOR EACH ROW
-        EXECUTE FUNCTION update_point_geom();
+
         """)
 
         # Execute the SQL command
@@ -428,10 +425,10 @@ def main():
             logger.error(f"Error inserting data: {e}")
         '''
 
-        calculate_basketball_distances(engine)
+        #calculate_basketball_distances(engine)
 
         #run_select_query(engine)
-        #run_commit_query(engine)
+        run_commit_query(engine)
 
         session.close()
 
