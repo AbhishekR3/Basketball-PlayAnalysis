@@ -2,6 +2,21 @@ This is my idea outline for this project.
 Some of these are things I read online and thought might be applicable.
 I also use this as a document to note down things I need to research and general planning.
 
+0.3.0
+- AWS
+--> Integrated into AWS Cloud Services with RDS and ECS
+- Spatial Databases
+--> Utilized spatial databases on Postgres to optimize calculating distances between players and basketball
+--> Configured with spatial index, Quadtree, to enhance spatial queries
+--> Designed with <90ms response time for proximity queries
+--> Implemented while ensuring ACID properties compliance 
+- Feature Engineering
+--> Extrapolated and optimized features from raw dataset including temporal encoding
+--> Performed PCA to reduce number of features by 63% while maintaining 91% explained variance ratio
+- Docker
+--> Integrated into Docker to help set up for scalability and multi-core processing
+
+
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
 Example:
@@ -46,7 +61,7 @@ Spatial Databases
 ---- Have a view of pre-calculated distances between all objects
 
 - Spatial Indexing
----- Quad Trees
+---- QuadTrees
 ---- Cache included
 
 - Error Handling

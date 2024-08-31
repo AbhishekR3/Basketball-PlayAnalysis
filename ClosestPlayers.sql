@@ -1,6 +1,6 @@
 call closest_basketball(3)
 
-/*
+--/*
 CREATE OR REPLACE PROCEDURE closest_basketball(top_n INTEGER DEFAULT 3)
 LANGUAGE plpgsql
 AS $$
@@ -49,4 +49,4 @@ BEGIN
                  (SELECT COUNT(DISTINCT frame) FROM public.closest_players);
 END;
 $$;
-*/
+--*/

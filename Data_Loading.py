@@ -5,6 +5,7 @@ This file creates the loads the dataset (after feature engineering) into AWS spa
 Key Concepts Implemented:
 - Constraints 
 - Spatial Index
+- Test the execution time of proximity queries
 '''
 
 #%%
@@ -17,6 +18,8 @@ import os
 import threading
 import psycopg2
 from psycopg2 import sql
+import time
+import statistics
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Float, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
@@ -28,6 +31,8 @@ from geoalchemy2 import Geometry
 Base = declarative_base()
 
 class TrackingData(Base):
+    "TrackingData class to store the basketball data"
+
     __tablename__ = 'tracking_data'
 
     id = Column(Integer, primary_key=True)
@@ -68,11 +73,22 @@ class TrackingData(Base):
 #%%
 
 def create_sqlalchemy_engine():
+    """ 
+    Objective: 
+    Creates a SQLAlchemy engine for a PostgreSQL database
+
+    Parameters: 
+    None
+
+    Returns: 
+    [sqlalchemy.engine.base.Engine] engine - SQLAlchemy database engine
+    """
+
     try:
         # Use environment variables for security
-        db_username = 'abhishek'
-        db_password = 'UXoQJBJ7ujSLTbXANtu0'
-        db_host = 'basketballintelligence-dev.cn0ycgwe8d0i.us-east-2.rds.amazonaws.com'
+        db_username = '********'
+        db_password = '********'
+        db_host = '********'
         db_port = 5432
         db_name = 'postgres'
 
@@ -87,31 +103,6 @@ def create_sqlalchemy_engine():
     except Exception as e:
         print(f"Error creating SQLAlchemy Engine connection: {e}")
         return None
-
-#%%
-
-def execute_sql(conn, sql_command):
-    """
-    Objective:
-    Execute a SQL command on the given database connection.
-
-    Parameters:
-    [psycopg2.extensions.connection] conn - The database connection
-    [str] sql_command - The SQL command to execute
-
-    Returns:
-    [bool] success - True if the command was executed successfully, False otherwise
-    """
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql_command)
-        conn.commit()
-        logging.info("SQL command executed successfully")
-        return True
-    except Exception as e:
-        logging.error(f"Error executing SQL command: {e}")
-        conn.rollback()
-        return False
 
 #%% Configuring logging
 try:
@@ -171,6 +162,17 @@ def read_dataframe_to_csv(file_path):
 #%%
 
 def preprocess_dataset(df):
+    """ 
+    Objective: 
+    Preprocesses the input dataset for further analysis.
+
+    Parameters: 
+    [DataFrame] dataset - The input dataset to be preprocessed.
+
+    Returns: 
+    [DataFrame] preprocessed_dataset - The preprocessed dataset. 
+    """
+
     try:
         # Convert data types
         df = df.astype({
@@ -220,6 +222,17 @@ def preprocess_dataset(df):
         raise
 
 def spatial_data_structure(data_row):
+    """ 
+    Objective: 
+    Generates a spatial data structure for efficient spatial queries
+
+    Parameters: 
+    [pandas DataFrame] points - The input dataset of points to be structured
+
+    Returns: 
+    [Spatial Data Structure] tracking_data - The generated spatial data structure
+    """
+
     # Add data to spatial data structure
     try:
         tracking_data = TrackingData(
@@ -270,6 +283,19 @@ def spatial_data_structure(data_row):
 
 #run_select_query() - Run a select query
 def run_select_query(engine, sql_command, params=None):
+    """ 
+    Objective: 
+    Runs a SELECT SQL query on a given database connection.
+
+    Parameters: 
+    [SQLAlchemy Engine] engine - The database connection. 
+    [str] sql_command - The SELECT SQL query to be executed.
+    [dict] params - The parameters to be passed to the query.
+
+    Returns: 
+    [pandas DataFrame] result - The result of the query as a DataFrame. 
+    """
+
     try:
         with engine.connect() as connection:
             # Convert sql_command to SQL text
@@ -297,6 +323,17 @@ def run_select_query(engine, sql_command, params=None):
 
 #run_commit_query() - Run a commit query
 def run_commit_query(engine):
+    """ 
+    Objective: 
+    Executes a COMMIT SQL query on a database connection.
+
+    Parameters: 
+    [SQLAlchemy Engine] engine - The database connection.
+
+    Returns: 
+    None
+    """
+
     try:
         # SQL command to create the spatial index
         sql_command = text("""
@@ -318,17 +355,18 @@ def run_commit_query(engine):
         raise
 
 def get_basketball_for_frame(engine, frame):
-    """
-    Objective:
-    Retrieve the basketball object for a given frame.
+    """ 
+    Objective: 
+    Retrieves basketball data for a specific frame.
 
-    Parameters:
-    engine (sqlalchemy.engine.base.Engine): SQLAlchemy database engine
-    frame_id (int): The frame number to query
+    Parameters: 
+    [SQLAlchemy Engine] engine - The database connection.
+    [int] frame - The frame number to retrieve data for.
 
-    Returns:
-    tuple: A tuple containing (id, point_geom) for the basketball, or None if not found
+    Returns: 
+    [pandas DataFrame] data - The basketball data for the specified frame. 
     """
+
     try:
         sql_command = text("""
             SELECT id, point_geom
@@ -346,6 +384,17 @@ def get_basketball_for_frame(engine, frame):
 
 ########## CREATE A SEPARATE FILE TO INPUT BASKETBALL DISTANCE
 def calculate_basketball_distances(engine):
+    """ 
+    Objective: 
+    Calculates the distances between basketball and players in a given dataset.
+
+    Parameters: 
+    [SQLAlchemy Engine] engine - The database connection.
+
+    Returns:
+    None
+    """
+
     try:
         # Collect the distinct frame_ids
         sql_command = text("""
@@ -363,7 +412,6 @@ def calculate_basketball_distances(engine):
                 basketball_id, basketball_geom = basketball_data
                 print(basketball_id, basketball_geom)
                 # Calculate distances to all other objects in the same frame
-                ### INSERT Query with variables
 
                 '''
                 cur.execute("""
@@ -396,6 +444,7 @@ def calculate_basketball_distances(engine):
 def main():
 
     try:
+        # Create SQLAlchemy engine
         engine = create_sqlalchemy_engine()
 
         # Import object tracked dataset into a dataframe
@@ -425,10 +474,11 @@ def main():
             logger.error(f"Error inserting data: {e}")
         '''
 
+        # Calculate basketball distances
         #calculate_basketball_distances(engine)
 
         #run_select_query(engine)
-        run_commit_query(engine)
+        #run_commit_query(engine)
 
         session.close()
 
@@ -460,6 +510,34 @@ CREATE INDEX idx_tracking_data_point_geom ON tracking_data USING GIST (point_geo
 
 '''
 
+#
+
+#%% execute_sql() - Execute a SQL command
+
+'''
+def execute_sql(conn, sql_command):
+    """
+    Objective:
+    Execute a SQL command on the given database connection.
+
+    Parameters:
+    [psycopg2.extensions.connection] conn - The database connection
+    [str] sql_command - The SQL command to execute
+
+    Returns:
+    [bool] success - True if the command was executed successfully, False otherwise
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_command)
+        conn.commit()
+        logging.info("SQL command executed successfully")
+        return True
+    except Exception as e:
+        logging.error(f"Error executing SQL command: {e}")
+        conn.rollback()
+        return False
+'''
 
 # create_basketball_table() - Created tracking_data table
 '''
@@ -551,4 +629,83 @@ def enable_postgis(conn):
     except Exception as e:
         logging.error(f"Error enabling PostGIS extension: {e}")
         return False
+'''
+
+'''
+#%%
+# Test the execution time of proximity queries
+import time
+import statistics
+
+def measure_proximity_query_time(x=200, y=200, radius=50, iterations=10):
+    """
+    Objective:
+    Measure the execution time of a proximity queries
+
+    Parameters:
+    int x - The x-coordinate of the center point
+    int y - The y-coordinate of the center point
+    int radius - The search radius in pixels
+    int iterations - Number of times to run the query (default: 10)
+
+    Returns:
+    float avg_time - Average execution time in seconds
+    float std_dev - Standard deviation of execution times
+    """
+    try:
+        # Use environment variables for security
+        db_username = ''
+        db_password = ''
+        db_host = ''
+        db_port = '5432'
+        db_name = 'postgres'
+        # Create the connection string
+        connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
+        conn = psycopg2.connect(connection_string)
+        cur = conn.cursor()
+        
+        query = """
+        SELECT * 
+        FROM tracking_data 
+        WHERE ST_DWithin(
+            point_geom, 
+            ST_MakePoint(%s, %s), 
+            %s
+        )
+        """
+        params = (x, y, radius)
+        
+        execution_times = []
+        
+        for _ in range(iterations):
+            start_time = time.time()
+            
+            cur.execute(query, params)
+            cur.fetchall()  # Ensure query completes
+            
+            end_time = time.time()
+            execution_times.append(end_time - start_time)
+        
+        avg_time = statistics.mean(execution_times)
+        std_dev = statistics.stdev(execution_times)
+        
+        return avg_time, std_dev
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+# Test coordinate 
+x, y, radius, iterations = 250, 350, 100, 20
+
+avg_time, std_dev = measure_proximity_query_time(x, y, radius, iterations)
+if avg_time is not None and std_dev is not None:
+    print(f"Query parameters: x={x}, y={y}, radius={radius}")
+    print(f"Average execution time: {avg_time:.4f} seconds")
+    print(f"Standard deviation: {std_dev:.4f} seconds")
 '''

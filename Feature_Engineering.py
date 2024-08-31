@@ -45,7 +45,7 @@ def export_dataframe_to_csv(df, file_path):
         # Export the DataFrame to CSV
         df.to_csv(file_path)
         print(f"DataFrame successfully exported to {file_path}")
-        logger.debug (f"DataFrame successfully exported to {file_path}")
+        logger.info (f"DataFrame successfully exported to {file_path}")
     except Exception as e:
         logger.error (f"Error occured when exporting data file after extracting and transforming: {e}")
         raise
@@ -147,6 +147,17 @@ def transform_state(df):
 #%%
 
 def process_temporal_features(df, fps=30):
+    """ 
+    Objective: 
+    Processes temporal features in a given dataset.
+
+    Parameters: 
+    [pandas DataFrame] data - The dataset containing temporal features.
+    [int] fps - The frames per second of the video.
+
+    Returns: 
+    [pandas DataFrame] processed_data - The dataset with processed temporal features. 
+    """
     
     try:
         df['time_since_start'] = df['Frame'] / fps
@@ -161,10 +172,23 @@ def process_temporal_features(df, fps=30):
 #%%
 
 def extract_feature_statistics(df):
+    """ 
+    Objective: 
+    Extracts statistical features from a given dataset.
+
+    Parameters: 
+    [pandas DataFrame] df - The dataset from which to extract features.
+
+    Returns: 
+    [pandas DataFrame] features_included - The dataset with extracted statistical features. 
+    """
+
     try:
         feature_stats = df['Features'].apply(calculate_feature_stats)
 
-        return pd.concat([df, feature_stats], axis=1)
+        features_included = pd.concat([df, feature_stats], axis=1)
+
+        return features_included
 
     except Exception as e:
         logger.error("Error in performing features transformation: %s", e)    
@@ -173,8 +197,16 @@ def extract_feature_statistics(df):
 #%%
 
 def calculate_feature_stats(feature_series):
-    # NEED TO UPDATE TO GET BEST CALCULATION instead of 0
-    # Maybe rolling average or something
+    """ 
+    Objective: 
+    Calculates statistical features from a given dataset.
+
+    Parameters: 
+    [pandas Series] feature_series - The pandas Series from which to calculate features.
+
+    Returns: 
+    [pandas Series] stats - The pandas Series with calculated statistical features. 
+    """
     try:
         stats = {}
         
@@ -216,6 +248,17 @@ def calculate_feature_stats(feature_series):
 #%%
 
 def convert_string_array(cov_str):
+    """ 
+    Objective: 
+    Converts a string representation of an array into an actual array.
+
+    Parameters: 
+    [str] string_array - The string representation of an array.
+
+    Returns: 
+    [list] array - The converted array from the string. 
+    """
+
     try:
         cleaned_string = cov_str.strip('[]')
         rows = cleaned_string.split('\n')
@@ -236,6 +279,17 @@ def convert_string_array(cov_str):
 #%%
 
 def covariance_stats_calculation(pre_covariance):
+    """ 
+    Objective: 
+    Preprocesses the data for covariance statistics calculation.
+
+    Parameters: 
+    [numpy array] pre_covariance - The preprocessed data ready for covariance calculation. 
+
+    Returns: 
+    [numpy array] stats - The dataset from which to preprocess for covariance calculation.
+    """
+
     try:
         pre_covariance = np.array(pre_covariance)
         stats = [
@@ -262,8 +316,20 @@ def covariance_stats_calculation(pre_covariance):
 #%%
 
 def process_covariance(df):
+    """ 
+    Objective: 
+    Processes the covariance of a given dataset.
+
+    Parameters: 
+    [pandas Dataframe] df - The dataset from which to process covariance.
+
+    Returns: 
+    [pandas Dataframe] df - The dataset from which to process covariance.
+    """
+
     try:
         def extract_covariance_stats(cov_str):
+            # Convert the string representation of the covariance matrix to an actual array
             cov_matrix = convert_string_array(cov_str)
 
         cov_stats = df['Co-Variance'].apply(convert_string_array)
@@ -309,6 +375,17 @@ def process_covariance(df):
 #%%
 
 def log_transformation(df, column_names):
+    """ 
+    Objective: 
+    Applies a log transformation to specified columns in a DataFrame.
+
+    Parameters: 
+    [pandas DataFrame] df - The DataFrame to transform.
+    [list] column_names - The names of the columns to apply the transformation to.
+
+    Returns: 
+    [pandas DataFrame] df - The DataFrame with transformed columns. 
+    """
     try:
         for ith_col in column_names:
             df[ith_col] = np.log(df[ith_col])
@@ -326,13 +403,15 @@ def rolling_average_calculation(group, window_size = 30, rolling_column = None):
     Calculate the rolling average for a specific column
     Take the last 30 frames for a specific detected track
 
-    Parameters:
+    Parameters: 
+    [pandas DataFrame] group - The DataFrame to calculate the rolling average on.
+    [int] window_size - The size of the rolling window. Default is 30.
+    [str] rolling_column - The name of the column to calculate the rolling average for.
 
-
-    Returns:
-
-    
+    Returns: 
+    [pandas Series] rolling_avg - The rolling average of the specified column. 
     '''
+
     try:
         group = group.sort_values('Frame')
 
@@ -348,10 +427,18 @@ def rolling_average_calculation(group, window_size = 30, rolling_column = None):
         raise  
 
 def rolling_avgs(df):
+    """ 
+    Objective: 
+    Calculates the rolling averages for a set of columns in a DataFrame, with different window sizes for basketballs and players.
+
+    Parameters: 
+    [pandas DataFrame] df - The DataFrame to calculate the rolling averages on.
+
+    Returns: 
+    [pandas DataFrame] df - The DataFrame with calculated rolling averages. 
+    """
+
     try:
-        """
-        
-        """
         rolling_avgs_columns = ["pos_x","pos_y","aspect_ratio","height","vel_x","vel_y","vel_aspect","vel_height",
                                 "feature_mean","feature_std","feature_max","cov_determinant",
                                 "prev_vel_x","prev_vel_aspect","accel_x","accel_y","accel_aspect","accel_height"]
@@ -378,16 +465,17 @@ def rolling_avgs(df):
 
 
 def rolling_average(df, window_size=30, rolling_column = None):
-    """
-    Objective:
-    Calculate the rolling average of 'DetectionConsistency' for each 'TrackID' in the DataFrame
+    """ 
+    Objective: 
+    Calculates the rolling average of 'DetectionConsistency' for each 'TrackID' in the DataFrame.
 
-    Parameters:
-    df (pd.DataFrame): Input DataFrame containing 'TrackID', 'Frame', and 'DetectionConsistency' columns
-    window_size (int): The maximum number of frames to consider for the rolling average
+    Parameters: 
+    [pandas DataFrame] df - Input DataFrame containing 'TrackID', 'Frame', and 'DetectionConsistency' columns.
+    [int] window_size - The maximum number of frames to consider for the rolling average.
+    [str] rolling_column - The column to calculate the rolling average for.
 
-    Returns:
-    pd.Series: A series with the rolling average of 'DetectionConsistency' for all TrackIDs
+    Returns: 
+    [pandas Series] result - A series with the rolling average of 'DetectionConsistency' for all TrackIDs. 
     """
     try:
         # Apply the reliability function to each group
@@ -403,6 +491,17 @@ def rolling_average(df, window_size=30, rolling_column = None):
         raise
 
 def recent_reliability_correction(row):
+    """ 
+    Objective: 
+    Corrects the 'RecentReliability' value based on the 'Age' of the row.
+
+    Parameters: 
+    [pandas Series] row - A row of data containing 'Age' and 'RecentReliability' fields.
+
+    Returns: 
+    [float] - The corrected 'RecentReliability' value. 
+    """
+
     try:
         if row['Age'] < 30:
             return row['Age'] / 30
@@ -417,6 +516,17 @@ def recent_reliability_correction(row):
 #%%
 
 def hits_age(df):
+    """ 
+    Objective: 
+    Calculates 'OcclusionFrequency', 'DetectionConsistency', and 'RecentReliability' for each row in the DataFrame.
+
+    Parameters: 
+    [pandas DataFrame] df - The DataFrame to calculate the metrics on.
+
+    Returns: 
+    [pandas DataFrame] df - The DataFrame with calculated metrics. 
+    """
+
     try:
         # Fill Hits/Age with 0 in case there are null values
         df['Hits'] = df['Hits'].fillna(0)
@@ -435,6 +545,17 @@ def hits_age(df):
         raise
 
 def extract_acceleration(df):
+    """ 
+    Objective: 
+    Calculates the acceleration for each 'TrackID' in the DataFrame based on velocity and time.
+
+    Parameters: 
+    [pandas DataFrame] df - The DataFrame to calculate the acceleration on.
+
+    Returns: 
+    [pandas DataFrame] df - The DataFrame with calculated acceleration. 
+    """
+
     try:
         df = df.sort_values(['TrackID', 'Frame'], ascending=[True, False])
 
@@ -463,6 +584,17 @@ def extract_acceleration(df):
 #%%
 
 def feature_extraction(dataset):
+    """ 
+    Objective: 
+    Performs a series of transformations on the dataset to extract and process features.
+
+    Parameters: 
+    [pandas DataFrame] dataset - The dataset to perform feature extraction on.
+
+    Returns: 
+    [pandas DataFrame] transformed_dataset - The dataset after feature extraction. 
+    """
+
     try:
         transformed_dataset = one_hot_encode_class_id(dataset)
         transformed_dataset = extract_mean_values(transformed_dataset)
@@ -484,6 +616,17 @@ def feature_extraction(dataset):
 #%%
 
 def convert_string_to_array(string_data):
+    """ 
+    Objective: 
+    Converts a string representation of a numpy array back into a numpy array.
+
+    Parameters: 
+    [str] string_data - The string representation of a numpy array.
+
+    Returns: 
+    [numpy array] features_array - The numpy array converted from the string. 
+    """
+
     try:
         # Replace 'array([' with '['
         formatted_string = string_data.replace('array([', '[')
@@ -503,6 +646,17 @@ def convert_string_to_array(string_data):
 #%%
 
 def prep_transformation(dataset):
+    """ 
+    Objective: 
+    Prepares the dataset for transformation by converting the 'Features' column from a string to an array.
+
+    Parameters: 
+    [pandas DataFrame] dataset - The dataset to prepare for transformation.
+
+    Returns: 
+    [pandas DataFrame] dataset - The dataset after the 'Features' column has been converted. 
+    """
+
     try:
         # Convert features column from string to array
         dataset['Features'] = dataset['Features'].apply(convert_string_to_array)
@@ -516,6 +670,17 @@ def prep_transformation(dataset):
 #%%
 
 def optimize_dataset(dataset):
+    """ 
+    Objective: 
+    Optimizes the dataset by filling NaN values, normalizing numerical columns, performing PCA, and dropping unnecessary columns.
+
+    Parameters: 
+    [pandas DataFrame] dataset - The dataset to optimize.
+
+    Returns: 
+    [pandas DataFrame] dataset - The optimized dataset. 
+    """
+
     try:
         # Convert NaN values to 0
         dataset = dataset.fillna(0)
@@ -590,8 +755,8 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         })
         print('Feature Importance')
         print(feature_importance)
-        logger.debug(feature_importance)
-        print("")
+        logger.info(feature_importance)
+        print("") #0.9079616981632175
 
         # Plot explained variance
         plt.figure(figsize=(10, 6))
@@ -604,6 +769,11 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         plt.axvline(x=n_components, color='r', linestyle='--')
         plt.show()
 
+        # Calculate explained variance ratio
+        explained_variance_ratio = np.sum(pca.explained_variance_ratio_[:n_components])
+        logger.info("Explained Variance Ratio", explained_variance_ratio)
+        print("Explained Variance Ratio", explained_variance_ratio)
+
         return feature_importance, loadings, pca
 
     except Exception as e:
@@ -613,6 +783,17 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
 #%%
 
 def trackid_temporal_encoding(df):
+    """ 
+    Objective: 
+    Performs temporal encoding on the 'TrackID' field by adding a normalized time factor.
+
+    Parameters: 
+    [pandas DataFrame] df - The DataFrame to perform temporal encoding on.
+
+    Returns: 
+    [pandas DataFrame] df - The DataFrame with the 'Temporal_TrackID' field added. 
+    """
+
     try:
         # Calculate max number of frames
         max_frame = df['Frame'].max()
@@ -667,7 +848,8 @@ def normalize_numerical_columns(df):
         raise
 
 #%%
-'''
+# Setting up the environment for Docker containers
+
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -683,11 +865,11 @@ try:
     print('Log Directory:', log_dir)
     print('Tracking Data Directory:', tracking_dir)
 
-except Exception as e:
-    print(f"Error in creating environment for containers: {e}")
-    raise
-'''
+except:
+    print(f"Error in creating environment for Docker containers")
+
 #%% Configuring logging
+
 try:
     try:
         log_file_path = os.path.join(log_dir, 'feature_engineering.log')
@@ -717,6 +899,7 @@ try:
 except Exception as e:
     print(f"Error in creating logging: {e}")
     raise
+
 #%% Main Function for Feature Engineering of the assets 
 
 def main():
@@ -757,4 +940,4 @@ if __name__ == "__main__":
     main()
 
 #%%
-# Check the most common class type of each track_id, update the entire track to that specific class type
+########################################### Check the most common class type of each track_id, update the entire track to that specific class type
