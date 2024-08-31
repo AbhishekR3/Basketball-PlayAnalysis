@@ -310,7 +310,7 @@ def covariance_stats_calculation(pre_covariance):
         return stats
 
     except Exception as e:
-        logger.error("Error in calculating co-variance statistics: %s", e)
+        logger.error(f"Error in calculating co-variance statistics: %s", e)
         raise
 
 #%%
@@ -369,7 +369,7 @@ def process_covariance(df):
         return df
 
     except Exception as e:
-        logger.error("Error in performing features transformation: %s", e)
+        logger.error(f"Error in performing features transformation: %s", e)
         raise
 
 #%%
@@ -392,7 +392,7 @@ def log_transformation(df, column_names):
         return df
 
     except Exception as e:
-        logger.error("Error in performing log transformation on dataset: %s", e)
+        logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
 #%%
@@ -423,7 +423,7 @@ def rolling_average_calculation(group, window_size = 30, rolling_column = None):
         return rolling_avg
 
     except Exception as e:
-        logger.error("Error when calculating rolling average: %s", e)
+        logger.error(f"Error when calculating rolling average: %s", e)
         raise  
 
 def rolling_avgs(df):
@@ -460,7 +460,7 @@ def rolling_avgs(df):
         return df
 
     except Exception as e:
-        logger.error("Error when calculating rolling averages through rolling_avgs(): %s", e)
+        logger.error(f"Error when calculating rolling averages through rolling_avgs(): %s", e)
         raise     
 
 
@@ -487,7 +487,7 @@ def rolling_average(df, window_size=30, rolling_column = None):
         return result
 
     except Exception as e:
-        logger.error("Error in calculating rolling detection consistency: %s", e)
+        logger.error(f"Error in calculating rolling detection consistency: %s", e)
         raise
 
 def recent_reliability_correction(row):
@@ -510,7 +510,7 @@ def recent_reliability_correction(row):
             return row['RecentReliability']
         
     except Exception as e:
-        logger.error("Error in calculating correcting rolling detection: %s", e)
+        logger.error(f"Error in calculating correcting rolling detection: %s", e)
         raise
         
 #%%
@@ -541,7 +541,7 @@ def hits_age(df):
         return df
     
     except Exception as e:
-        logger.error("Error in performing log transformation on dataset: %s", e)
+        logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
 def extract_acceleration(df):
@@ -578,7 +578,7 @@ def extract_acceleration(df):
         return df
     
     except Exception as e:
-        logger.error("Error in performing log transformation on dataset: %s", e)
+        logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
 #%%
@@ -610,7 +610,7 @@ def feature_extraction(dataset):
         return transformed_dataset
 
     except Exception as e:
-        logger.error("Error in performing features transformation: %s", e)
+        logger.error(f"Error in performing features transformation: %s", e)
         raise
 
 #%%
@@ -640,7 +640,7 @@ def convert_string_to_array(string_data):
         return features_array
 
     except Exception as e:
-        logger.error("Error in converting features from string to array: %s", e)
+        logger.error(f"Error in converting features from string to array: %s", e)
         raise 
 
 #%%
@@ -664,7 +664,7 @@ def prep_transformation(dataset):
         return dataset
 
     except Exception as e:
-        logger.error("Error in performing features transformation: %s", e)
+        logger.error(f"Error in performing features transformation: %s", e)
         raise
 
 #%%
@@ -687,6 +687,9 @@ def optimize_dataset(dataset):
 
         dataset = dataset.reset_index(drop = True)
 
+        # Convert TrackID to string
+        dataset['TrackID'] = dataset['TrackID'].astype(str)
+
         # Normalize data
         dataset = normalize_numerical_columns(dataset)
 
@@ -694,7 +697,7 @@ def optimize_dataset(dataset):
         feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
         # Remove unecessary columns (Including information from PCA analysis)
-        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID', 'TrackID',
+        columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
                             'RecentReliability', 'Hits', 'delta_time', 'feature_min',
                             'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',
                             'cov_vel_variance_height', 'cov_vel_variance_y', 'cov_vel_variance_x', 'cov_pos_variance_acceleration', 'cov_vel_variance_acceleration'
@@ -703,10 +706,63 @@ def optimize_dataset(dataset):
 
         dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
 
+        # Check the most common class type of each track_id, update the entire track to that specific class type
+        dataset = update_track_class(dataset)
+
         return dataset
 
     except Exception as e:
         logger.error("Error in optimizing/cleaning dataset: %s", e)
+        raise
+
+#%%
+
+def update_track_class(dataframe):
+    """
+    Objective:
+    Check the most common class type for each TrackID and update all rows of the specific TrackID to the most common class in the group.
+
+    Parameters:
+    [pandas DataFrame] dataframe - The input dataframe containing tracking data
+
+    Returns:
+    [pandas DataFrame] updated_dataframe - The dataframe with updated class types for each track
+    """
+    try:
+        # Create a copy of the dataframe to avoid modifying the original
+        updated_dataframe = dataframe.copy()
+
+        # Define the class columns
+        class_columns = ['is_Team_A', 'is_Team_B', 'is_Basketball']
+
+        # Ensure class columns are boolean type
+        for col in class_columns:
+            updated_dataframe[col] = updated_dataframe[col].astype(bool)
+
+        # Group by TrackID and find the most common class for each track
+        def get_most_common_class(group):
+            class_counts = group[class_columns].sum()
+            if class_counts.max() == 0:
+                # If all classes are False, keep it as is
+                return pd.Series({col: False for col in class_columns})
+            most_common_class = class_counts.idxmax()
+            return pd.Series({col: (col == most_common_class) for col in class_columns})
+
+        # Use include_groups=False to exclude grouping columns from the operation
+        most_common_classes = updated_dataframe.groupby('TrackID', group_keys=False).apply(
+            get_most_common_class, include_groups=False
+        )
+
+        # Update the class columns for each TrackID
+        for track_id, common_class in most_common_classes.iterrows():
+            mask = updated_dataframe['TrackID'] == track_id
+            for col in class_columns:
+                updated_dataframe.loc[mask, col] = common_class[col]
+
+        return updated_dataframe
+
+    except Exception as e:
+        logger.error("Error in update_track_class: %s", e)
         raise
 
 #%%
@@ -756,7 +812,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         print('Feature Importance')
         print(feature_importance)
         logger.info(feature_importance)
-        print("") #0.9079616981632175
+        print("")
 
         # Plot explained variance
         plt.figure(figsize=(10, 6))
@@ -769,9 +825,9 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         plt.axvline(x=n_components, color='r', linestyle='--')
         plt.show()
 
-        # Calculate explained variance ratio
+        # Calculate explained variance ratio summation for n of the best components
         explained_variance_ratio = np.sum(pca.explained_variance_ratio_[:n_components])
-        logger.info("Explained Variance Ratio", explained_variance_ratio)
+        logger.info(f"Explained Variance Ratio: {explained_variance_ratio}")
         print("Explained Variance Ratio", explained_variance_ratio)
 
         return feature_importance, loadings, pca
@@ -849,7 +905,7 @@ def normalize_numerical_columns(df):
 
 #%%
 # Setting up the environment for Docker containers
-
+'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -867,7 +923,7 @@ try:
 
 except:
     print(f"Error in creating environment for Docker containers")
-
+'''
 #%% Configuring logging
 
 try:
@@ -938,6 +994,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#%%
-########################################### Check the most common class type of each track_id, update the entire track to that specific class type

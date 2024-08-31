@@ -315,7 +315,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         if detections is None:
             print('No circle features were detected in the frame')
             frame_time = np.float32(n_frames/30)
-            logger.debug("No circle features were detected in the frame at:", frame_time)
+            logger.debug(f"No circle features were detected in the frame at:", frame_time)
 
         # Update tracker
         tracker.predict()
