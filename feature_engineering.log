@@ -1,5 +1,5 @@
-2024-08-31 19:32:40,016 - DEBUG - messed up
-2024-08-31 19:32:50,293 - DEBUG -                           Feature  Importance
+2024-08-31 23:29:12,265 - DEBUG - messed up
+2024-08-31 23:29:22,633 - DEBUG -                           Feature  Importance
 0     cov_determinant_rolling_avg    2.462751
 1               pos_x_rolling_avg    2.423543
 2             accel_x_rolling_avg    2.224536
@@ -26,8 +26,8 @@
 23                ConfidenceScore    1.152790
 24                          State    1.124404
 25                     Unnamed: 0    1.097584
-26                          Frame    1.082700
-27          Normalized_Time_Frame    1.082700
+26          Normalized_Time_Frame    1.082700
+27                          Frame    1.082700
 28               time_since_start    1.082700
 29                     delta_time    1.078683
 30              RecentReliability    1.061704
@@ -40,9 +40,9 @@
 37        cov_pos_variance_height    0.873472
 38             cov_pos_variance_y    0.873472
 39                      cov_trace    0.836972
-40             cov_vel_variance_y    0.815912
+40             cov_vel_variance_x    0.815912
 41        cov_vel_variance_height    0.815912
-42             cov_vel_variance_x    0.815912
-2024-08-31 19:32:53,120 - DEBUG - Explained Variance Ratio: 0.9083456096563133
-2024-08-31 19:32:53,279 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
-2024-08-31 19:32:53,279 - DEBUG - Feature Engineering succeeded
+42             cov_vel_variance_y    0.815912
+2024-08-31 23:29:25,219 - DEBUG - Explained Variance Ratio: 0.908345609656313
+2024-08-31 23:29:25,378 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-31 23:29:25,378 - DEBUG - Feature Engineering succeeded

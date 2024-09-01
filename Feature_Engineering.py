@@ -24,54 +24,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-
-#%%
-
-def export_dataframe_to_csv(df, file_path):
-    """
-    Objective:
-    Create a csv file of the objects tracked and its relevant features
-    
-    Parameters:
-    [dataframe] df - Dataframe containing object's tracked and reelvant data
-    [string] file_path - File path of where the csv file should be saved at
-    """
-
-    try:
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
-        # Export the DataFrame to CSV
-        df.to_csv(file_path)
-        print(f"DataFrame successfully exported to {file_path}")
-        logger.debug (f"DataFrame successfully exported to {file_path}")
-    except Exception as e:
-        logger.error (f"Error occured when exporting data file after extracting and transforming: {e}")
-        raise
-
-#%%
-
-def read_dataframe_to_csv(file_path):
-    """
-    Objective:
-    Create a csv file of the objects tracked and its relevant features
-    
-    Parameters:
-    [string] file_path - File path of where the raw data is (csv file)
-
-    Returns:
-    [dataframe] raw_dataset - Converted csv file to dataframe
-    """
-
-    try:
-        raw_dataset = pd.read_csv(file_path)
-
-        return raw_dataset
-        
-
-    except Exception as e:
-        logger.error (f"Error occured when reading raw data file: {e}")
-        raise
+from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
 
 #%%
 
@@ -891,7 +844,7 @@ def normalize_numerical_columns(df):
 
 #%%
 # Setting up the environment for Docker containers
-#'''
+# '''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -911,44 +864,11 @@ except Exception as e:
     print(f"An error occurred during setting up Docker container environment: {e}")
     raise
 #'''
-#%% Configuring logging
-
-try:
-    try:
-        log_file_path = os.path.join(log_dir, 'feature_engineering.log')
-    except Exception as e:
-        print(f"Error in setting up log file path: {e}")
-        log_file_path = 'feature_engineering.log'
-
-    # If the log file exists, delete it
-    if os.path.exists(log_file_path):
-        os.remove(log_file_path)
-        print(f"The file {log_file_path} has been found thus deleted for the new run.")
-
-    # Create a logger object
-    logger = logging.getLogger('FeatureEngineeringLogger')
-    logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
-
-    # Create file handler which logs even debug messages
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(file_handler)
-
-except Exception as e:
-    print(f"Error in creating logging: {e}")
-    raise
 
 #%% Main Function for Feature Engineering of the assets 
 
 def main():
     try:
-        
         # Import detected objects dataset
         try:
             raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
@@ -956,7 +876,7 @@ def main():
             raw_dataset_file_path = 'assets/detected_objects.csv'
             logger.debug("messed up")
 
-        raw_dataset = read_dataframe_to_csv(raw_dataset_file_path)
+        raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
 
         # Prep dataset for feature extraction
         prepped_dataset = prep_transformation(raw_dataset)
@@ -973,7 +893,7 @@ def main():
         except:
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
-        export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
+        export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")
         logger.debug("Feature Engineering succeeded")
@@ -983,4 +903,8 @@ def main():
         raise
 
 if __name__ == "__main__":
+    # Configure the logger
+    logger = configure_logger('feature_engineering')
+    
+    # Run the main function
     main()

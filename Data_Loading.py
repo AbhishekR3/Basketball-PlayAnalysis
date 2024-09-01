@@ -80,17 +80,22 @@ def create_sqlalchemy_engine():
 
     try:
         # Use environment variables for security
-        db_username = ''
-        db_password = ''
-        db_host = ''
-        db_port = 5432
-        db_name = 'postgres'
+        #db_username = ''
+        #db_password = ''
+        #db_host = ''
+        #db_port = 5432
+        #db_name = 'postgres'
 
         # Create the connection string
-        connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
-
-        # Create the SQLAlchemy engine
-        engine = create_engine(connection_string, pool_pre_ping=True)
+        #connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
+        connection_string = 'postgresql://postgres:password@localhost:5432/postgres'
+        
+        try:
+            # Create the SQLAlchemy engine
+            engine = create_engine(connection_string, pool_pre_ping=True)
+        except Exception as e:
+            print(f"Error creating SQLAlchemy Engine connection: {e}")
+            return None
 
         return engine
 
@@ -455,7 +460,6 @@ def main():
         # Calculate basketball distances
         calculate_basketball_distances(engine)
 
-        run_select_query(engine)
         run_commit_query(engine)
 
         session.close()
@@ -474,7 +478,7 @@ if __name__ == "__main__":
 #%% Database setup commands executed #%%
 
 #setup query
-'''
+"""
 Spatial Index
 1. Create point_geom which represent the geospatial data of point_geom
 ALTER TABLE tracking_data ADD COLUMN point_geom geometry(POINT);
@@ -485,16 +489,15 @@ SET point_geom = ST_MakePoint(pos_x_rolling_avg, pos_y_rolling_avg);
 
 3. Create spatial index
 CREATE INDEX idx_tracking_data_point_geom ON tracking_data USING GIST (point_geom);
-
-'''
+"""
 
 #
 
 #%% execute_sql() - Execute a SQL command
 
-'''
+"""
 def execute_sql(conn, sql_command):
-    """
+    '''
     Objective:
     Execute a SQL command on the given database connection.
 
@@ -504,7 +507,7 @@ def execute_sql(conn, sql_command):
 
     Returns:
     [bool] success - True if the command was executed successfully, False otherwise
-    """
+    '''
     try:
         with conn.cursor() as cur:
             cur.execute(sql_command)
@@ -515,12 +518,12 @@ def execute_sql(conn, sql_command):
         logging.error(f"Error executing SQL command: {e}")
         conn.rollback()
         return False
-'''
+"""
 
 # create_basketball_table() - Created tracking_data table
-'''
+"""
 def create_basketball_table(conn):
-    """
+    '''
     Objective:
     Create a table to store basketball game data.
 
@@ -529,9 +532,9 @@ def create_basketball_table(conn):
 
     Returns:
     [bool] success - True if the table was created successfully, False otherwise
-    """
+    '''
     try:
-        sql_command = """
+        sql_command = '''
         CREATE TABLE tracking_data (
             id SERIAL PRIMARY KEY,
             frame INTEGER NOT NULL,
@@ -578,7 +581,7 @@ def create_basketball_table(conn):
             CONSTRAINT check_detection_consistency CHECK (detectionconsistency >= 0 AND detectionconsistency <= 1),
             CONSTRAINT check_normalized_time CHECK (normalized_time_frame >= 0 AND normalized_time_frame <= 1)
         );
-        """
+        '''
 
         return execute_sql(conn, sql_command)
     
@@ -586,12 +589,12 @@ def create_basketball_table(conn):
     except Exception as e:
         logging.error(f"Error creating basketball table: {e}")
         return False
-'''
+"""
 
 #enable_postgis() - Enable PostGIS extension for spatial databases
-'''
+"""
 def enable_postgis(conn):
-    """
+    '''
     Objective:
     Enable the PostGIS extension in the database.
 
@@ -600,23 +603,23 @@ def enable_postgis(conn):
 
     Returns:
     [bool] success - True if PostGIS was enabled successfully, False otherwise
-    """
+    '''
     try:
         sql_command = "CREATE EXTENSION IF NOT EXISTS postgis;"
         return execute_sql(conn, sql_command)
     except Exception as e:
         logging.error(f"Error enabling PostGIS extension: {e}")
         return False
-'''
+"""
 
-'''
-#%%
 # Test the execution time of proximity queries
+"""
+#%%
 import time
 import statistics
 
 def measure_proximity_query_time(x=200, y=200, radius=50, iterations=10):
-    """
+    '''
     Objective:
     Measure the execution time of a proximity queries
 
@@ -629,7 +632,7 @@ def measure_proximity_query_time(x=200, y=200, radius=50, iterations=10):
     Returns:
     float avg_time - Average execution time in seconds
     float std_dev - Standard deviation of execution times
-    """
+    '''
     try:
         # Use environment variables for security
         db_username = ''
@@ -642,7 +645,7 @@ def measure_proximity_query_time(x=200, y=200, radius=50, iterations=10):
         conn = psycopg2.connect(connection_string)
         cur = conn.cursor()
         
-        query = """
+        query = '''
         SELECT * 
         FROM tracking_data 
         WHERE ST_DWithin(
@@ -650,7 +653,7 @@ def measure_proximity_query_time(x=200, y=200, radius=50, iterations=10):
             ST_MakePoint(%s, %s), 
             %s
         )
-        """
+        '''
         params = (x, y, radius)
         
         execution_times = []
@@ -686,4 +689,4 @@ if avg_time is not None and std_dev is not None:
     print(f"Query parameters: x={x}, y={y}, radius={radius}")
     print(f"Average execution time: {avg_time:.4f} seconds")
     print(f"Standard deviation: {std_dev:.4f} seconds")
-'''
+"""

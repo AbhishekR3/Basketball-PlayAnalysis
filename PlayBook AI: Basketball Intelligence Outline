@@ -5,17 +5,22 @@ I also use this as a document to note down things I need to research and general
 0.3.0
 - AWS
 --> Integrated software into AWS Cloud Services with RDS and ECS
+
 - Spatial Databases
 --> Utilized spatial databases on Postgres to optimize calculating distances between players and basketball
 --> Configured with spatial index, Quadtree, to enhance spatial queries
 --> Designed with <90ms response time for proximity queries
 --> Implemented while ensuring ACID properties compliance 
+
 - Feature Engineering
 --> Extrapolated and optimized features from raw dataset including temporal feature encoding
 --> Performed PCA to reduce number of features by 63% while maintaining 91% explained variance ratio
+
 - Docker
 --> Integrated into Docker to help set up for scalability and multi-core processing
 
+- General Updates
+--> Created utils.py to reduce duplications
 
 ######################### Project Outline #########################
 Create simulations of plays using Pygame

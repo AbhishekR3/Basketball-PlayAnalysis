@@ -16,6 +16,7 @@ import os
 import cv2
 import secrets
 import logging
+from utils import configure_logger
 
 #%%
 
@@ -716,6 +717,7 @@ def initialize_simulation():
 
 
 #%% Configure Docker containerization
+#'''
 log_dir = os.environ.get('LOG_DIR', '/app/logs')
 video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
 assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
@@ -723,7 +725,6 @@ assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
 def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-
 
 print('Log Directory:', log_dir)
 print('Video Directory:', video_dir)
@@ -733,38 +734,13 @@ print('Assets Directory:', assets_dir)
 ensure_dir(video_dir)
 ensure_dir(log_dir)
 ensure_dir(assets_dir)
-
-#%% Configuring logging
-
-try: 
-    #log_file_path = 'passing_simulation_output.log'
-    log_file_path = os.path.join(log_dir, 'simulation.log')
-
-    # Remove log file if it exists
-    if os.path.exists(log_file_path):
-        os.remove(log_file_path)
-
-    # Create a logger object
-    logger = logging.getLogger('GameSimulationLogger')
-    logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
-
-    # Create file handler which logs even debug messages
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(file_handler)
-
-except Exception as e:
-    logger.error("Error in creating logging configuration: %s", e)
-    raise
-
+#'''
 
 #%% Set Simulation Parameters
+
+# Configuring logging
+logger = configure_logger('simulation')
+logger.info("Simulation started")
 
 # Import Basketball Court image
 
@@ -777,9 +753,11 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 #Load and scale the image of the basketball court
 
 # Load and transform Basketball court diagram
-#script_directory = os.getcwd()
-#image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
-image_location = os.path.join(assets_dir, 'Basketball_Court_Diagram.jpg')
+try:
+    image_location = os.path.join(assets_dir, 'Basketball_Court_Diagram.jpg')
+except:
+    script_directory = os.getcwd()
+    image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
 
 try:
     background_image = pygame.image.load(image_location)
@@ -827,8 +805,10 @@ start_time_simulation = time.time()
 
 # Define the codec and create VideoWriter object
 video_format = cv2.VideoWriter_fourcc(*'XVID')
-#video_location = os.path.join(script_directory, 'assets/simulation.mp4')
-video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
+try:
+    video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
+except:
+    video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
 out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0

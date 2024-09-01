@@ -22,6 +22,7 @@ import torch
 import torchvision.transforms as transforms
 from ultralytics import YOLO
 import pandas as pd
+from utils import export_dataframe_to_csv, configure_logger
 
 # DeepSORT code from local files
 from deep_sort.deep_sort import nn_matching
@@ -117,29 +118,6 @@ def prepare_frame_for_display(frame):
 
     except Exception as e:
         print(f"An error occurred when prepping frame for display: {e}")
-
-#%%
-
-def export_dataframe_to_csv(df, file_path):
-    """
-    Objective:
-    Create a csv file of the objects tracked and its relevant features
-    
-    Parameters:
-    [dataframe] df - Dataframe containing object's tracked and reelvant data
-    [string] file_path - File path of where the csv file should be saved at
-    
-    """
-    try:
-        # Ensure the directory exists
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
-        # Export the DataFrame to CSV
-        df.to_csv(file_path)
-        print(f"DataFrame successfully exported to {file_path}")
-    except Exception as e:
-        print(f"An error occurred while exporting the DataFrame: {e}")
-
 
 #%%
 
@@ -402,35 +380,11 @@ try:
 except Exception as e:
     print(f"Error in creating environment for containers: {e}")
     raise
-#%% Configuring logging
-
-try:
-    log_file_path = os.path.join(log_dir, 'tracking.log')
-
-    # If the log file exists, delete it
-    if os.path.exists(log_file_path):
-        os.remove(log_file_path)
-        print(f"The file {log_file_path} has been found thus deleted for the new run.")
-
-    # Create a logger object
-    logger = logging.getLogger('ObjectTrackingLogger')
-    logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
-
-    # Create file handler which logs even debug messages
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(file_handler)
-
-except Exception as e:
-    logger.error("Error in creating logging configuration: %s", e)
 
 #%% Initialize Simulation Variables
+
+# Configuring logging
+logger = configure_logger('tracking')
 
 # Path to the video file / basketball court diagram
 video_path = os.path.join(video_dir, 'simulation_video.mp4')
@@ -590,7 +544,7 @@ try:
 
     # Export extracted features to dataframe into csv
     detectedobjects_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
-    export_dataframe_to_csv(detected_objects, detectedobjects_file_path)
+    export_dataframe_to_csv(detected_objects, detectedobjects_file_path, logger)
 
     '''
     # Export MOT validation metrics dataframe into csv
