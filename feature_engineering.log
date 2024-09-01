@@ -1,0 +1,48 @@
+2024-08-31 23:29:12,265 - DEBUG - messed up
+2024-08-31 23:29:22,633 - DEBUG -                           Feature  Importance
+0     cov_determinant_rolling_avg    2.462751
+1               pos_x_rolling_avg    2.423543
+2             accel_x_rolling_avg    2.224536
+3        accel_aspect_rolling_avg    2.175441
+4        accel_height_rolling_avg    2.159883
+5        feature_mean_rolling_avg    2.082266
+6              height_rolling_avg    2.007317
+7               pos_y_rolling_avg    1.993717
+8               vel_y_rolling_avg    1.885970
+9          vel_height_rolling_avg    1.878216
+10    prev_vel_aspect_rolling_avg    1.835971
+11         vel_aspect_rolling_avg    1.831258
+12        feature_std_rolling_avg    1.826876
+13       aspect_ratio_rolling_avg    1.771126
+14            accel_y_rolling_avg    1.742015
+15        feature_max_rolling_avg    1.700353
+16         prev_vel_x_rolling_avg    1.662035
+17              vel_x_rolling_avg    1.645323
+18                prev_vel_height    1.496171
+19                     prev_vel_y    1.495435
+20               Temporal_TrackID    1.265551
+21             OcclusionFrequency    1.181663
+22           DetectionConsistency    1.181663
+23                ConfidenceScore    1.152790
+24                          State    1.124404
+25                     Unnamed: 0    1.097584
+26          Normalized_Time_Frame    1.082700
+27                          Frame    1.082700
+28               time_since_start    1.082700
+29                     delta_time    1.078683
+30              RecentReliability    1.061704
+31  cov_pos_variance_acceleration    1.054279
+32                    feature_min    1.042148
+33  cov_vel_variance_acceleration    1.034575
+34                           Hits    1.034373
+35                            Age    1.029939
+36             cov_pos_variance_x    0.873472
+37        cov_pos_variance_height    0.873472
+38             cov_pos_variance_y    0.873472
+39                      cov_trace    0.836972
+40             cov_vel_variance_x    0.815912
+41        cov_vel_variance_height    0.815912
+42             cov_vel_variance_y    0.815912
+2024-08-31 23:29:25,219 - DEBUG - Explained Variance Ratio: 0.908345609656313
+2024-08-31 23:29:25,378 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-31 23:29:25,378 - DEBUG - Feature Engineering succeeded

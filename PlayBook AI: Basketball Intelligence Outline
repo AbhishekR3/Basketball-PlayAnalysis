@@ -2,17 +2,25 @@ This is my idea outline for this project.
 Some of these are things I read online and thought might be applicable.
 I also use this as a document to note down things I need to research and general planning.
 
+0.3.0
+- AWS
+--> Integrated software into AWS Cloud Services with RDS and ECS
 
-######################### Upcoming Release - v0.1.1 #########################
-- Multi-object tracking has been implemented with DeepSORT algorithm
-- Created a custom model with image segmentation based on YOLOv10m
-- Validation Metrics:
---- YOLO Object Detection - mAP50 (0.977), Precision (0.973), Recall (0.891)
---- DeepSORT - MAPSE (-0.8017), MOTP (0.4706), IDF1 (0.0618)
-- Simulation file has been updated to include an outline color and center dot for each object to improve accuracy
-- Implemented GPU accelerated programming reducing object tracking time by 57.56%
-- General optimizations/bug fixing
+- Spatial Databases
+--> Utilized spatial databases on Postgres to optimize calculating distances between players and basketball
+--> Configured with spatial index, Quadtree, to enhance spatial queries
+--> Designed with <90ms response time for proximity queries
+--> Implemented while ensuring ACID properties compliance 
 
+- Feature Engineering
+--> Extrapolated and optimized features from raw dataset including temporal feature encoding
+--> Performed PCA to reduce number of features by 63% while maintaining 91% explained variance ratio
+
+- Docker
+--> Integrated into Docker to help set up for scalability and multi-core processing
+
+- General Updates
+--> Created utils.py to reduce duplications
 
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
@@ -24,25 +32,55 @@ Example:
 - Pick and roll
 - Delay action
 
-Object Detections
-- Create a mask of the basketball court image
-
-Image Segmentation
+Object Detections 
+- Need to convert to Image Segmentation?
 - Built custom model on YOLOv10m
 
 Object Tracking
+- Create a mask of the basketball court image
 - Deep Sort (helps considering occuluion)
-- With custom model
+- Validation Metrics: IDF1, MOTA, MOTP
 
-Improving accuracy in custom model training: Train.py
-- K-Fold Cross Validation
-- Hyperparamter fine tuning
-- Learning Rate scheduling
-- Early stopping mechanism to prevent overfitting
+Feature Engineering
+- PCA
+- Exponential Decay Temporal Encoding on TrackID
+- Validation Metrics
+-- Explained varaince
+-- Cross-Validation
 
-Hyperparameter Tuning
-- Adam optimizer
-- Grid Search
+Spatial Databases
+- ACID
+--> Atomicity
+---- Inserts entire data or forefits
+---- Spatial indexing
+--> Consistent
+---- NOT NULL, Unique, Check
+---- Spatial constraints
+--> Isoluation
+---- Locking mechanism for concurrent spatial operations
+---- Spatial indexing
+--> Durability
+---- Commited spatial transactions persisted
+
+- Spatial View 
+---- Have a view of pre-calculated distances between all objects
+
+- Spatial Indexing
+---- QuadTrees
+---- Cache included
+
+- Error Handling
+---- Data Integrity
+---- Performance related
+---- Data loading
+---- Spatial Indexing
+
+- Spatial Data Types
+---- Point - Individual Points
+---- Line String - Tracking
+
+- Temporal Aspect 
+---- Convert seconds to timestamp? Need to figure out how to optimally understand temporal aspect 
 
 Neural Networks
 - C3D
@@ -61,17 +99,9 @@ Model Efficiency/Compression
 - Feature Reduction: PCA / anything else?
 - Ensemble methods
 
-Augmentations
-- geometric: rotate + flipping + pyramid scale + translation + cropping (bottom part of image) 
-- noise injection
-- normalization
-- blur/distortion
-- cutmix
-- color space transformation
-
-Optimize learning rate
-- Cosine 
-- /10 after every 20 epochs
+Hyperparameter Tuning
+- Adam optimizer
+- Grid Search
 
 Data Processing
 - Parralel/Batch processing?
@@ -84,10 +114,9 @@ Simulation Optimization
 - Change video resolution to 240p?
 - Consider switching to 60/higher FPS
 
-
 GPU Accelerated Libraries
-- MOT - CuPy, Numba, PyCUDA
-- NN - 
+- MOT - CUDA, CuPy, Numba, PyCUDA, cuDF
+- NN - Tensorflow, Keras
 
 ######################### Notes #########################
 1. Deep Sort Paper

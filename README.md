@@ -3,6 +3,8 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Release Badge](https://img.shields.io/github/v/release/AbhishekR3/Basketball-PlayAnalysis.svg?color=orange)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/releases)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![AWS](https://img.shields.io/badge/Amazon_AWS-232F3E?style=flat&logo=amazon-web-services&logoColor=white)
 
 ## Table of Contents
 - [Project Description](#project-description)
@@ -31,7 +33,7 @@ Project Overview:
 4. Applying feature engineering for ML model optimization
 5. Using Neural Networks (LSTM, TCN, C3D) and Transformers (TimeSformer, STN)
 6. Enhancing model efficiency through quantization and pruning 
-7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines 
+7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines, and Docker for containerization
 
 The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
 

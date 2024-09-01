@@ -47,7 +47,7 @@ else:
     print("MPS not available, using CPU")
 
 # Build YOLO model from pre-trained weight
-YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10m.pt'
+YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10s.pt'
 model = YOLO(YOLO_pretrained_model_path)
 
 # Move model to appropriate device
@@ -86,5 +86,6 @@ log_memory_usage()
 print()
 
 # Use the model
+print('Metrics:')
 metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)

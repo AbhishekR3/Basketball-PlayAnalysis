@@ -26,3 +26,22 @@ Think about making the objects closer in size.
 Current frame-previous frame matching search takes the longest time to process
 So you should reduce the dimensions
 
+############## DOCKER ####################
+# Stop all running containers
+docker stop $(docker ps -aq)
+
+# Delete all containers
+docker rm $(docker ps -aq)
+
+# Delete all images
+docker rmi $(docker images -q)
+
+# Delete all volumes
+docker volume rm $(docker volume ls -q)
+
+# Prune the system (removes all unused data)
+docker system prune -a --volumes
+
+# Building + Running docker
+docker build -t basketball-analysis .
+docker run -v basketball_data:/app/data basketball-analysis

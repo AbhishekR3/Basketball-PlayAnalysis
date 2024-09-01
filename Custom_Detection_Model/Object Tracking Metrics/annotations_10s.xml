@@ -3,28 +3,29 @@
   <version>1.1</version>
   <meta>
     <task>
-      <id>833248</id>
-      <name>Tracking_Validation</name>
-      <size>1121</size>
+      <id>834711</id>
+      <name>Tracking_Validation_10s</name>
+      <size>301</size>
       <mode>interpolation</mode>
       <overlap>5</overlap>
       <bugtracker></bugtracker>
-      <created>2024-08-02 00:48:49.164043+00:00</created>
-      <updated>2024-08-02 23:04:15.050099+00:00</updated>
+      <created>2024-08-02 22:39:55.724221+00:00</created>
+      <updated>2024-08-09 00:14:47.616111+00:00</updated>
       <subset>default</subset>
       <start_frame>0</start_frame>
-      <stop_frame>1120</stop_frame>
+      <stop_frame>300</stop_frame>
       <frame_filter></frame_filter>
       <segments>
         <segment>
-          <id>1086019</id>
+          <id>1088090</id>
           <start>0</start>
-          <stop>1120</stop>
-          <url>https://app.cvat.ai/api/jobs/1083934</url>
+          <stop>300</stop>
+          <url>https://app.cvat.ai/api/jobs/1086002</url>
         </segment>
       </segments>
       <owner>
         <username>AbhishekR3</username>
+        <email>abhishekramesh@gmail.com</email>
       </owner>
       <assignee></assignee>
       <labels>
@@ -54,9 +55,9 @@
         <width>470</width>
         <height>500</height>
       </original_size>
-      <source>simulation_validation.mp4</source>
+      <source>simulation_validation_10s.mp4</source>
     </task>
-    <dumped>2024-08-02 23:04:36.501116+00:00</dumped>
+    <dumped>2024-08-09 00:43:18.264683+00:00</dumped>
   </meta>
   <track id="0" label="Player_B" source="manual">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="351.00" ytl="115.00" xbr="397.00" ybr="160.00" z_order="0">
@@ -505,29 +506,29 @@
     </box>
     <box frame="222" keyframe="1" outside="0" occluded="0" xtl="333.79" ytl="31.40" xbr="381.79" ybr="81.40" z_order="0">
     </box>
-    <box frame="223" keyframe="1" outside="0" occluded="0" xtl="338.00" ytl="42.00" xbr="380.00" ybr="79.00" z_order="0">
+    <box frame="223" keyframe="1" outside="0" occluded="0" xtl="333.80" ytl="34.80" xbr="380.00" ybr="78.40" z_order="0">
     </box>
-    <box frame="224" keyframe="1" outside="0" occluded="0" xtl="337.00" ytl="42.00" xbr="380.00" ybr="78.00" z_order="0">
+    <box frame="224" keyframe="1" outside="0" occluded="0" xtl="333.40" ytl="34.80" xbr="380.00" ybr="78.00" z_order="0">
     </box>
-    <box frame="225" keyframe="1" outside="0" occluded="0" xtl="338.00" ytl="41.00" xbr="381.00" ybr="78.00" z_order="0">
+    <box frame="225" keyframe="1" outside="0" occluded="0" xtl="334.40" ytl="35.60" xbr="381.00" ybr="78.60" z_order="0">
     </box>
-    <box frame="226" keyframe="1" outside="0" occluded="0" xtl="338.00" ytl="41.00" xbr="381.00" ybr="78.00" z_order="0">
+    <box frame="226" keyframe="1" outside="0" occluded="0" xtl="333.80" ytl="41.00" xbr="381.00" ybr="78.00" z_order="0">
     </box>
     <box frame="227" keyframe="1" outside="0" occluded="0" xtl="333.27" ytl="32.91" xbr="382.49" ybr="79.74" z_order="0">
     </box>
     <box frame="228" keyframe="1" outside="0" occluded="0" xtl="333.27" ytl="32.91" xbr="382.49" ybr="79.74" z_order="0">
     </box>
-    <box frame="229" keyframe="1" outside="0" occluded="0" xtl="337.00" ytl="40.00" xbr="381.00" ybr="79.00" z_order="0">
+    <box frame="229" keyframe="1" outside="0" occluded="0" xtl="337.00" ytl="35.20" xbr="380.40" ybr="79.00" z_order="0">
     </box>
-    <box frame="230" keyframe="1" outside="0" occluded="0" xtl="334.00" ytl="38.00" xbr="382.00" ybr="79.00" z_order="0">
+    <box frame="230" keyframe="1" outside="0" occluded="0" xtl="334.00" ytl="35.00" xbr="382.00" ybr="79.00" z_order="0">
     </box>
-    <box frame="231" keyframe="1" outside="0" occluded="0" xtl="334.00" ytl="38.00" xbr="381.00" ybr="79.00" z_order="0">
+    <box frame="231" keyframe="1" outside="0" occluded="0" xtl="334.00" ytl="34.40" xbr="381.00" ybr="79.00" z_order="0">
     </box>
-    <box frame="232" keyframe="1" outside="0" occluded="0" xtl="336.00" ytl="37.00" xbr="383.00" ybr="79.00" z_order="0">
+    <box frame="232" keyframe="1" outside="0" occluded="0" xtl="336.00" ytl="34.60" xbr="383.00" ybr="79.00" z_order="0">
     </box>
-    <box frame="233" keyframe="1" outside="0" occluded="0" xtl="335.00" ytl="37.00" xbr="383.00" ybr="79.00" z_order="0">
+    <box frame="233" keyframe="1" outside="0" occluded="0" xtl="335.00" ytl="32.80" xbr="383.60" ybr="79.00" z_order="0">
     </box>
-    <box frame="234" keyframe="1" outside="0" occluded="0" xtl="336.00" ytl="36.00" xbr="382.00" ybr="79.00" z_order="0">
+    <box frame="234" keyframe="1" outside="0" occluded="0" xtl="336.00" ytl="33.60" xbr="382.00" ybr="79.00" z_order="0">
     </box>
     <box frame="235" keyframe="1" outside="0" occluded="0" xtl="337.00" ytl="36.00" xbr="383.00" ybr="79.00" z_order="0">
     </box>
@@ -662,7 +663,7 @@
     <box frame="300" keyframe="1" outside="0" occluded="0" xtl="354.00" ytl="46.00" xbr="401.00" ybr="76.00" z_order="0">
     </box>
   </track>
-  <track id="1" label="Player_B" source="manual">
+  <track id="1" label="Player_B" source="file">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="166.00" ytl="36.00" xbr="213.00" ybr="83.00" z_order="0">
     </box>
     <box frame="1" keyframe="1" outside="0" occluded="0" xtl="167.00" ytl="36.00" xbr="213.00" ybr="83.00" z_order="0">
@@ -1559,7 +1560,7 @@
     </box>
     <box frame="145" keyframe="1" outside="0" occluded="0" xtl="55.00" ytl="15.00" xbr="97.00" ybr="60.00" z_order="0">
     </box>
-    <box frame="146" keyframe="1" outside="0" occluded="0" xtl="55.00" ytl="15.00" xbr="103.00" ybr="61.00" z_order="0">
+    <box frame="146" keyframe="1" outside="0" occluded="0" xtl="55.00" ytl="15.00" xbr="101.80" ybr="61.00" z_order="0">
     </box>
     <box frame="147" keyframe="1" outside="0" occluded="0" xtl="55.00" ytl="15.00" xbr="102.00" ybr="62.00" z_order="0">
     </box>
@@ -1629,9 +1630,9 @@
     </box>
     <box frame="180" keyframe="1" outside="0" occluded="0" xtl="59.00" ytl="8.00" xbr="106.00" ybr="54.00" z_order="0">
     </box>
-    <box frame="181" keyframe="1" outside="0" occluded="0" xtl="58.00" ytl="8.00" xbr="106.00" ybr="57.00" z_order="0">
+    <box frame="181" keyframe="1" outside="0" occluded="0" xtl="58.00" ytl="8.00" xbr="106.00" ybr="54.60" z_order="0">
     </box>
-    <box frame="182" keyframe="1" outside="0" occluded="0" xtl="59.00" ytl="8.00" xbr="106.00" ybr="56.00" z_order="0">
+    <box frame="182" keyframe="1" outside="0" occluded="0" xtl="59.00" ytl="8.00" xbr="106.00" ybr="54.80" z_order="0">
     </box>
     <box frame="183" keyframe="1" outside="0" occluded="0" xtl="58.00" ytl="7.00" xbr="105.00" ybr="53.00" z_order="0">
     </box>
@@ -1657,7 +1658,7 @@
     </box>
     <box frame="194" keyframe="1" outside="0" occluded="0" xtl="61.00" ytl="4.00" xbr="108.00" ybr="52.00" z_order="0">
     </box>
-    <box frame="195" keyframe="1" outside="0" occluded="0" xtl="61.00" ytl="4.00" xbr="108.00" ybr="53.00" z_order="0">
+    <box frame="195" keyframe="1" outside="0" occluded="0" xtl="61.00" ytl="4.00" xbr="108.00" ybr="51.80" z_order="0">
     </box>
     <box frame="196" keyframe="1" outside="0" occluded="0" xtl="61.00" ytl="4.00" xbr="108.00" ybr="50.00" z_order="0">
     </box>
@@ -1703,9 +1704,9 @@
     </box>
     <box frame="217" keyframe="1" outside="0" occluded="0" xtl="63.00" ytl="1.00" xbr="109.00" ybr="47.00" z_order="0">
     </box>
-    <box frame="218" keyframe="1" outside="0" occluded="0" xtl="63.00" ytl="1.00" xbr="110.00" ybr="48.00" z_order="0">
+    <box frame="218" keyframe="1" outside="0" occluded="0" xtl="63.00" ytl="1.00" xbr="110.00" ybr="46.80" z_order="0">
     </box>
-    <box frame="219" keyframe="1" outside="0" occluded="0" xtl="63.00" ytl="1.00" xbr="110.00" ybr="47.00" z_order="0">
+    <box frame="219" keyframe="1" outside="0" occluded="0" xtl="63.00" ytl="1.00" xbr="110.00" ybr="45.20" z_order="0">
     </box>
     <box frame="220" keyframe="1" outside="0" occluded="0" xtl="64.00" ytl="0.00" xbr="110.00" ybr="45.00" z_order="0">
     </box>
@@ -1723,7 +1724,7 @@
     </box>
     <box frame="227" keyframe="1" outside="0" occluded="0" xtl="64.00" ytl="0.00" xbr="111.00" ybr="46.00" z_order="0">
     </box>
-    <box frame="228" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="0.00" xbr="112.00" ybr="47.00" z_order="0">
+    <box frame="228" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="0.00" xbr="112.00" ybr="44.60" z_order="0">
     </box>
     <box frame="229" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="0.00" xbr="113.00" ybr="45.00" z_order="0">
     </box>
@@ -1959,7 +1960,7 @@
     </box>
     <box frame="43" keyframe="1" outside="0" occluded="0" xtl="7.00" ytl="273.00" xbr="51.00" ybr="320.00" z_order="0">
     </box>
-    <box frame="44" keyframe="1" outside="0" occluded="0" xtl="7.00" ytl="272.00" xbr="50.00" ybr="322.00" z_order="0">
+    <box frame="44" keyframe="1" outside="0" occluded="0" xtl="7.00" ytl="272.60" xbr="50.00" ybr="320.20" z_order="0">
     </box>
     <box frame="45" keyframe="1" outside="0" occluded="0" xtl="7.00" ytl="271.00" xbr="51.00" ybr="320.00" z_order="0">
     </box>
@@ -2005,7 +2006,7 @@
     </box>
     <box frame="66" keyframe="1" outside="0" occluded="0" xtl="0.00" ytl="251.00" xbr="46.00" ybr="298.00" z_order="0">
     </box>
-    <box frame="67" keyframe="1" outside="0" occluded="0" xtl="2.00" ytl="251.00" xbr="47.00" ybr="305.00" z_order="0">
+    <box frame="67" keyframe="1" outside="0" occluded="0" xtl="2.00" ytl="251.00" xbr="47.00" ybr="297.20" z_order="0">
     </box>
     <box frame="68" keyframe="1" outside="0" occluded="0" xtl="2.00" ytl="250.00" xbr="47.00" ybr="296.00" z_order="0">
     </box>
@@ -2049,9 +2050,9 @@
     </box>
     <box frame="88" keyframe="1" outside="0" occluded="0" xtl="11.00" ytl="230.00" xbr="58.00" ybr="277.00" z_order="0">
     </box>
-    <box frame="89" keyframe="1" outside="0" occluded="0" xtl="11.00" ytl="229.00" xbr="58.00" ybr="282.00" z_order="0">
+    <box frame="89" keyframe="1" outside="0" occluded="0" xtl="11.00" ytl="229.00" xbr="58.00" ybr="277.20" z_order="0">
     </box>
-    <box frame="90" keyframe="1" outside="0" occluded="0" xtl="12.00" ytl="228.00" xbr="59.00" ybr="283.00" z_order="0">
+    <box frame="90" keyframe="1" outside="0" occluded="0" xtl="12.00" ytl="228.00" xbr="59.00" ybr="277.60" z_order="0">
     </box>
     <box frame="91" keyframe="1" outside="0" occluded="0" xtl="12.00" ytl="227.00" xbr="61.00" ybr="277.00" z_order="0">
     </box>
@@ -2474,7 +2475,7 @@
     <box frame="300" keyframe="1" outside="0" occluded="0" xtl="28.00" ytl="208.00" xbr="74.00" ybr="254.00" z_order="0">
     </box>
   </track>
-  <track id="4" label="Basketball" source="manual">
+  <track id="4" label="Basketball" source="file">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="24.00" ytl="299.00" xbr="48.00" ybr="322.00" z_order="0">
     </box>
     <box frame="1" keyframe="1" outside="0" occluded="0" xtl="20.00" ytl="301.00" xbr="45.00" ybr="325.00" z_order="0">
@@ -3525,7 +3526,7 @@
     </box>
     <box frame="222" keyframe="1" outside="0" occluded="0" xtl="323.00" ytl="17.00" xbr="370.00" ybr="65.00" z_order="0">
     </box>
-    <box frame="223" keyframe="1" outside="0" occluded="0" xtl="322.40" ytl="14.61" xbr="370.40" ybr="64.61" z_order="0">
+    <box frame="223" keyframe="1" outside="0" occluded="0" xtl="322.40" ytl="13.41" xbr="370.40" ybr="63.41" z_order="0">
     </box>
     <box frame="224" keyframe="1" outside="0" occluded="0" xtl="323.00" ytl="12.82" xbr="371.00" ybr="62.82" z_order="0">
     </box>
@@ -3682,7 +3683,7 @@
     <box frame="300" keyframe="1" outside="0" occluded="0" xtl="354.00" ytl="11.00" xbr="402.00" ybr="59.00" z_order="0">
     </box>
   </track>
-  <track id="6" label="Player_A" source="manual">
+  <track id="6" label="Player_A" source="file">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="76.00" ytl="439.00" xbr="122.00" ybr="484.00" z_order="0">
     </box>
     <box frame="1" keyframe="1" outside="0" occluded="0" xtl="75.00" ytl="439.00" xbr="121.00" ybr="483.00" z_order="0">
@@ -4286,7 +4287,7 @@
     <box frame="300" keyframe="1" outside="0" occluded="0" xtl="196.00" ytl="276.00" xbr="244.00" ybr="323.00" z_order="0">
     </box>
   </track>
-  <track id="7" label="Player_B" source="manual">
+  <track id="7" label="Player_B" source="file">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="199.00" ytl="170.00" xbr="244.00" ybr="214.00" z_order="0">
     </box>
     <box frame="1" keyframe="1" outside="0" occluded="0" xtl="201.00" ytl="170.00" xbr="244.00" ybr="214.00" z_order="0">
@@ -4890,7 +4891,7 @@
     <box frame="300" keyframe="1" outside="0" occluded="0" xtl="149.00" ytl="57.00" xbr="195.00" ybr="103.00" z_order="0">
     </box>
   </track>
-  <track id="8" label="Player_A" source="manual">
+  <track id="8" label="Player_A" source="file">
     <box frame="0" keyframe="1" outside="0" occluded="0" xtl="240.00" ytl="421.00" xbr="286.00" ybr="466.00" z_order="0">
     </box>
     <box frame="1" keyframe="1" outside="0" occluded="0" xtl="240.00" ytl="420.00" xbr="286.00" ybr="466.00" z_order="0">
@@ -5741,7 +5742,7 @@
     </box>
     <box frame="122" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="84.00" xbr="111.00" ybr="129.00" z_order="0">
     </box>
-    <box frame="123" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="84.00" xbr="111.00" ybr="132.00" z_order="0">
+    <box frame="123" keyframe="1" outside="0" occluded="0" xtl="65.00" ytl="84.00" xbr="111.00" ybr="129.60" z_order="0">
     </box>
     <box frame="124" keyframe="1" outside="0" occluded="0" xtl="66.00" ytl="85.00" xbr="113.00" ybr="131.00" z_order="0">
     </box>
@@ -6331,9 +6332,9 @@
     </box>
     <box frame="115" keyframe="1" outside="0" occluded="0" xtl="88.00" ytl="141.00" xbr="133.00" ybr="186.00" z_order="0">
     </box>
-    <box frame="116" keyframe="1" outside="0" occluded="0" xtl="81.00" ytl="141.00" xbr="132.00" ybr="186.00" z_order="0">
+    <box frame="116" keyframe="1" outside="0" occluded="0" xtl="84.60" ytl="141.00" xbr="132.00" ybr="186.00" z_order="0">
     </box>
-    <box frame="117" keyframe="1" outside="0" occluded="0" xtl="80.00" ytl="141.00" xbr="132.00" ybr="186.00" z_order="0">
+    <box frame="117" keyframe="1" outside="0" occluded="0" xtl="83.00" ytl="140.40" xbr="132.00" ybr="186.00" z_order="0">
     </box>
     <box frame="118" keyframe="1" outside="0" occluded="0" xtl="82.00" ytl="140.00" xbr="130.00" ybr="185.00" z_order="0">
     </box>
@@ -6579,7 +6580,7 @@
     </box>
     <box frame="239" keyframe="1" outside="0" occluded="0" xtl="26.00" ytl="63.00" xbr="72.00" ybr="109.00" z_order="0">
     </box>
-    <box frame="240" keyframe="1" outside="0" occluded="0" xtl="27.00" ytl="62.00" xbr="76.00" ybr="109.00" z_order="0">
+    <box frame="240" keyframe="1" outside="0" occluded="0" xtl="27.00" ytl="62.00" xbr="75.40" ybr="109.00" z_order="0">
     </box>
     <box frame="241" keyframe="1" outside="0" occluded="0" xtl="27.00" ytl="59.00" xbr="75.00" ybr="108.00" z_order="0">
     </box>
@@ -6631,7 +6632,7 @@
     </box>
     <box frame="265" keyframe="1" outside="0" occluded="0" xtl="36.00" ytl="34.00" xbr="83.00" ybr="82.00" z_order="0">
     </box>
-    <box frame="266" keyframe="1" outside="0" occluded="0" xtl="36.00" ytl="33.00" xbr="83.00" ybr="83.00" z_order="0">
+    <box frame="266" keyframe="1" outside="0" occluded="0" xtl="36.00" ytl="33.00" xbr="83.00" ybr="82.40" z_order="0">
     </box>
     <box frame="267" keyframe="1" outside="0" occluded="0" xtl="37.00" ytl="33.00" xbr="82.00" ybr="80.00" z_order="0">
     </box>

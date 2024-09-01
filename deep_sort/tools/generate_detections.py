@@ -70,23 +70,27 @@ def extract_image_patch(image, bbox, patch_shape):
 
 class ImageEncoder(object):
     def __init__(self, checkpoint_filename, input_name="images", output_name="features"):
-        self.session = tf.compat.v1.Session()
-        checkpoint_filename = stabalize_path(checkpoint_filename)
-        with tf.compat.v1.gfile.GFile(checkpoint_filename, "rb") as file_handle:
-            graph_def = tf.compat.v1.GraphDef()
-            graph_def.ParseFromString(file_handle.read())
-        tf.compat.v1.import_graph_def(graph_def, name="net")
+        try:
+            self.session = tf.compat.v1.Session()
+            with tf.compat.v1.gfile.GFile(checkpoint_filename, "rb") as file_handle:
+                graph_def = tf.compat.v1.GraphDef()
+                graph_def.ParseFromString(file_handle.read())
+            tf.compat.v1.import_graph_def(graph_def, name="net")
 
-        #self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % input_name)
-        #self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % output_name)
+            #self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % input_name)
+            #self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name("net/%s:0" % output_name)
 
-        self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name(input_name + ":0")
-        self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name(output_name + ":0")
+            self.input_var = tf.compat.v1.get_default_graph().get_tensor_by_name(input_name + ":0")
+            self.output_var = tf.compat.v1.get_default_graph().get_tensor_by_name(output_name + ":0")
 
-        assert len(self.output_var.get_shape()) == 2
-        assert len(self.input_var.get_shape()) == 4
-        self.feature_dim = self.output_var.get_shape().as_list()[-1]
-        self.image_shape = self.input_var.get_shape().as_list()[1:]
+            assert len(self.output_var.get_shape()) == 2
+            assert len(self.input_var.get_shape()) == 4
+            self.feature_dim = self.output_var.get_shape().as_list()[-1]
+            self.image_shape = self.input_var.get_shape().as_list()[1:]
+        
+        except Exception as e:
+            print(f"Error initializing ImageEncoder: {str(e)}")
+            raise
 
     def __call__(self, data_x, batch_size=32):
         out = np.zeros((len(data_x), self.feature_dim), np.float32)
@@ -98,23 +102,26 @@ class ImageEncoder(object):
 
 def create_box_encoder(model_filename, input_name="images",
                        output_name="features", batch_size=32):
-    image_encoder = ImageEncoder(model_filename, input_name, output_name)
-    image_shape = image_encoder.image_shape
+    try:
+        image_encoder = ImageEncoder(model_filename, input_name, output_name)
+        image_shape = image_encoder.image_shape
 
-    def encoder(image, boxes):
-        image_patches = []
-        for box in boxes:
-            patch = extract_image_patch(image, box, image_shape[:2])
-            if patch is None:
-                print("WARNING: Failed to extract image patch: %s." % str(box))
-                patch = np.random.uniform(
-                    0., 255., image_shape).astype(np.uint8)
-            image_patches.append(patch)
-        image_patches = np.asarray(image_patches)
-        return image_encoder(image_patches, batch_size)
-
-    return encoder
-
+        def encoder(image, boxes):
+            image_patches = []
+            for box in boxes:
+                patch = extract_image_patch(image, box, image_shape[:2])
+                if patch is None:
+                    print("WARNING: Failed to extract image patch: %s." % str(box))
+                    patch = np.random.uniform( 0., 255., image_shape).astype(np.uint8)
+                image_patches.append(patch)
+            image_patches = np.asarray(image_patches)
+            return image_encoder(image_patches, batch_size)
+        
+        return encoder
+    
+    except Exception as e:
+        print(f"Error creating box encoder: {str(e)}")
+        raise
 
 def generate_detections(encoder, mot_dir, output_dir, detection_dir=None):
     """Generate detections with features.
@@ -212,18 +219,6 @@ def parse_args():
         help= detections_output, 
         default="detections")
     return parser.parse_args()
-
-def stabalize_path(path_string):
-    # Split the path into two parts
-    index = path_string.index("/deep_sort/")
-    string_1 = path_string[:index]
-    string_2 = path_string[index:]
-
-    # Insert the mid_string
-    mid_string = "/Basketball-PlayAnalysis"
-    new_path = string_1 + mid_string + string_2
-
-    return new_path
 
 def global_parameters():
     global encoder_model_filename, training_data_directory, detections_output
