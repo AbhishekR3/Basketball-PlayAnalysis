@@ -916,7 +916,8 @@ except Exception as e:
 try:
     try:
         log_file_path = os.path.join(log_dir, 'feature_engineering.log')
-    except:
+    except Exception as e:
+        print(f"Error in setting up log file path: {e}")
         log_file_path = 'feature_engineering.log'
 
     # If the log file exists, delete it

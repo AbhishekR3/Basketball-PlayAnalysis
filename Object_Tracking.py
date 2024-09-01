@@ -263,17 +263,6 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     [int] n_missed - number of objects that are tracked (debugging purposes)
     [dataframe] detected_objects - pandas dataframe to store information on detected objects
     """
-    
-    '''
-    #Relevant parameters outside of object_tracking() which influences the accuracy of object tracking 
-    tracker.py - max_iou_distance=0.5, max_age=2, n_init=3
-    B_O_T.py - scores>0.85, max_cosine_distance=0.3, nn_metric=cosine
-    --> model=YOLOv10m based custom model
-
-    Check these if need more fine-tuning
-    Kalman filter parameters
-    max_dist
-    '''
 
     try:
         # Process the current frame with the YOLO model without gradient computation

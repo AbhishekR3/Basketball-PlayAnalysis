@@ -80,9 +80,9 @@ def create_sqlalchemy_engine():
 
     try:
         # Use environment variables for security
-        db_username = '********'
-        db_password = '********'
-        db_host = '********'
+        db_username = ''
+        db_password = ''
+        db_host = ''
         db_port = 5432
         db_name = 'postgres'
 
@@ -406,25 +406,8 @@ def calculate_basketball_distances(engine):
             if basketball_data is not None:
                 basketball_id, basketball_geom = basketball_data
                 print(basketball_id, basketball_geom)
-                # Calculate distances to all other objects in the same frame
 
-                '''
-                cur.execute("""
-                    INSERT INTO basketball_distances (frame_id, basketball_id, object_id, distance, rank)
-                    SELECT 
-                        %s,
-                        %s,
-                        o.id,
-                        ST_Distance(ST_GeomFromEWKB(%s), o.point_geom),
-                        ROW_NUMBER() OVER (ORDER BY ST_Distance(ST_GeomFromEWKB(%s), o.point_geom))
-                    FROM objects_table o
-                    WHERE o.frame = %s AND o.id != %s
-                    ORDER BY ST_Distance(ST_GeomFromEWKB(%s), o.point_geom) ASC
-                    LIMIT 3;
-                """, (frame_id, basketball_id, basketball_geom, basketball_geom, frame_id, basketball_id, basketball_geom))
-                '''
-            #conn.commit()
-        
+                # Calculate/Insert distances to 3 closest players to the basketball in the same frame
 
     except SQLAlchemyError as e:
         logging.error(f"SQLAlchemy error occurred while committing the query: {str(e)}")
@@ -451,7 +434,7 @@ def main():
         Session = sessionmaker(bind=engine)
         session = Session()
 
-        '''
+        #'''
         # Add data to spatial data structure
         try:
             print('Starting data input')
@@ -467,13 +450,13 @@ def main():
         except Exception as e:
             session.rollback()
             logger.error(f"Error inserting data: {e}")
-        '''
+        #'''
 
         # Calculate basketball distances
-        #calculate_basketball_distances(engine)
+        calculate_basketball_distances(engine)
 
-        #run_select_query(engine)
-        #run_commit_query(engine)
+        run_select_query(engine)
+        run_commit_query(engine)
 
         session.close()
 
