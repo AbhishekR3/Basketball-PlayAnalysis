@@ -38,15 +38,14 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install build dependencies
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir pip==21.0.1 setuptools==57.0.0 wheel==0.36.2
 
 
 # Set HDF5 directory for h5py
 ENV HDF5_DIR=/usr/lib/aarch64-linux-gnu/hdf5/serial
 
 # Install h5py separately with specific compile flags
-RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial" pip install h5py --no-binary=h5py
-
+RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial" pip install h5py==3.11.0 --no-binary=h5py
 
 # Cache/Install required packages
 COPY requirements.txt .
