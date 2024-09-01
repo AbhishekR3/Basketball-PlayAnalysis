@@ -19,7 +19,6 @@ import ast
 import pandas as pd
 import numpy as np
 import os
-import logging
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -736,6 +735,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
 
         # Fit PCA on the scaled data
         X_pca = pca.fit_transform(X_scaled)
+        print(X_pca)
 
         # Get feature importance
         loadings = pd.DataFrame(
@@ -872,9 +872,9 @@ def main():
         # Import detected objects dataset
         try:
             raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
-        except:
+        except Exception as e:
             raw_dataset_file_path = 'assets/detected_objects.csv'
-            logger.debug("messed up")
+            logger.debug(f"Error in reading raw dataset: {e}")
 
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
 

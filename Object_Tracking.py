@@ -17,7 +17,6 @@ import cv2
 import numpy as np
 import os
 import time
-import logging
 import torch
 import torchvision.transforms as transforms
 from ultralytics import YOLO
@@ -496,18 +495,6 @@ try:
             frame_colored = frame_colored
         if not ret:
             break
-
-        '''
-        if n_frames>=5:
-            print('DEBUG')
-        
-
-        # Perform background subtraction (Remove basketball court)
-        #inpainted_frame = cv2.inpaint(frame_colored, mask, 1, cv2.INPAINT_TELEA)
-
-        # Preprocess Frame for optimal tracking
-        inpainted_frame = preprocess_frame(frame_colored, greyed = True, blur = 'median')
-        '''
         
         # Perform DeepSort (Object Tracking)
         tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)

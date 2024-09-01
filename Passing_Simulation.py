@@ -15,7 +15,6 @@ import numpy as np
 import os
 import cv2
 import secrets
-import logging
 from utils import configure_logger
 
 #%%
@@ -755,7 +754,8 @@ SCREEN_HEIGHT = SCREEN_DIMENSIONS[1]
 # Load and transform Basketball court diagram
 try:
     image_location = os.path.join(assets_dir, 'Basketball_Court_Diagram.jpg')
-except:
+except Exception as e:
+    logger.debug(f"Loading file through local. {e}")
     script_directory = os.getcwd()
     image_location = os.path.join(script_directory, 'assets/Basketball_Court_Diagram.jpg')
 

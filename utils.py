@@ -8,8 +8,6 @@ This file contains utility functions that are used in other scripts
 #%%
 
 # Importing necessary libraries
-
-import numpy as np
 import pandas as pd
 import os
 import logging
