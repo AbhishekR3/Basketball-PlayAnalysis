@@ -1,4 +1,5 @@
-2024-08-31 16:30:17,779 - INFO -                           Feature  Importance
+2024-08-31 19:32:40,016 - DEBUG - messed up
+2024-08-31 19:32:50,293 - DEBUG -                           Feature  Importance
 0     cov_determinant_rolling_avg    2.462751
 1               pos_x_rolling_avg    2.423543
 2             accel_x_rolling_avg    2.224536
@@ -20,14 +21,14 @@
 18                prev_vel_height    1.496171
 19                     prev_vel_y    1.495435
 20               Temporal_TrackID    1.265551
-21           DetectionConsistency    1.181663
-22             OcclusionFrequency    1.181663
+21             OcclusionFrequency    1.181663
+22           DetectionConsistency    1.181663
 23                ConfidenceScore    1.152790
 24                          State    1.124404
 25                     Unnamed: 0    1.097584
 26                          Frame    1.082700
-27               time_since_start    1.082700
-28          Normalized_Time_Frame    1.082700
+27          Normalized_Time_Frame    1.082700
+28               time_since_start    1.082700
 29                     delta_time    1.078683
 30              RecentReliability    1.061704
 31  cov_pos_variance_acceleration    1.054279
@@ -35,13 +36,13 @@
 33  cov_vel_variance_acceleration    1.034575
 34                           Hits    1.034373
 35                            Age    1.029939
-36        cov_pos_variance_height    0.873472
-37             cov_pos_variance_x    0.873472
+36             cov_pos_variance_x    0.873472
+37        cov_pos_variance_height    0.873472
 38             cov_pos_variance_y    0.873472
 39                      cov_trace    0.836972
-40        cov_vel_variance_height    0.815912
-41             cov_vel_variance_y    0.815912
+40             cov_vel_variance_y    0.815912
+41        cov_vel_variance_height    0.815912
 42             cov_vel_variance_x    0.815912
-2024-08-31 16:30:20,666 - INFO - Explained Variance Ratio: 0.908345609656313
-2024-08-31 16:30:20,824 - INFO - DataFrame successfully exported to assets/processed_features.csv
-2024-08-31 16:30:20,824 - INFO - Feature Engineering succeeded
+2024-08-31 19:32:53,120 - DEBUG - Explained Variance Ratio: 0.9083456096563133
+2024-08-31 19:32:53,279 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-08-31 19:32:53,279 - DEBUG - Feature Engineering succeeded

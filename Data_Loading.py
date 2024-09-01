@@ -15,16 +15,10 @@ import numpy as np
 import pandas as pd
 import logging
 import os
-import threading
-import psycopg2
-from psycopg2 import sql
-import time
-import statistics
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Float, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
-from geoalchemy2 import Geometry
 
 #%% 
 
@@ -108,7 +102,8 @@ def create_sqlalchemy_engine():
 try:
     try:
         log_file_path = os.path.join(log_dir, 'data_loading.log')
-    except:
+    except Exception as e:
+        print(f"Error in creating logging: {e}")
         log_file_path = 'data_loading.log'
 
     # If the log file exists, delete it

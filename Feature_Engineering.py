@@ -3,7 +3,7 @@ Feature Engineering
 This file performs various extractions/transformations to the dataset for a better model
 
 Key Concepts Implemented:
-- Mean, SD, Max, Min, Skewness, Kurtosis 
+- Mean, SD, Max, Min
 - Categorical / One Hot Encoding 
 - Normalization/Log Transformation
 - Rolling averages
@@ -15,10 +15,9 @@ Key Concepts Implemented:
 #%%
 
 # Import libraries
+import ast
 import pandas as pd
 import numpy as np
-from scipy.stats import skew
-from scipy.stats import kurtosis
 import os
 import logging
 from sklearn.preprocessing import MinMaxScaler
@@ -45,7 +44,7 @@ def export_dataframe_to_csv(df, file_path):
         # Export the DataFrame to CSV
         df.to_csv(file_path)
         print(f"DataFrame successfully exported to {file_path}")
-        logger.info (f"DataFrame successfully exported to {file_path}")
+        logger.debug (f"DataFrame successfully exported to {file_path}")
     except Exception as e:
         logger.error (f"Error occured when exporting data file after extracting and transforming: {e}")
         raise
@@ -328,18 +327,9 @@ def process_covariance(df):
     """
 
     try:
-        def extract_covariance_stats(cov_str):
-            # Convert the string representation of the covariance matrix to an actual array
-            cov_matrix = convert_string_array(cov_str)
-
+        # Convert the covariance string to an array
         cov_stats = df['Co-Variance'].apply(convert_string_array)
         df = df.drop(columns='Co-Variance')
-
-        flattened_arrays = [arr.flatten() if isinstance(arr, np.ndarray) else np.array(arr).flatten() 
-            for arr in cov_stats]
-        
-        # Stack the flattened arrays vertically to create a 2D matrix
-        matrix = np.vstack(flattened_arrays)
 
         # Add Co-Variance column
         df = pd.concat([df, cov_stats], axis=1)
@@ -635,7 +625,7 @@ def convert_string_to_array(string_data):
         formatted_string = formatted_string.replace('], dtype=float32)', ']')
 
         # Convert the string to a numpy array
-        features_array = np.array(eval(formatted_string))
+        features_array = np.array(ast.literal_eval(formatted_string))
 
         return features_array
 
@@ -694,7 +684,7 @@ def optimize_dataset(dataset):
         dataset = normalize_numerical_columns(dataset)
 
         # Perform PCA
-        feature_importance, feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
+        feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
         # Remove unecessary columns (Including information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
@@ -750,8 +740,7 @@ def update_track_class(dataframe):
 
         # Use include_groups=False to exclude grouping columns from the operation
         most_common_classes = updated_dataframe.groupby('TrackID', group_keys=False).apply(
-            get_most_common_class, include_groups=False
-        )
+            get_most_common_class)
 
         # Update the class columns for each TrackID
         for track_id, common_class in most_common_classes.iterrows():
@@ -778,7 +767,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
     [float] variance_threshold - Minimum cumulative varianace ratio
 
     Returns:
-    [pd.DataFrame] feature_importance - Dataframe showing the importance of original features in each principal component
+    [pandas DataFrame] loadings - Get importance of each feature
     [PCA] pca_model - The fitted PCA model
     """
     try:
@@ -811,7 +800,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         })
         print('Feature Importance')
         print(feature_importance)
-        logger.info(feature_importance)
+        logger.debug(feature_importance)
         print("")
 
         # Plot explained variance
@@ -827,10 +816,10 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
 
         # Calculate explained variance ratio summation for n of the best components
         explained_variance_ratio = np.sum(pca.explained_variance_ratio_[:n_components])
-        logger.info(f"Explained Variance Ratio: {explained_variance_ratio}")
+        logger.debug(f"Explained Variance Ratio: {explained_variance_ratio}")
         print("Explained Variance Ratio", explained_variance_ratio)
 
-        return feature_importance, loadings, pca
+        return loadings, pca
 
     except Exception as e:
         logger.error("Error in performing PCA: %s", e)
@@ -905,7 +894,7 @@ def normalize_numerical_columns(df):
 
 #%%
 # Setting up the environment for Docker containers
-'''
+#'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -921,9 +910,10 @@ try:
     print('Log Directory:', log_dir)
     print('Tracking Data Directory:', tracking_dir)
 
-except:
-    print(f"Error in creating environment for Docker containers")
-'''
+except Exception as e:
+    print(f"An error occurred during setting up Docker container environment: {e}")
+    raise
+#'''
 #%% Configuring logging
 
 try:
@@ -960,11 +950,13 @@ except Exception as e:
 
 def main():
     try:
+        
         # Import detected objects dataset
         try:
             raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
         except:
             raw_dataset_file_path = 'assets/detected_objects.csv'
+            logger.debug("messed up")
 
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path)
 
@@ -986,7 +978,7 @@ def main():
         export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path)
         
         print("Feature Engineering succeeded")
-        logger.info("Feature Engineering succeeded")
+        logger.debug("Feature Engineering succeeded")
 
     except Exception as e:
         logger.error (f"Error occured in main function: {e}")

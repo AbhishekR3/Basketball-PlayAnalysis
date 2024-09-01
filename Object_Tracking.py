@@ -315,7 +315,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         if detections is None:
             print('No circle features were detected in the frame')
             frame_time = np.float32(n_frames/30)
-            logger.debug(f"No circle features were detected in the frame at:", frame_time)
+            logger.debug(f"No circle features were detected in the frame at: {frame_time}")
 
         # Update tracker
         tracker.predict()
@@ -331,8 +331,9 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
                 # Calculate the object's detection confidence score
                 confidence_score = scores[ith_value]
 
-            except:
+            except Exception as e:
                 # Calculate the object's detection confidence score
+                logger.debug('Error in calculating confidence score:', e)
                 confidence_score = 0.0
 
             # Convert track.features to numpy array

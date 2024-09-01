@@ -1,9 +1,12 @@
-call closest_basketball(3)
-
 --/*
 CREATE OR REPLACE PROCEDURE closest_basketball(top_n INTEGER DEFAULT 3)
 LANGUAGE plpgsql
+SECURITY DEFINER
 AS $$
+
+DECLARE
+    frame_count INTEGER;
+    
 BEGIN
     -- Create a table to store the results
     DROP TABLE IF EXISTS public.closest_players;
@@ -44,9 +47,13 @@ BEGIN
     ORDER BY 
         frame, rank;
 
+    -- Get the count of distinct frames
+    SELECT COUNT(DISTINCT frame) INTO frame_count FROM public.closest_players;
+
     -- Print the number of records processed
-    RAISE NOTICE 'Processed % frames, stored results in public.closest_players table', 
-                 (SELECT COUNT(DISTINCT frame) FROM public.closest_players);
+    RAISE NOTICE 'Processed % frames, stored results in public.closest_players table', frame_count;
 END;
 $$;
 --*/
+
+call closest_basketball(3)

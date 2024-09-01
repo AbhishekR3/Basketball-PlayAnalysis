@@ -20,7 +20,8 @@ COPY Feature_Engineering.py .
 
 
 # Install system dependencies and build tools
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     build-essential \
     libhdf5-dev \
     libhdf5-serial-dev \
@@ -38,13 +39,16 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip and install build dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
+
 # Set HDF5 directory for h5py
 ENV HDF5_DIR=/usr/lib/aarch64-linux-gnu/hdf5/serial
 
 # Install h5py separately with specific compile flags
 RUN CFLAGS="-I/usr/include/hdf5/serial -L/usr/lib/aarch64-linux-gnu/hdf5/serial" pip install h5py --no-binary=h5py
 
-# Install required packages
+
+# Cache/Install required packages
+COPY requirements.txt .
 RUN pip install -v -r requirements.txt
 
 # Create Environment Variables
