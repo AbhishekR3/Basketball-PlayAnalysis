@@ -51,7 +51,7 @@ Data Flow Diagram
 
 I have a project outline containing detailed information on the relevant concepts/algorithms planned for this project
 
-[Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/Basketball%20Play%20Classification%20Project%20Outline)
+[Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/PlayBook%20AI%3A%20Basketball%20Intelligence%20Outline)
 
 ## Installation
 
