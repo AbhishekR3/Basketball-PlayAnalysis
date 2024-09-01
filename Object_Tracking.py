@@ -333,7 +333,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
 
             except Exception as e:
                 # Calculate the object's detection confidence score
-                logger.debug('Error in calculating confidence score:', e)
+                logger.debug("Error in calculating confidence score: %s", e)
                 confidence_score = 0.0
 
             # Convert track.features to numpy array
@@ -488,7 +488,8 @@ fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Using avc1
 FPS = cap.get(cv2.CAP_PROP_FPS)
 try:
     out = cv2.VideoWriter(output_path, fourcc, FPS, (width, height))
-except:
+except Exception as e:
+    print(f"Error in establishing width, height in video writer: {e}")
     out = cv2.VideoWriter(output_path, fourcc, FPS, (470, 500))
 
 # Transformation pipeline for each video frame for compatability

@@ -684,7 +684,7 @@ def optimize_dataset(dataset):
         dataset = normalize_numerical_columns(dataset)
 
         # Perform PCA
-        feature_covariation, pca_model = perform_pca(dataset, n_components=16, variance_threshold=0.85)
+        perform_pca(dataset, n_components=16, variance_threshold=0.85)
 
         # Remove unecessary columns (Including information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
@@ -767,8 +767,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
     [float] variance_threshold - Minimum cumulative varianace ratio
 
     Returns:
-    [pandas DataFrame] loadings - Get importance of each feature
-    [PCA] pca_model - The fitted PCA model
+    None
     """
     try:
         # Select numeric columns
@@ -818,8 +817,6 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         explained_variance_ratio = np.sum(pca.explained_variance_ratio_[:n_components])
         logger.debug(f"Explained Variance Ratio: {explained_variance_ratio}")
         print("Explained Variance Ratio", explained_variance_ratio)
-
-        return loadings, pca
 
     except Exception as e:
         logger.error("Error in performing PCA: %s", e)
