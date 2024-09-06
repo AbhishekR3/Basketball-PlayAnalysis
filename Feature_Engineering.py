@@ -23,6 +23,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import euclidean
 from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
 
 #%%
@@ -843,8 +844,68 @@ def normalize_numerical_columns(df):
         raise
 
 #%%
+
+def calculate_distances_from_basketball(df):
+    """
+    Objective:
+    Calculate the distance between each object and the basketball for each frame,
+    and rank the objects based on their proximity to the basketball. Include basketball data.
+
+    Parameters:
+    [pandas.DataFrame] df - DataFrame containing tracking data
+
+    Returns:
+    [pandas.DataFrame] result_df - DataFrame with new columns 'distance' and 'rank', including basketball data
+    """
+    try:
+        # Get the position of the basketball for each frame
+        basketball_positions = df[df['is_Basketball'] == True][['Frame', 'pos_x_rolling_avg', 'pos_y_rolling_avg']]
+
+        # Merge basketball positions with all objects (including basketball)
+        merged_df = df.merge(
+            basketball_positions,
+            on='Frame',
+            suffixes=('', '_basketball')
+        )
+
+        # Vectorized distance calculation
+        merged_df['distance'] = np.where(
+            merged_df['is_Basketball'],
+            0,  # Distance is 0 for basketball itself
+            np.sqrt(
+                (merged_df['pos_x_rolling_avg'] - merged_df['pos_x_rolling_avg_basketball'])**2 +
+                (merged_df['pos_y_rolling_avg'] - merged_df['pos_y_rolling_avg_basketball'])**2
+            )
+        )
+
+        # Rank the distances within each Frame
+        merged_df['rank'] = merged_df.groupby('Frame')['distance'].rank(method='min')
+
+        # Ensure basketball always has rank 0
+        merged_df.loc[merged_df['is_Basketball'], 'rank'] = 0
+
+        # Sort the results by frame and rank
+        result_df = merged_df.sort_values(['Frame', 'rank'])
+
+        # Round the distance to 8 decimal places
+        result_df['distance'] = result_df['distance'].round(8)
+
+        # Remove the basketball position columns
+        result_df = result_df.drop(['pos_x_rolling_avg_basketball', 'pos_y_rolling_avg_basketball'], axis=1)
+
+        # Rest Index
+        result_df = result_df.reset_index(drop=True)
+
+        return result_df
+
+    except Exception as e:
+        print(f"An error occurred in calculate_distances_from_basketball: {e}")
+        raise
+
+#%%
 # Setting up the environment for Docker containers
-# '''
+
+'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -863,7 +924,7 @@ try:
 except Exception as e:
     print(f"An error occurred during setting up Docker container environment: {e}")
     raise
-#'''
+'''
 
 #%% Main Function for Feature Engineering of the assets 
 
@@ -886,6 +947,9 @@ def main():
 
         # Optimize / Clean up the dataset with all the extracted features
         cleaned_feature_dataset = optimize_dataset(extracted_feature_dataset)
+
+        # Rank the distance between objects and the basketball
+        ranked_distance_dataset = calculate_distances_from_basketball(cleaned_feature_dataset)
  
         # Export the finalized dataset into a csv
         try:
@@ -893,7 +957,7 @@ def main():
         except:
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
-        export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
+        export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")
         logger.debug("Feature Engineering succeeded")

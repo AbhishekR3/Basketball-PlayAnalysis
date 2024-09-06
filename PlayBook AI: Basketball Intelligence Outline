@@ -2,25 +2,25 @@ This is my idea outline for this project.
 Some of these are things I read online and thought might be applicable.
 I also use this as a document to note down things I need to research and general planning.
 
-0.3.0
-- AWS
---> Integrated software into AWS Cloud Services with RDS and ECS
+0.4.0
+- Neural Networks
+--> LSTM + I3D + C3D
+--> MultiClass
 
-- Spatial Databases
---> Utilized spatial databases on Postgres to optimize calculating distances between players and basketball
---> Configured with spatial index, Quadtree, to enhance spatial queries
---> Designed with <90ms response time for proximity queries
---> Implemented while ensuring ACID properties compliance 
+- Ensemble Methods
+--> Voting + Stacking
 
-- Feature Engineering
---> Extrapolated and optimized features from raw dataset including temporal feature encoding
---> Performed PCA to reduce number of features by 63% while maintaining 91% explained variance ratio
+- Model Compression
+--> Post-Training Static Quantization
+--> Structured Model Pruning
 
-- Docker
---> Integrated into Docker to help set up for scalability and multi-core processing
+- CI Testing
+
 
 - General Updates
---> Created utils.py to reduce duplications
+--> Improved object detection model
+MOTA,  MOTP, IDF1 values
+
 
 ######################### Project Outline #########################
 Create simulations of plays using Pygame
