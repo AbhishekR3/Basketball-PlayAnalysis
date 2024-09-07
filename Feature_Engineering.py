@@ -879,7 +879,7 @@ def calculate_distances_from_basketball(df):
         )
 
         # Rank the distances within each Frame
-        merged_df['rank'] = merged_df.groupby('Frame')['distance'].rank(method='min')
+        merged_df['rank'] = merged_df.groupby('Frame')['distance'].rank(method='min').astype(int)
 
         # Ensure basketball always has rank 0
         merged_df.loc[merged_df['is_Basketball'], 'rank'] = 0
@@ -957,7 +957,10 @@ def main():
         except:
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
-        export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
+        try:
+            export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
+        except:
+            export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")
         logger.debug("Feature Engineering succeeded")

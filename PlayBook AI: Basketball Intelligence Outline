@@ -6,6 +6,7 @@ I also use this as a document to note down things I need to research and general
 - Neural Networks
 --> LSTM + I3D + C3D
 --> MultiClass
+--> Converted values to bfloat16 values for more efficient models
 
 - Ensemble Methods
 --> Voting + Stacking
