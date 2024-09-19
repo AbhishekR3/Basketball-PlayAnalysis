@@ -1,5 +1,5 @@
-2024-09-07 00:03:28,562 - DEBUG - Error in reading raw dataset: name 'tracking_dir' is not defined
-2024-09-07 00:03:40,673 - DEBUG -                           Feature  Importance
+2024-09-07 21:02:19,974 - DEBUG - Error in reading raw dataset: name 'tracking_dir' is not defined
+2024-09-07 21:02:30,174 - DEBUG -                           Feature  Importance
 0     cov_determinant_rolling_avg    2.462751
 1               pos_x_rolling_avg    2.423543
 2             accel_x_rolling_avg    2.224536
@@ -36,13 +36,13 @@
 33  cov_vel_variance_acceleration    1.034575
 34                           Hits    1.034373
 35                            Age    1.029939
-36             cov_pos_variance_y    0.873472
-37        cov_pos_variance_height    0.873472
+36        cov_pos_variance_height    0.873472
+37             cov_pos_variance_y    0.873472
 38             cov_pos_variance_x    0.873472
 39                      cov_trace    0.836972
-40        cov_vel_variance_height    0.815912
-41             cov_vel_variance_x    0.815912
+40             cov_vel_variance_x    0.815912
+41        cov_vel_variance_height    0.815912
 42             cov_vel_variance_y    0.815912
-2024-09-07 00:03:45,464 - DEBUG - Explained Variance Ratio: 0.9083456096563121
-2024-09-07 00:03:45,670 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
-2024-09-07 00:03:45,670 - DEBUG - Feature Engineering succeeded
+2024-09-07 21:02:38,815 - DEBUG - Explained Variance Ratio: 0.9083456096563128
+2024-09-07 21:02:39,023 - DEBUG - DataFrame successfully exported to assets/processed_features.csv
+2024-09-07 21:02:39,023 - DEBUG - Feature Engineering succeeded

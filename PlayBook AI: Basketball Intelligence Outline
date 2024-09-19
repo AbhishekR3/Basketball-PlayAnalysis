@@ -6,7 +6,7 @@ I also use this as a document to note down things I need to research and general
 - Neural Networks
 --> LSTM + I3D + C3D
 --> MultiClass
---> Converted values to bfloat16 values for more efficient models
+--> Converted values to bfloat16 values (vectors) for more efficient models
 
 - Ensemble Methods
 --> Voting + Stacking
@@ -16,7 +16,6 @@ I also use this as a document to note down things I need to research and general
 --> Structured Model Pruning
 
 - CI Testing
-
 
 - General Updates
 --> Improved object detection model
@@ -57,9 +56,8 @@ Spatial Databases
 --> Consistent
 ---- NOT NULL, Unique, Check
 ---- Spatial constraints
---> Isoluation
+--> Isolation
 ---- Locking mechanism for concurrent spatial operations
----- Spatial indexing
 --> Durability
 ---- Commited spatial transactions persisted
 
@@ -134,3 +132,25 @@ So you should reduce the dimensions
 -> Algorithms
 - PCA (For efficiency)
 - t-SNE (For Visualization)
+
+
+2. Parallel Processing
+
+Resource Allocation
+- GPU
+- Memory
+- I/O resources
+
+State Handling / Synchronization - Implement mechanisms to coordinate completion of previous task before processing to next task
+
+Error Handlings
+
+Scalability
+
+How to configure for Docker containers
+
+Ensure GPU is being used
+
+Should you use partial results to process to the next step? 
+
+

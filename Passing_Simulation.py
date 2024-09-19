@@ -812,7 +812,7 @@ except:
 out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
-simulation_capture_max_time = 15 # x seconds the simulation will run to capture recordings
+simulation_capture_max_time = 10 # x seconds the simulation will run to capture recordings
 max_frames_caputured = FPS * simulation_capture_max_time
 
 try:

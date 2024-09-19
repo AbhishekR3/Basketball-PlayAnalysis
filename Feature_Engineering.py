@@ -114,7 +114,6 @@ def process_temporal_features(df, fps=30):
     try:
         df['time_since_start'] = df['Frame'] / fps
         df['delta_time'] = df.groupby('TrackID')['time_since_start'].diff()
-        df['key_frame_s'] = (df['Frame'] % 30 == 0).astype(bool)
         return df
 
     except Exception as e:
@@ -830,7 +829,7 @@ def normalize_numerical_columns(df):
 
         #Don't normalize these columns
         non_normalized_columns = ['Frame', 'Age', 'is_Team_A', 'is_Team_B', 'is_Basketball', 'state_tentative', 'state_confirmed',
-                                  'time_since_start', 'key_frame_s', 'OcclusionFrequency', 'DetectionConsistency']
+                                  'time_since_start', 'OcclusionFrequency', 'DetectionConsistency']
         
         numerical_columns = numerical_columns.difference(non_normalized_columns)
         
