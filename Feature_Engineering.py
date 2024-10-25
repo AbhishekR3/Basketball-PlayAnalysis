@@ -636,7 +636,7 @@ def optimize_dataset(dataset):
         dataset = normalize_numerical_columns(dataset)
 
         # Perform PCA
-        perform_pca(dataset, n_components=16, variance_threshold=0.85)
+        #perform_pca(dataset, n_components=16, variance_threshold=0.85) # Uncomment to perform PCA
 
         # Remove unecessary columns (Including information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
