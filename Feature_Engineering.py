@@ -638,7 +638,7 @@ def optimize_dataset(dataset):
         # Perform PCA
         #perform_pca(dataset, n_components=16, variance_threshold=0.85) # Uncomment to perform PCA
 
-        # Remove unecessary columns (Including information from PCA analysis)
+        # Remove unecessary columns (Based on information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
                             'RecentReliability', 'Hits', 'delta_time', 'feature_min',
                             'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',

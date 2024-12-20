@@ -1,0 +1,41 @@
+#,Test Case,Description,File,Details,Steps,Status
+1,Objects within Boundaries,Players and Basketball are simulated within the dimension boundaries of the simulation.,Simulation,"Pass: 
+- Continue
+
+Fail:
+If out of bounds, find closest valid position
+- If ball + is_possessed, move ball + player
+- If ball + not is_possessed, move ball
+- If player, move player + ball",,Not Started
+2,Resource Usage Tracking,Track resource usages during processes,All,"Resources to Track:
+1. CPU (psutil)
+2. GPU (pytorch_memlab)
+3. memory (memory_profiler)
+4. energy (psutil)
+5. Disk I/O (psutil)",,Not Started
+3,FPS,Tracking simulation's frames per second ,Simulation,"When generating the simulation, check simulation's FPS
+Track average FPS over 3 seconds
+
+Adaptive Frame Rate
+https://claude.ai/chat/d490e637-2df4-4095-8a85-1c16a723086d",,Not Started
+4,Overlapping Players,Separate overlapping players ,Simulation,"If 3+ players are interersecting, separate the players depending on
+- overlapping area percentage
+- time overlapped
+
+3 players - 35% - 5 seconds
+4 players - 20% - 4 seconds
+5+ players - 5%   - 1 second",,Not Started
+5,MOT Accuracy Metrics,Accuracy of the multiobject tracking model,Object Tracking,"MOTA > 90%
+MOTP > 75%
+IDF1    > 70%",Improve object detection model,Not Started
+6,Spatial Validation,Check if detected objects positions is valid,Object Tracking,"Object position dimensions coordinates (top right top left, bottom right bottom left)
+Ensure the coordinates are not far from each other relative to the basketball/player size",,Not Started
+7,Data Load Check,Basic checks for data loading,Data Loading,"1. Record count check
+2. Data Type verification
+3. null check
+4. Check duplicates",,Not Started
+8,Missing basketball,Use old basketball data for missing basketball data,Feature Engineering,"For a given frame, if basketball is missing create a new record.
+If 1 basketball in previous frame, use same basketball data.
+If > 1 basketball in previous frame, use the basketball with a higher confidence score",,Not Started
+9,Data Balance,Analyze class distribution,Feature Engineering,"1 Basketball, 5 Team_A, 5 Team_B for each frame
+Check overal (n_frames * number of objects)",,Not Started
