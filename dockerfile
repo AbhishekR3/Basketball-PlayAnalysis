@@ -9,6 +9,7 @@ WORKDIR /app
 COPY requirements.txt .
 COPY run_sequence.sh .
 COPY utils.py .
+COPY resource_monitor.py .
 # Simulation
 COPY Passing_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
