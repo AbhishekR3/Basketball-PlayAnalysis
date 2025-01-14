@@ -1,63 +1,145 @@
-"""
-Test script for resource_monitor.py
-"""
-import time
 import numpy as np
-from memory_profiler import profile
+import torch
+import os
+import time
+from resource_monitor import monitor_resources
 
-@profile
-def memory_intensive_function():
+@monitor_resources("./test_outputs")
+def test_memory_intensive():
     """
     Objective:
-    Create a memory-intensive operation to test monitoring
+    Test memory monitoring with large array operations
     
     Returns:
-    [ndarray] large_array - Large numpy array for testing
+    [dict] metrics - Memory usage metrics
     """
     try:
-        # Create large array
-        large_array = np.zeros((1000, 1000, 100))
-        time.sleep(2)  # Simulate processing
-        return large_array
+        # Create and manipulate large arrays
+        arrays = []
+        for _ in range(5):
+            arr = np.random.rand(1000, 1000)
+            arrays.append(arr)
+            time.sleep(1)  # Allow monitor to collect metrics
+            
+        return {"arrays_created": len(arrays)}
+        
     except Exception as e:
-        print(f"Error in memory intensive function: {e}")
+        print(f"Error in memory test: {e}")
         raise
 
-@profile
-def cpu_intensive_function():
+@monitor_resources("./test_outputs")
+def test_gpu_intensive():
     """
     Objective:
-    Create a CPU-intensive operation to test monitoring
+    Test GPU monitoring with tensor operations
     
     Returns:
-    [float] result - Result of CPU intensive calculation
+    [dict] metrics - GPU usage metrics
     """
     try:
-        result = 0
-        for i in range(10):
-            result += i * i
-        time.sleep(1)  # Simulate processing
-        return result
+        if torch.backends.mps.is_available():
+            device = torch.device("mps")
+            tensors = []
+            for _ in range(5):
+                tensor = torch.randn(1000, 1000, device=device)
+                tensors.append(tensor)
+                time.sleep(1)
+                
+            return {"tensors_created": len(tensors)}
+            
     except Exception as e:
-        print(f"Error in CPU intensive function: {e}")
+        print(f"Error in GPU test: {e}")
         raise
+
+@monitor_resources("./test_outputs")
+def test_disk_intensive():
+    """
+    Objective:
+    Test disk I/O monitoring with file operations
+    
+    Returns:
+    [dict] metrics - Disk I/O metrics
+    """
+    try:
+        files_created = 0
+        for i in range(5):
+            with open(f"test_file_{i}.txt", "w") as f:
+                f.write("x" * 1000000)  # Write 1MB
+                files_created += 1
+                time.sleep(1)
+                
+        # Cleanup
+        for i in range(files_created):
+            os.remove(f"test_file_{i}.txt")
+            
+        return {"files_processed": files_created}
+        
+    except Exception as e:
+        print(f"Error in disk test: {e}")
+        raise
+
+def validate_metrics(test_name):
+    """
+    Objective:
+    Validate metrics collected during tests
+    
+    Parameters:
+    [str] test_name - Name of the test to validate
+    
+    Returns:
+    [bool] is_valid - Whether metrics are valid
+    """
+    try:
+        import pandas as pd
+        metrics_file = f"./test_outputs/{test_name}_resources.csv"
+        
+        if not os.path.exists(metrics_file):
+            print(f"No metrics file found for {test_name}")
+            return False
+            
+        df = pd.read_csv(metrics_file)
+        
+        # Basic validation
+        required_columns = [
+            'timestamp', 'cpu_percent', 'memory_percent',
+            'gpu_memory_allocated', 'disk_io_read', 'disk_io_write'
+        ]
+        
+        for col in required_columns:
+            if col not in df.columns:
+                print(f"Missing column: {col}")
+                return False
+                
+        return True
+        
+    except Exception as e:
+        print(f"Error validating metrics: {e}")
+        return False
 
 def main():
     """
     Objective:
-    Main function to run test cases
+    Run all tests and validate results
     """
     try:
-        print("Starting memory test...")
-        arr = memory_intensive_function()
-        print(f"Memory test complete. Array shape: {arr.shape}")
+        os.makedirs("./test_outputs", exist_ok=True)
         
-        print("\nStarting CPU test...")
-        result = cpu_intensive_function()
-        print(f"CPU test complete. Result: {result}")
+        print("Running memory test...")
+        test_memory_intensive()
+        assert validate_metrics("test_memory_intensive"), "Memory metrics validation failed"
+        
+        print("Running GPU test...")
+        test_gpu_intensive()
+        assert validate_metrics("test_gpu_intensive"), "GPU metrics validation failed"
+        
+        print("Running disk I/O test...")
+        test_disk_intensive()
+        assert validate_metrics("test_disk_intensive"), "Disk I/O metrics validation failed"
+        
+        print("All tests completed successfully!")
         
     except Exception as e:
-        print(f"Error in main function: {e}")
+        print(f"Test suite failed: {e}")
         raise
 
 if __name__ == "__main__":

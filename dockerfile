@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 ### Copy the relevant files to process files
-# Dockerfile
+# Relevant Setup Files
 COPY requirements.txt .
 COPY run_sequence.sh .
 COPY utils.py .

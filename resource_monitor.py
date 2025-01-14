@@ -1,195 +1,173 @@
 import psutil
 import torch
-from memory_profiler import profile
-import time
 import pandas as pd
 import os
-from functools import wraps
+import time
 from datetime import datetime
+from threading import Event, Thread
+import subprocess
+from functools import wraps
 
 class ResourceMonitor:
     """
     Objective:
-    Monitor and track system resources during script execution
-    
-    Attributes:
-    [str] output_dir - Directory to save monitoring results
-    [dict] metrics - Dictionary to store collected metrics
+    Monitor system resources including CPU, memory, GPU, and disk I/O
+    Specifically optimized for M1 Mac environments
     """
     
     def __init__(self, output_dir):
         """
         Objective:
-        Initialize the resource monitor
-        
+        Initialize the resource monitor with appropriate metric collection capabilities
+
         Parameters:
-        [str] output_dir - Directory path to save monitoring results
-        
+        [str] output_dir - Directory where monitoring results will be saved
+
         Returns:
         None
         """
         try:
             self.output_dir = output_dir
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Initialize base metrics that should always be available
             self.metrics = {
                 'timestamp': [],
                 'cpu_percent': [],
                 'memory_percent': [],
-                'gpu_memory_allocated': [],
                 'disk_io_read': [],
-                'disk_io_write': [],
-                'power_consumption': [],
-                'cpu_energy': [],
-                'gpu_energy': [],
-                'total_energy': []
+                'disk_io_write': []
             }
             
-            # Initialize energy monitoring
-            self.last_energy_check = time.time()
-            self.energy_command = None
+            # Initialize GPU metrics if available
+            if torch.backends.mps.is_available():
+                self.metrics['gpu_memory_allocated'] = []
             
-            # Check if we're on macOS with Apple Silicon
-            if self.is_apple_silicon():
-                # Get username
-                try:
-                    import pwd
-                    username = pwd.getpwuid(os.getuid())[0]
-                    # Set up powermetrics permissions
-                    setup_command = f"sudo chmod +a 'user:{username} allow read,write' /private/var/db/powermetricsdb"
-                    os.system(setup_command)
-                except Exception as e:
-                    print(f"Error setting up powermetrics permissions: {e}")
-                
-                self.energy_command = "sudo powermetrics -n 1 -i 1000 --samplers cpu_power,gpu_power"
+            # Initialize power metrics if on M1
+            self.has_power_metrics = self._check_power_metrics()
+            if self.has_power_metrics:
+                self.metrics.update({
+                    'power_consumption': [],
+                    'cpu_energy': [],
+                    'gpu_energy': [],
+                    'total_energy': []
+                })
             
-            # Initialize disk I/O counters
+            # Initialize disk I/O baseline
             self.disk_io_start = psutil.disk_io_counters()
-            
-            # Ensure output directory exists
-            os.makedirs(output_dir, exist_ok=True)
             
         except Exception as e:
             print(f"Error initializing ResourceMonitor: {e}")
             raise
 
-    def is_apple_silicon(self):
+    def _check_power_metrics(self):
         """
         Objective:
-        Check if running on Apple Silicon Mac
-        
-        Returns:
-        [bool] is_apple_silicon - True if running on Apple Silicon
-        """
-        try:
-            import platform
-            return (platform.system() == 'Darwin' and 
-                   platform.machine().startswith('arm64'))
-        except Exception as e:
-            print(f"Error checking for Apple Silicon: {e}")
-            return False
+        Check if power metrics are available and accessible
 
-    def get_energy_metrics(self):
-        """
-        Objective:
-        Get energy consumption metrics
-        
         Returns:
-        [tuple] energy metrics - (cpu_energy, gpu_energy, total_energy)
+        [bool] has_power_metrics - Whether power metrics are available
         """
         try:
-            if not self.energy_command:
-                return 0, 0, 0
+            # Check if we're on macOS ARM
+            if not (os.uname().sysname == 'Darwin' and os.uname().machine == 'arm64'):
+                return False
                 
-            import subprocess
-            result = subprocess.run(
-                self.energy_command.split(),
-                capture_output=True,
-                text=True
-            )
-            
-            if result.returncode != 0:
-                return 0, 0, 0
+            # Check powermetrics access
+            try:
+                result = subprocess.run(['powermetrics', '-n', '0'], 
+                                     capture_output=True, 
+                                     timeout=1)
+                return result.returncode == 0
+            except:
+                return False
                 
-            output = result.stdout
-            
-            # Parse powermetrics output
-            cpu_energy = 0
-            gpu_energy = 0
-            
-            for line in output.split('\n'):
-                if 'CPU Power' in line:
-                    cpu_energy = float(line.split(':')[1].strip().split()[0])
-                elif 'GPU Power' in line:
-                    gpu_energy = float(line.split(':')[1].strip().split()[0])
-            
-            total_energy = cpu_energy + gpu_energy
-            return cpu_energy, gpu_energy, total_energy
-            
         except Exception as e:
-            print(f"Error collecting energy metrics: {e}")
-            return 0, 0, 0
+            print(f"Error checking power metrics: {e}")
+            return False
 
     def collect_metrics(self):
         """
         Objective:
-        Collect current system metrics
-        
+        Collect current system resource metrics
+
         Returns:
         None
         """
         try:
             current_time = datetime.now()
             
-            # Collect CPU metrics
-            cpu_percent = psutil.cpu_percent(interval=1)
+            # Always collect base metrics
+            self.metrics['timestamp'].append(current_time)
+            self.metrics['cpu_percent'].append(psutil.cpu_percent(interval=0.1))
+            self.metrics['memory_percent'].append(psutil.virtual_memory().percent)
             
-            # Collect memory metrics
-            memory_percent = psutil.virtual_memory().percent
+            # Collect disk I/O
+            current_io = psutil.disk_io_counters()
+            self.metrics['disk_io_read'].append(
+                current_io.read_bytes - self.disk_io_start.read_bytes)
+            self.metrics['disk_io_write'].append(
+                current_io.write_bytes - self.disk_io_start.write_bytes)
             
             # Collect GPU metrics if available
-            if torch.cuda.is_available():
-                gpu_memory = torch.cuda.memory_allocated() / 1024**2  # Convert to MB
-            else:
-                gpu_memory = 0
-                
-            # Collect disk I/O metrics
-            disk_io_current = psutil.disk_io_counters()
-            disk_read = disk_io_current.read_bytes - self.disk_io_start.read_bytes
-            disk_write = disk_io_current.write_bytes - self.disk_io_start.write_bytes
+            if 'gpu_memory_allocated' in self.metrics and torch.backends.mps.is_available():
+                self.metrics['gpu_memory_allocated'].append(
+                    torch.mps.current_allocated_memory() / 1024**2)  # Convert to MB
             
-            # Collect power metrics (if available)
-            try:
-                battery = psutil.sensors_battery()
-                power_consumption = battery.power_plugged if battery else 0
-            except:
-                power_consumption = 0
-                
-            # Get energy metrics
-            cpu_energy, gpu_energy, total_energy = self.get_energy_metrics()
-            
-            # Store metrics
-            self.metrics['timestamp'].append(current_time)
-            self.metrics['cpu_percent'].append(cpu_percent)
-            self.metrics['memory_percent'].append(memory_percent)
-            self.metrics['gpu_memory_allocated'].append(gpu_memory)
-            self.metrics['disk_io_read'].append(disk_read)
-            self.metrics['disk_io_write'].append(disk_write)
-            self.metrics['power_consumption'].append(power_consumption)
-            self.metrics['cpu_energy'].append(cpu_energy)
-            self.metrics['gpu_energy'].append(gpu_energy)
-            self.metrics['total_energy'].append(total_energy)
+            # Collect power metrics if available
+            if self.has_power_metrics:
+                power_data = self._get_power_metrics()
+                if power_data:
+                    self.metrics['power_consumption'].append(power_data.get('power', 0))
+                    self.metrics['cpu_energy'].append(power_data.get('cpu_energy', 0))
+                    self.metrics['gpu_energy'].append(power_data.get('gpu_energy', 0))
+                    self.metrics['total_energy'].append(power_data.get('total_energy', 0))
             
         except Exception as e:
             print(f"Error collecting metrics: {e}")
-            raise
+
+    def _get_power_metrics(self):
+        """
+        Objective:
+        Get power consumption metrics for M1 Macs
+
+        Returns:
+        [dict] metrics - Power consumption metrics
+        """
+        try:
+            if not self.has_power_metrics:
+                return None
+                
+            cmd = ['powermetrics', '-n', '1', '-i', '100', '--show-process-energy']
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=1)
+            
+            if result.returncode != 0:
+                return None
+                
+            metrics = {}
+            for line in result.stdout.split('\n'):
+                if 'CPU Power' in line:
+                    metrics['cpu_energy'] = float(line.split(':')[1].strip().split()[0])
+                elif 'GPU Power' in line:
+                    metrics['gpu_energy'] = float(line.split(':')[1].strip().split()[0])
+                    
+            metrics['total_energy'] = metrics.get('cpu_energy', 0) + metrics.get('gpu_energy', 0)
+            metrics['power'] = metrics['total_energy']  # Current power consumption
+            
+            return metrics
+            
+        except Exception as e:
+            print(f"Error getting power metrics: {e}")
+            return None
 
     def save_metrics(self, script_name):
         """
         Objective:
         Save collected metrics to CSV file
-        
+
         Parameters:
         [str] script_name - Name of the script being monitored
-        
+
         Returns:
         None
         """
@@ -197,19 +175,17 @@ class ResourceMonitor:
             df = pd.DataFrame(self.metrics)
             output_file = os.path.join(self.output_dir, f"{script_name}_resources.csv")
             df.to_csv(output_file, index=False)
-            
         except Exception as e:
             print(f"Error saving metrics: {e}")
-            raise
 
 def monitor_resources(output_dir):
     """
     Objective:
     Decorator to monitor resources during function execution
-    
+
     Parameters:
     [str] output_dir - Directory to save monitoring results
-    
+
     Returns:
     [function] wrapper - Decorated function
     """
@@ -217,36 +193,30 @@ def monitor_resources(output_dir):
         @wraps(func)
         def wrapper(*args, **kwargs):
             monitor = ResourceMonitor(output_dir)
-            
-            # Start monitoring thread
-            import threading
-            stop_monitoring = threading.Event()
+            stop_monitoring = Event()
             
             def monitoring_task():
                 while not stop_monitoring.is_set():
-                    monitor.collect_metrics()
-                    time.sleep(1)  # Collect metrics every second
-                    
-            monitor_thread = threading.Thread(target=monitoring_task)
+                    try:
+                        monitor.collect_metrics()
+                        time.sleep(1)
+                    except Exception as e:
+                        print(f"Error in monitoring task: {e}")
+                        break
+            
+            monitor_thread = Thread(target=monitoring_task)
+            monitor_thread.daemon = True  # Ensure thread terminates with main program
             monitor_thread.start()
             
             try:
-                # Execute the function
                 result = func(*args, **kwargs)
-                
-                # Stop monitoring
                 stop_monitoring.set()
-                monitor_thread.join()
-                
-                # Save metrics
-                script_name = func.__name__
-                monitor.save_metrics(script_name)
-                
+                monitor_thread.join(timeout=2)
+                monitor.save_metrics(func.__name__)
                 return result
-                
             except Exception as e:
                 stop_monitoring.set()
-                monitor_thread.join()
+                monitor_thread.join(timeout=2)
                 raise e
                 
         return wrapper
