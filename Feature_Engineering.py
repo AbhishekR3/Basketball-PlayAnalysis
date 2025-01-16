@@ -904,7 +904,7 @@ def calculate_distances_from_basketball(df):
 #%%
 # Setting up the environment for Docker containers
 
-'''
+#'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -923,7 +923,7 @@ try:
 except Exception as e:
     print(f"An error occurred during setting up Docker container environment: {e}")
     raise
-'''
+#'''
 
 #%% Main Function for Feature Engineering of the assets 
 

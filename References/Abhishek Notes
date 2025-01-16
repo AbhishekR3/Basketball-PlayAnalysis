@@ -43,5 +43,7 @@ docker volume rm $(docker volume ls -q)
 docker system prune -a --volumes
 
 # Building + Running docker
+cd "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis"
+
 docker build -t basketball-analysis .
 docker run -v basketball_data:/app/data basketball-analysis
