@@ -7,6 +7,22 @@ Key Concepts Implemented:
 - Early Stopping + Cosine Learning Rate for model training
 '''
 
+
+'''
+# Import test/train dataset
+
+from roboflow import Roboflow
+rf = Roboflow(api_key="EcivclYEzTBaqhKDJJRc")
+project = rf.workspace("playbookaibasketballintelligence").project("playbookai-detectionmodel")
+version = project.version(3)
+dataset = version.download("yolov8")
+                
+'''           
+
+
+#'''
+# Training the model
+
 # Import Libraries
 import torch
 from ultralytics import YOLO
@@ -20,7 +36,6 @@ print(f"MPS (Metal Performance Shaders) available: {torch.backends.mps.is_availa
 print(f"MPS backend enabled: {torch.backends.mps.is_built()}")
 
 # Set seeds for consistentncy
-
 def set_seeds(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -47,7 +62,7 @@ else:
     print("MPS not available, using CPU")
 
 # Build YOLO model from pre-trained weight
-YOLO_pretrained_model_path = 'Custom_Detection_Model/CustomObjectDetection_Data/yolov10s.pt'
+YOLO_pretrained_model_path = 'yolov10s.pt'
 model = YOLO(YOLO_pretrained_model_path)
 
 # Move model to appropriate device
@@ -64,18 +79,17 @@ print()
 
 # Train dataset with parameters 
 projectfile_path = os.getcwd()
-trainingdata_path = os.path.join(projectfile_path, 'Custom_Detection_Model', 'CustomObjectDetection_Data', 'data.yaml')
-#trainingdata_path = os.path.join(projectfile_path, 'CustomObjectDetection_Data-1', 'data.yaml')
+trainingdata_path = os.path.join(projectfile_path, 'data.yaml')
 
 results = model.train(
     data=trainingdata_path, 
-    epochs=15, 
-    imgsz=640, 
+    epochs=5,
+    imgsz=640,
     device=device,
-    lr0=0.01,
-    lrf=0.05,
-    cos_lr=True,  # Cosine Learning rate
-    patience=4,  # Early Stopping
+    #lr0=0.01,
+    #lrf=0.05,
+    #cos_lr=True,  # Cosine Learning rate
+    patience=2,  # Early Stopping
     save_period=1,
     verbose=True)
 
@@ -89,3 +103,4 @@ print()
 print('Metrics:')
 metrics = model.val()  # evaluate model performance on the validation set
 print(metrics)
+#'''
