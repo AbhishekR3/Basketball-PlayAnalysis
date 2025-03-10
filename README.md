@@ -88,25 +88,22 @@ Important files for this project
 ```bash
 Basketball-PlayAnalysis/
 ├── assets/                                         # Containing referenced images and diagrams
-│   ├── simulation.mp4
-│   ├── simulation_tracked.mp4
+│   ├── Basketball_Court_Diagram.jpg                # Basketball Court Diagram
+│   ├── YOLOv10s_custom.pt                          # Custom Object Detection Model based on YOLOv10s
 │   ├── detected_objects.csv                        # Features of the detected objects in the simulation
 │   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
-├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
-│   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom YOLO object detection model
-│   ├── Object Tracking Metrics/                    # Multi-Object Tracking (DeepSORT) validation metrics and relevant video
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
-│   ├── deep_sort/
-│   ├── tools/
-│   ├── model_data/
 ├── References/                                     # References for the development of the project
-├── Basketball_Passing_Simulation.py                # Script for simulating basketball plays
-├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
-├── object_tracking_output.log                      # Object Tracking Log Details containing relevant metrics
-├── PlayBook AI: Basketball Intelligence Outline    # Project Outline
+├── Custom_DetectionModel_Info.txt                  # Custom Detection Model information
+├── Data_Loading.py                                 # Loading extracted object tracking information into database
+├── dockerfile                                      # File to setup isolated environment to test code
+├── Feature_Engineering.py                          # Optimizing the raw object tracking dataset for the neural network
+├── Object_Tracking.py                              # Script for tracking objects in the simulation
+├── Passing_Simulation.py                           # Script for simulating basketball plays
 ├── README.md                                       # Project documentation
 ├── Requirements.txt                                # Project library requirements
-├── YOLOv10m_custom.pt                              # Custom YOLO detection model based on YOLOv10m
+├── run_sequence.sh                                 # Sequence on how to execute files for isolated (Docker) environments
+├── utils.py                                        # Commonly used functions to avoid duplication
 ```
 
 ## License

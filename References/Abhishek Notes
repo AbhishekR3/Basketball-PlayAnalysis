@@ -26,6 +26,27 @@ Think about making the objects closer in size.
 Current frame-previous frame matching search takes the longest time to process
 So you should reduce the dimensions
 
+
+**LSTM**
+
+Compared to RNN, LSTM avoids the exploding gradient problem.
+ 
+Cell State - Represents the long term memory
+
+Forget Gate - First calculation, which determines how much of the cell state (long term memory) will be remembered.
+Uses sigmoid function (between 0-1)
+Cell State Value * % Long-Term rememberance 
+
+Input Gate - Controls how much information is added (is remembered) to the cell state
+- Sigmoid function for importance
+- TanH function for 
+
+Hidden State - Represents the short term memory
+Usually initialized as 0s.
+
+Output Gate - The new short term memory output value for an entire LSTM unit
+
+
 ############## DOCKER ####################
 # Stop all running containers
 docker stop $(docker ps -aq)

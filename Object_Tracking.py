@@ -220,7 +220,7 @@ def filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score
     except Exception as e:
         logger.error("Error in filtering: %s", e)
 
-#%%
+#%% object_tracking()
 
 def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     """
@@ -258,7 +258,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         class_names = np.array([class_names_dict[int(i)] for i in class_ids])
 
         # Filter the detections based on confidence threshold        
-        mask = filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.8) # Set confidence threshold for player and basketball, basketball is commonly occluded
+        mask = filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.6) # Set confidence threshold for player and basketball, basketball is commonly occluded
         boxes = boxes[mask]
         scores = scores[mask]
         class_names = [class_names[i] for i in range(len(class_names)) if mask[i]]
@@ -392,6 +392,7 @@ logger = configure_logger('tracking')
 # Path to the video file / basketball court diagram
 try:
     video_path = os.path.join(video_dir, 'simulation_video.mp4')
+    video_path = os.path.join(assets_dir, 'simulation_validation_10s.mp4')
     basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 except:
     video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4"
@@ -467,11 +468,10 @@ elif torch.backends.mps.is_available():
 # Initialize Deep SORT components
 #script_directory = os.getcwd()
 try:
-    model_path = os.path.join(assets_dir, 'YOLOv10m_custom.pt')
+    model_path = os.path.join(assets_dir, 'YOLOv10s_custom.pt')
     print("Model path created")
 except:
-    model_path = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/YOLOv10m_custom.pt"
-#model_path = os.path.join(script_directory, 'runs/detect/train/weights/best.pt')
+    model_path = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/YOLOv10s_custom.pt"
 model = YOLO(model_path)
 #model.to(device) # Move model to GPU
 model.info() # Model Information
@@ -515,8 +515,8 @@ try:
 
         # If frame is read correctly ret is True
         if ret:
-            #frame_colored = transform(frame_colored).unsqueeze(0).to(device)
             frame_colored = frame_colored
+
         if not ret:
             break
         
@@ -540,9 +540,11 @@ try:
         print('Frame number:', n_frames)
 
         # If 5 frames has been processed and present in Docker Environment, break
+        '''
         if n_frames > 5 and os.path.exists('/.dockerenv'):
             print('Simulation stopped, due to being tested in docker environment')
             break
+        '''
 
         '''
         # Press 'q' to quit
@@ -556,7 +558,6 @@ try:
             break
         '''
 
-    print('outside of break loop')
     # Export extracted features to dataframe into csv
     detectedobjects_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
     export_dataframe_to_csv(detected_objects, detectedobjects_file_path, logger)

@@ -41,8 +41,8 @@ def one_hot_encode_class_id(df):
     """
         
     try:
-        df['is_Team_A'] = (df['ClassID'] == 'Player_A').astype(bool)
-        df['is_Team_B'] = (df['ClassID'] == 'Player_B').astype(bool)
+        df['is_Team_A'] = (df['ClassID'] == 'Team_A').astype(bool)
+        df['is_Team_B'] = (df['ClassID'] == 'Team_B').astype(bool)
         df['is_Basketball'] = (df['ClassID'] == 'Basketball').astype(bool)
         return df
 
@@ -646,6 +646,7 @@ def optimize_dataset(dataset):
                             ]
         dataset = dataset.drop(columns=columns_dropped)
 
+        # Remove rows where all class columns are False
         dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
 
         # Check the most common class type of each track_id, update the entire track to that specific class type
@@ -901,7 +902,7 @@ def calculate_distances_from_basketball(df):
         print(f"An error occurred in calculate_distances_from_basketball: {e}")
         raise
 
-#%%
+#%% Docker Setup
 # Setting up the environment for Docker containers
 
 #'''
@@ -934,6 +935,7 @@ def main():
             raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
         except Exception as e:
             raw_dataset_file_path = 'assets/detected_objects.csv'
+            raw_dataset_file_path = '/Users/abhishekramesh/Desktop/detected_objects.csv'
             logger.debug(f"Error in reading raw dataset: {e}")
 
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
@@ -957,6 +959,7 @@ def main():
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
         try:
+            test = ranked_distance_dataset.iloc[0] # See if the dataset is populated
             export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
         except:
             export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)

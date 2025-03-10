@@ -716,7 +716,7 @@ def initialize_simulation():
 
 
 #%% Configure Docker containerization
-'''
+#'''
 log_dir = os.environ.get('LOG_DIR', '/app/logs')
 video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
 assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
@@ -733,7 +733,7 @@ print('Assets Directory:', assets_dir)
 ensure_dir(video_dir)
 ensure_dir(log_dir)
 ensure_dir(assets_dir)
-'''
+#'''
 
 #%% Set Simulation Parameters
 
@@ -878,6 +878,11 @@ try:
                     first_overlap = True
             
             oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
+
+            # Stop if the ball reached the player
+            if reached_player is True:
+                break
+
         
         #current_player dribbles the basketball
         else:
@@ -907,6 +912,7 @@ try:
                 pass_timer = -1  # Reset timer to deactivate
                 first_overlap = False
                 reached_player = False
+                break
 
         basketball.draw()  # Draw the basketball
 

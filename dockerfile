@@ -9,15 +9,12 @@ WORKDIR /app
 COPY requirements.txt .
 COPY run_sequence.sh .
 COPY utils.py .
-# Resource Monitoring
-COPY resource_monitor.py .
-COPY run_monitored_sequence.py .
 # Simulation
 COPY Passing_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
 # Tracking
 COPY Object_Tracking.py .
-COPY "assets/YOLOv10m_custom.pt" ./assets/
+COPY "assets/YOLOv10s_custom.pt" ./assets/
 COPY deep_sort/ ./deep_sort/
 # Feature Engineering
 COPY Feature_Engineering.py .
