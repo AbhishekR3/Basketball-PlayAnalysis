@@ -4,9 +4,8 @@ This file tracks the positions/features of each player and the basketball.
 
 Key Concepts Implemented:
 - YOLO - End to End Object Object Detection using YOLO base for accuracy/speed balance
---> Implemented a custom model with 97.7% mAP50 (Refer CustomObjectDetection_Data/README.dataset.txt for more info)
-- DeepSort - Multi Object Tracking Algorithm that handles well with occlusion
---> Validation Metrics can be found in Custom_Detection_Model/Object Tracking Metrics/MOT_Validation.py
+--> Implemented a custom model with 99.96% mAP50 (Refer Custom_DetectionModel.txt for more info)
+- DeepSort - Multi Object Tracking Algorithm that handles well with occlusions
 '''
 
 #%%
@@ -392,11 +391,9 @@ logger = configure_logger('tracking')
 # Path to the video file / basketball court diagram
 try:
     video_path = os.path.join(video_dir, 'simulation_video.mp4')
-    video_path = os.path.join(assets_dir, 'simulation_validation_10s.mp4')
     basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 except:
     video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4"
-    basketball_court_diagram = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/Basketball_Court_Diagram.jpg"
 
 print(f"Video path: {video_path}")
 
@@ -488,6 +485,7 @@ try:
     model_filename = os.path.join(deepsort_dir, 'model_data/mars-small128.pb')
 except:
     model_filename = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/deep_sort/model_data/mars-small128.pb"
+
 encoder = gdet.create_box_encoder(
     model_filename, 
     input_name="images", 
@@ -524,8 +522,7 @@ try:
         tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
         print('Object Tracking completed')
 
-        # After processing your frame and before calling cv2.imshow
-
+        # Prepare the frame for display
         #tracked_frame = prepare_frame_for_display(tracked_frame)
 
         # Display Video Frame
@@ -533,20 +530,18 @@ try:
         #cv2.waitKey(1)  # Add a small delay to allow the window to update
 
         # Write the output frame
-        #out.write(tracked_frame)
+        out.write(tracked_frame)
 
         # Increase frame count
         n_frames += 1
         print('Frame number:', n_frames)
 
-        # If 5 frames has been processed and present in Docker Environment, break
         '''
+        # If 5 frames has been processed and present in Docker Environment, break
         if n_frames > 5 and os.path.exists('/.dockerenv'):
             print('Simulation stopped, due to being tested in docker environment')
             break
-        '''
-
-        '''
+        
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")
@@ -558,17 +553,17 @@ try:
             break
         '''
 
+
+    # If no objects were detected in the video, log an error and exit
+    if detected_objects.empty:
+        logger.error ("No objects were detected in the video")
+        print("No objects were detected in the video")
+        exit()
+
     # Export extracted features to dataframe into csv
     detectedobjects_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
     export_dataframe_to_csv(detected_objects, detectedobjects_file_path, logger)
     print('Exported detected objects to csv')
-    '''
-    # Export MOT validation metrics dataframe into csv
-    detected_objects = pd.read_csv(os.path.join(os.getcwd(), 'assets', 'detected_objects.csv'))
-    MOTvalidation_file_path = os.path.join(os.getcwd(), 'Custom_Detection_Model', 'Object Tracking Metrics', 'MOT_validationmetrics.csv')
-    detected_objects_filtered = export_validation_metrics(detected_objects)
-    export_dataframe_to_csv(detected_objects_filtered, MOTvalidation_file_path)
-    '''
 
     # Log results summary
     n_objects = n_frames*11

@@ -650,7 +650,10 @@ def optimize_dataset(dataset):
         dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
 
         # Check the most common class type of each track_id, update the entire track to that specific class type
-        dataset = update_track_class(dataset)
+        #dataset = update_track_class(dataset)
+
+        # Remove duplicate rows based on TrackID and Frame
+        dataset = dataset.drop_duplicates(subset=['TrackID', 'Frame'], keep='first')
 
         return dataset
 
@@ -959,7 +962,6 @@ def main():
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
         try:
-            test = ranked_distance_dataset.iloc[0] # See if the dataset is populated
             export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
         except:
             export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)

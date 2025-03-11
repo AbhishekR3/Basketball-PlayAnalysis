@@ -49,10 +49,6 @@ Data Flow Diagram
 
 ![DataFlowDiagram](assets/PlayBook-AI%20Data%20Flow%20Diagram.png)
 
-I have a project outline containing detailed information on the relevant concepts/algorithms planned for this project
-
-[Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/PlayBook%20AI%3A%20Basketball%20Intelligence%20Outline)
-
 ## Installation
 
 ### Prerequisites
@@ -78,8 +74,9 @@ First run Basketball_Passing_Simulation.py to generate video simulations of pass
 Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
 
 ```bash
-python Basketball_Passing_Simulation.py
-python Basketball_Object_Tracking.py
+python Passing_Simulation.py
+python Object_Tracking.py
+python Feature_Engineering.py
 ```
 
 ## Project-Structure
