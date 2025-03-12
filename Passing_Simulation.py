@@ -17,7 +17,7 @@ import cv2
 import secrets
 from utils import configure_logger
 
-#%%
+#%% Class - Player
 
 class Player:
     "Class for players"
@@ -130,7 +130,7 @@ class Player:
             logger.error("Error in drawing player: %s", e)
             raise
 
-#%%
+#%% Class - Basketball 
 
 class Basketball:
     "Class for the Basketball"
@@ -212,7 +212,7 @@ class Basketball:
             raise
 
 
-#%%
+#%% Updating basketball attributes
 
 def update_basketball_position(ball, dribbling_player, basketball_displacement):
     """
@@ -267,7 +267,7 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
         raise
 
 
-#%%
+#%% Basketball - Player positioning
 
 def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomness, ball_offset, ball_angle, dribbling_player, basketball_displacement):
     """
@@ -332,7 +332,7 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
         raise
 
 
-#%%
+#%% Moving basketball
 
 def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None, exclusion_list=None):
     """
@@ -383,7 +383,7 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
         raise
 
 
-#%%
+#%% Check if basketball reached player
 
 def ball_reached_player(ball, target, speed):
     """
@@ -411,7 +411,7 @@ def ball_reached_player(ball, target, speed):
         logger.error("Error in calculating if basketball reached the player: %s", e)
         raise
 
-#%% 
+#%% Calculate reverse RGB color
 
 def reverse_color(circle_color):
     """
@@ -435,7 +435,7 @@ def reverse_color(circle_color):
         logger.error("Error in calculating the inverse of the given color: %s", e)
         raise
 
-#%% 
+#%% Drawing objects
 
 def draw_circle(surface, center, radius, color, thickness=0):
     """
@@ -460,7 +460,7 @@ def draw_circle(surface, center, radius, color, thickness=0):
         for i in range(thickness):
             pygame.draw.circle(surface, color, (int(x), int(y)), radius - i, 1)
 
-#%%
+#%% Check if basketball reached specific position
 
 def ball_reached_position(ball, target_x, target_y):
     """
@@ -489,7 +489,7 @@ def ball_reached_position(ball, target_x, target_y):
         logger.error("Error in calculating if basketball reached the given coordinate: %s", e)
         raise
 
-#%%
+#%% Cryptographic Normal Distribution
 
 def cryptographic_normal(mu, sigma, radian=False):
     """
@@ -530,7 +530,7 @@ def cryptographic_normal(mu, sigma, radian=False):
         raise
 
 
-#%%
+#%% Adjusting basketball path based on players
 
 def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclusion_list=None):
     """
@@ -574,7 +574,7 @@ def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclu
         logger.error("Error in adjusting basketball movement: %s", e)
         raise
 
-#%%
+#%% Check if placement is valid
 
 def is_valid_placement(new_player, existing_players):
     """
@@ -643,7 +643,7 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         raise
 
 
-#%%
+#%% Check if circles overlap
 
 def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
     """
@@ -675,7 +675,7 @@ def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
         logger.error("Error in calculating if circles overlapped: %s", e)
         raise
 
-#%%
+#%% Initialize Simulation
 
 def initialize_simulation():
     """
@@ -795,7 +795,7 @@ basketball_displacement = 15 #Basketball displacement from the player
 simulating = True #Set simulation to true to start
 simulation_limit = 3 # stop simulation after x minutes
 
-#%%
+#%% Perform Simulation
 
 " Simulate Basketball Game "
 
@@ -807,14 +807,14 @@ start_time_simulation = time.time()
 video_format = cv2.VideoWriter_fourcc(*'XVID')
 try:
     video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
-except:
+except Exception as e:
     video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
 out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
 # x seconds the simulation will run to capture recordings
 if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
-    simulation_capture_max_time = 1
+    simulation_capture_max_time = 5
 else:
     simulation_capture_max_time = 10
 

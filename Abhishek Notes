@@ -1,0 +1,85 @@
+######################### Abhishek Notes #########################
+**Deep Sort Paper**
+
+Detection
+- randomly sampling a pyramid scale - skipped
+- pooling is skipped
+- multi-region strategies to combine features at different scales and levels - skipped
+---> But it's better
+
+Appearence Feature
+Input
+- Size - 96x96
+- pool5 layer is 3x3
+Output
+- fully connected layer
+
+Tracker
+- Kalman filter + Kuhn-Munkres algorithm
+- Since the Kuhn-Munkres algorithm attempts to yield the global optimal result, it may fail when some detections are missing. 
+To this end, we use a two-stage matching strategy, which divides T t−1 into high tracking
+quality set Tt−1 and low quality set Tt−1.
+
+Combinations of big/small objects doesnt work well. 
+Think about making the objects closer in size. 
+
+Current frame-previous frame matching search takes the longest time to process
+So you should reduce the dimensions
+
+------------
+Updates to code
+- Combinations of big/small objects doesnt work well. 
+Think about making the objects closer in size? It has a scale threshold too
+
+- Scale threshold (important) + reduction threshold
+
+- Current frame-previous frame matching search takes the longest time to process
+So you should reduce the dimensions
+-> Dimensions
+- Basketball - color + x_coordinate + y_coordinates - x1
+- Player - color + x_coordinate + y_coordinates - x10
+-> Algorithms
+- PCA (For efficiency)
+- t-SNE (For Visualization)
+
+**LSTM**
+
+Compared to RNN, LSTM avoids the exploding gradient problem.
+ 
+Cell State - Represents the long term memory
+
+Forget Gate - First calculation, which determines how much of the cell state (long term memory) will be remembered.
+Uses sigmoid function (between 0-1)
+Cell State Value * % Long-Term rememberance 
+
+Input Gate - Controls how much information is added (is remembered) to the cell state
+- Sigmoid function for importance
+- TanH function for 
+
+Hidden State - Represents the short term memory
+Usually initialized as 0s.
+
+Output Gate - The new short term memory output value for an entire LSTM unit
+
+
+############## DOCKER ####################
+# Stop all running containers
+docker stop $(docker ps -aq)
+
+# Delete all containers
+docker rm $(docker ps -aq)
+
+# Delete all images
+docker rmi $(docker images -q)
+
+# Delete all volumes
+docker volume rm $(docker volume ls -q)
+
+# Prune the system (removes all unused data)
+docker system prune -a --volumes
+
+# Building + Running docker
+cd "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis"
+
+docker build -t basketball-analysis .
+docker run -v basketball_data:/app/data basketball-analysis

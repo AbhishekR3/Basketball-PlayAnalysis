@@ -28,18 +28,11 @@ PlayBook AI will help basketball professionals:
 
 Project Overview:
 1. Simulate basketball plays with Pygame for training data
-2. Implementing computer vision techniques for multi-object tracking
-3. Leveraging spatial databases for efficient data management
-4. Applying feature engineering for ML model optimization
-5. Using Neural Networks (LSTM, TCN, C3D) and Transformers (TimeSformer, STN)
-6. Enhancing model efficiency through quantization and pruning 
-7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines, and Docker for containerization
-
-The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
-
-CourtVision Sample Frame
-
-![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Clippers%20CourtVision.png)
+2. Perform multi-object tracking with custom detection model
+3. Apply feature engineering for ML model optimization
+4. Leverage spatial databases for efficient data management
+5. Create Neural Networks (LSTM) with pruning / downsampling
+7. Deploy software on AWS with GPU accelerated libraries, CI testing pipelines, and Docker.
 
 Object Tracking on a Basketball Simulation created with Pygame
 
@@ -53,7 +46,7 @@ Data Flow Diagram
 
 ### Prerequisites
 
-- Python 3.x (latest version recommended)
+- Python 3.11
 
 ### Dependencies
 
@@ -69,9 +62,11 @@ cd Basketball-PlayAnalysis
 
 ## Usage
 
-These files were built on a MacOS build. 
-First run Basketball_Passing_Simulation.py to generate video simulations of passes
-Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
+These files are built on Python3.11-slim.
+Run files in this order
+1. Passing_Simulation.py to generate video simulations of passes
+2. Object_Tracking.py for object tracking for the relevant video simulation
+3. Feature_Engineering.py for extracting relevant features and optimizing the dataset
 
 ```bash
 python Passing_Simulation.py
@@ -91,6 +86,8 @@ Basketball-PlayAnalysis/
 │   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 ├── References/                                     # References for the development of the project
+│   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
+│   ├── Citations                                   # Citations
 ├── Custom_DetectionModel_Info.txt                  # Custom Detection Model information
 ├── Data_Loading.py                                 # Loading extracted object tracking information into database
 ├── dockerfile                                      # File to setup isolated environment to test code

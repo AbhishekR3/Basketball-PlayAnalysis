@@ -12,9 +12,8 @@ Key Concepts Implemented:
 '''
 
 
-#%%
+#%% Import libraries
 
-# Import libraries
 import ast
 import pandas as pd
 import numpy as np
@@ -23,10 +22,9 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import euclidean
 from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
 
-#%%
+#%% One Hot Encoding for Class type
 
 def one_hot_encode_class_id(df):
     """
@@ -50,7 +48,7 @@ def one_hot_encode_class_id(df):
         logger.error("Error in performing one hot encoding for ClassID: %s", e) 
         raise   
 
-#%%
+#%% Extract Mean Values
 
 def extract_mean_values(df):
     """
@@ -73,7 +71,7 @@ def extract_mean_values(df):
         logger.error("Error in extracing object's position: %s", e)    
         raise
 
-#%%
+#%% Transform State type
 
 def transform_state(df):
     """
@@ -96,7 +94,7 @@ def transform_state(df):
         logger.error("Error in performing features transformation: %s", e)    
         raise
 
-#%%
+#%% Optimize temporal features
 
 def process_temporal_features(df, fps=30):
     """ 
@@ -120,7 +118,7 @@ def process_temporal_features(df, fps=30):
         logger.error("Error in performing features transformation: %s", e)    
         raise
 
-#%%
+#%% Feature Statistics Calculations
 
 def extract_feature_statistics(df):
     """ 
@@ -144,8 +142,6 @@ def extract_feature_statistics(df):
     except Exception as e:
         logger.error("Error in performing features transformation: %s", e)    
         raise
-
-#%%
 
 def calculate_feature_stats(feature_series):
     """ 
@@ -196,7 +192,29 @@ def calculate_feature_stats(feature_series):
             'feature_max': 0
         })
 
-#%%
+def prep_feature_transformation(dataset):
+    """ 
+    Objective: 
+    Prepares the dataset for transformation by converting the 'Features' column from a string to an array.
+
+    Parameters: 
+    [pandas DataFrame] dataset - The dataset to prepare for transformation.
+
+    Returns: 
+    [pandas DataFrame] dataset - The dataset after the 'Features' column has been converted. 
+    """
+
+    try:
+        # Convert features column from string to array
+        dataset['Features'] = dataset['Features'].apply(convert_string_to_array)
+
+        return dataset
+
+    except Exception as e:
+        logger.error(f"Error in performing features transformation: %s", e)
+        raise
+
+#%% Convert string array to numpy array
 
 def convert_string_array(cov_str):
     """ 
@@ -227,7 +245,7 @@ def convert_string_array(cov_str):
     except Exception as e:
         logger.error(f"Error in converting covariance matrix to arrays: {e}")
 
-#%%
+#%% Calculate Covariance Statistics
 
 def covariance_stats_calculation(pre_covariance):
     """ 
@@ -264,7 +282,7 @@ def covariance_stats_calculation(pre_covariance):
         logger.error(f"Error in calculating co-variance statistics: %s", e)
         raise
 
-#%%
+#%% Process covariance statistics
 
 def process_covariance(df):
     """ 
@@ -314,7 +332,7 @@ def process_covariance(df):
         logger.error(f"Error in performing features transformation: %s", e)
         raise
 
-#%%
+#%% Log Transformation
 
 def log_transformation(df, column_names):
     """ 
@@ -337,7 +355,7 @@ def log_transformation(df, column_names):
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
-#%%
+#%% Rolling average
 
 def rolling_average_calculation(group, window_size = 30, rolling_column = None):
     '''
@@ -432,6 +450,8 @@ def rolling_average(df, window_size=30, rolling_column = None):
         logger.error(f"Error in calculating rolling detection consistency: %s", e)
         raise
 
+#%% Correct Recent Reliability based on Age
+
 def recent_reliability_correction(row):
     """ 
     Objective: 
@@ -455,7 +475,7 @@ def recent_reliability_correction(row):
         logger.error(f"Error in calculating correcting rolling detection: %s", e)
         raise
         
-#%%
+#%% Hits/Age based calculation
 
 def hits_age(df):
     """ 
@@ -485,6 +505,8 @@ def hits_age(df):
     except Exception as e:
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
+
+#%% Calculate Acceleration
 
 def extract_acceleration(df):
     """ 
@@ -523,7 +545,7 @@ def extract_acceleration(df):
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
-#%%
+#%% Perform feature extractions
 
 def feature_extraction(dataset):
     """ 
@@ -555,7 +577,7 @@ def feature_extraction(dataset):
         logger.error(f"Error in performing features transformation: %s", e)
         raise
 
-#%%
+#%% Convert string to array
 
 def convert_string_to_array(string_data):
     """ 
@@ -585,31 +607,7 @@ def convert_string_to_array(string_data):
         logger.error(f"Error in converting features from string to array: %s", e)
         raise 
 
-#%%
-
-def prep_transformation(dataset):
-    """ 
-    Objective: 
-    Prepares the dataset for transformation by converting the 'Features' column from a string to an array.
-
-    Parameters: 
-    [pandas DataFrame] dataset - The dataset to prepare for transformation.
-
-    Returns: 
-    [pandas DataFrame] dataset - The dataset after the 'Features' column has been converted. 
-    """
-
-    try:
-        # Convert features column from string to array
-        dataset['Features'] = dataset['Features'].apply(convert_string_to_array)
-
-        return dataset
-
-    except Exception as e:
-        logger.error(f"Error in performing features transformation: %s", e)
-        raise
-
-#%%
+#%% Final optimization of dataset
 
 def optimize_dataset(dataset):
     """ 
@@ -649,9 +647,6 @@ def optimize_dataset(dataset):
         # Remove rows where all class columns are False
         dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
 
-        # Check the most common class type of each track_id, update the entire track to that specific class type
-        #dataset = update_track_class(dataset)
-
         # Remove duplicate rows based on TrackID and Frame
         dataset = dataset.drop_duplicates(subset=['TrackID', 'Frame'], keep='first')
 
@@ -661,56 +656,7 @@ def optimize_dataset(dataset):
         logger.error("Error in optimizing/cleaning dataset: %s", e)
         raise
 
-#%%
-
-def update_track_class(dataframe):
-    """
-    Objective:
-    Check the most common class type for each TrackID and update all rows of the specific TrackID to the most common class in the group.
-
-    Parameters:
-    [pandas DataFrame] dataframe - The input dataframe containing tracking data
-
-    Returns:
-    [pandas DataFrame] updated_dataframe - The dataframe with updated class types for each track
-    """
-    try:
-        # Create a copy of the dataframe to avoid modifying the original
-        updated_dataframe = dataframe.copy()
-
-        # Define the class columns
-        class_columns = ['is_Team_A', 'is_Team_B', 'is_Basketball']
-
-        # Ensure class columns are boolean type
-        for col in class_columns:
-            updated_dataframe[col] = updated_dataframe[col].astype(bool)
-
-        # Group by TrackID and find the most common class for each track
-        def get_most_common_class(group):
-            class_counts = group[class_columns].sum()
-            if class_counts.max() == 0:
-                # If all classes are False, keep it as is
-                return pd.Series({col: False for col in class_columns})
-            most_common_class = class_counts.idxmax()
-            return pd.Series({col: (col == most_common_class) for col in class_columns})
-
-        # Use include_groups=False to exclude grouping columns from the operation
-        most_common_classes = updated_dataframe.groupby('TrackID', group_keys=False).apply(
-            get_most_common_class)
-
-        # Update the class columns for each TrackID
-        for track_id, common_class in most_common_classes.iterrows():
-            mask = updated_dataframe['TrackID'] == track_id
-            for col in class_columns:
-                updated_dataframe.loc[mask, col] = common_class[col]
-
-        return updated_dataframe
-
-    except Exception as e:
-        logger.error("Error in update_track_class: %s", e)
-        raise
-
-#%%
+#%% PCA Calculation 
 
 def perform_pca(df, n_components=20, variance_threshold=0.9):
     """
@@ -779,7 +725,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         logger.error("Error in performing PCA: %s", e)
         raise
     
-#%%
+#%% Temporal Encoding for TrackID
 
 def trackid_temporal_encoding(df):
     """ 
@@ -809,7 +755,7 @@ def trackid_temporal_encoding(df):
         logger.error("Error when peforming temporal encoding for an exponential decay on TrackID: %s", e)
         raise
 
-#%%
+#%% Perform Normalization
 
 def normalize_numerical_columns(df):
     """
@@ -846,7 +792,7 @@ def normalize_numerical_columns(df):
         print(f"An error occurred during normalization: {e}")
         raise
 
-#%%
+#%% Calculate distance from basketball
 
 def calculate_distances_from_basketball(df):
     """
@@ -929,7 +875,7 @@ except Exception as e:
     raise
 #'''
 
-#%% Main Function for Feature Engineering of the assets 
+#%% Main Function
 
 def main():
     try:
@@ -944,7 +890,7 @@ def main():
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
 
         # Prep dataset for feature extraction
-        prepped_dataset = prep_transformation(raw_dataset)
+        prepped_dataset = prep_feature_transformation(raw_dataset)
 
         # Extracting features from the dataset
         extracted_feature_dataset = feature_extraction(prepped_dataset)
@@ -958,12 +904,12 @@ def main():
         # Export the finalized dataset into a csv
         try:
             processed_feature_dataset_file_path = os.path.join(tracking_dir, 'processed_features.csv')
-        except:
+        except Exception as e:
             processed_feature_dataset_file_path = 'assets/processed_features.csv'
 
         try:
             export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
-        except:
+        except Exception as e:
             export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")

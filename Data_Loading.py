@@ -3,14 +3,12 @@ Data Loading
 This file creates the loads the dataset (after feature engineering) into AWS spatial database
 
 Key Concepts Implemented:
-- Constraints 
+- Constraints / ACID Properties
 - Spatial Index
 - Test the execution time of proximity queries
 '''
 
-#%%
-
-# Import Libraries
+#%% Import Libraries
 import numpy as np
 import pandas as pd
 import logging
@@ -20,7 +18,7 @@ from sqlalchemy import Column, Integer, Float, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
-#%% 
+#%% Create a base class
 
 Base = declarative_base()
 
@@ -64,7 +62,7 @@ class TrackingData(Base):
     accel_aspect_rolling_avg = Column(Float, nullable=False)
     accel_height_rolling_avg = Column(Float, nullable=False)
 
-#%%
+#%% Create connection to database
 
 def create_sqlalchemy_engine():
     """ 
@@ -103,39 +101,7 @@ def create_sqlalchemy_engine():
         print(f"Error creating SQLAlchemy Engine connection: {e}")
         return None
 
-#%% Configuring logging
-try:
-    try:
-        log_file_path = os.path.join(log_dir, 'data_loading.log')
-    except Exception as e:
-        print(f"Error in creating logging: {e}")
-        log_file_path = 'data_loading.log'
-
-    # If the log file exists, delete it
-    if os.path.exists(log_file_path):
-        os.remove(log_file_path)
-        print(f"The file {log_file_path} has been found thus deleted for the new run.")
-
-    # Create a logger object
-    logger = logging.getLogger('FeatureEngineeringLogger')
-    logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
-
-    # Create file handler which logs even debug messages
-    file_handler = logging.FileHandler(log_file_path)
-    file_handler.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(file_handler)
-
-except Exception as e:
-    print(f"Error in creating logging: {e}")
-    raise
-
-#%%
+#%% Create CSV file
 
 def read_dataframe_to_csv(file_path):
     """
@@ -159,7 +125,7 @@ def read_dataframe_to_csv(file_path):
         logger.error (f"Error occured when reading raw data file: {e}")
         raise
 
-#%%
+#%% Preprocess dataset
 
 def preprocess_dataset(df):
     """ 
@@ -221,6 +187,8 @@ def preprocess_dataset(df):
         logger.error (f"Error occured when pre-processing dataset: {e}")
         raise
 
+#%% Create spatial data structure
+
 def spatial_data_structure(data_row):
     """ 
     Objective: 
@@ -279,9 +247,8 @@ def spatial_data_structure(data_row):
 
 
 
-#%%
+#%% Run select query
 
-#run_select_query() - Run a select query
 def run_select_query(engine, sql_command, params=None):
     """ 
     Objective: 
@@ -321,7 +288,8 @@ def run_select_query(engine, sql_command, params=None):
         logger.error(f"Error in running select query: {e}")
         raise
 
-#run_commit_query() - Run a commit query
+#%% Run a specific commit query
+
 def run_commit_query(engine):
     """ 
     Objective: 
@@ -354,6 +322,8 @@ def run_commit_query(engine):
         logger.error(f"Error in committing the above query: {e}")
         raise
 
+#%% Get basketball details for frame
+
 def get_basketball_for_frame(engine, frame):
     """ 
     Objective: 
@@ -382,7 +352,8 @@ def get_basketball_for_frame(engine, frame):
         logging.error(f"Error occurred while getting basketball for frame {frame}: {str(e)}")
         raise
 
-########## CREATE A SEPARATE FILE TO INPUT BASKETBALL DISTANCE
+#%% Calculate basketball distance within database
+
 def calculate_basketball_distances(engine):
     """ 
     Objective: 
@@ -423,7 +394,39 @@ def calculate_basketball_distances(engine):
         logger.error(f"Error in committing the above query: {e}")
         raise
 
-####################################################################
+#%% Configuring logging
+try:
+    try:
+        log_file_path = os.path.join(log_dir, 'data_loading.log')
+    except Exception as e:
+        print(f"Error in creating logging: {e}")
+        log_file_path = 'data_loading.log'
+
+    # If the log file exists, delete it
+    if os.path.exists(log_file_path):
+        os.remove(log_file_path)
+        print(f"The file {log_file_path} has been found thus deleted for the new run.")
+
+    # Create a logger object
+    logger = logging.getLogger('FeatureEngineeringLogger')
+    logger.setLevel(logging.DEBUG)  # Set the minimum log level to debug
+
+    # Create file handler which logs even debug messages
+    file_handler = logging.FileHandler(log_file_path)
+    file_handler.setLevel(logging.DEBUG)
+
+    # Create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    # Add the handlers to the logger
+    logger.addHandler(file_handler)
+
+except Exception as e:
+    print(f"Error in creating logging: {e}")
+    raise
+
+#%% Main function
 def main():
 
     try:
