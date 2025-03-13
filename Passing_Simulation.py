@@ -716,7 +716,7 @@ def initialize_simulation():
 
 
 #%% Configure Docker containerization
-#'''
+'''
 log_dir = os.environ.get('LOG_DIR', '/app/logs')
 video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
 assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
@@ -733,7 +733,7 @@ print('Assets Directory:', assets_dir)
 ensure_dir(video_dir)
 ensure_dir(log_dir)
 ensure_dir(assets_dir)
-#'''
+'''
 
 #%% Set Simulation Parameters
 
@@ -782,7 +782,7 @@ MOVE_SPEED = cryptographic_normal(5.6, 1) #Speed at which basketball moves to th
 clock = pygame.time.Clock()
 pass_timer = -1
 pass_interval = secrets.SystemRandom().uniform(4, 5)  #How many seconds before the player passes the ball
-reached_player = True #When basketball is with a player
+reached_player = False #When basketball is with a player
 basketball_relative_x = 5 #X-axis displacemnt of the basketball compared to the player
 basketball_relative_y = 5 #Y-axis displacemnt of the basketball compared to the player
 basketball_player_overlap = 0.4 #When basketball and player overlap, set the relative distance between the two to prevent constant change
@@ -793,7 +793,7 @@ dribble_switch_timer = time.time() - dribble_timer
 oscillation_start_time = time.time()
 basketball_displacement = 15 #Basketball displacement from the player
 simulating = True #Set simulation to true to start
-simulation_limit = 3 # stop simulation after x minutes
+simulation_limit = 1 # stop simulation after x minutes
 
 #%% Perform Simulation
 
@@ -809,6 +809,7 @@ try:
     video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
 except Exception as e:
     video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
+    
 out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
@@ -821,6 +822,8 @@ else:
 max_frames_caputured = FPS * simulation_capture_max_time
 
 try:
+    current_player = secrets.choice(team_players) # Updated for passing simulation data collection
+
     while simulating and (frames_captured < max_frames_caputured):
         
         elapsed_time_simulation = time.time() - start_time_simulation # Set elapsed time to stop simulation after mentioned time
