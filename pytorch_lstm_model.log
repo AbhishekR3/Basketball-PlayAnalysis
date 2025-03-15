@@ -1,0 +1,26 @@
+2025-03-13 19:35:53,400 - INFO - Using device: mps
+2025-03-13 19:35:53,401 - INFO - Loading and preprocessing data...
+2025-03-13 19:35:53,401 - INFO - Loading multiple CSV files from /Users/abhishekramesh/Desktop/Passing/train with pattern 'passing_*'
+2025-03-13 19:35:53,401 - INFO - Found 1 CSV files
+2025-03-13 19:35:53,401 - INFO - Loading file: /Users/abhishekramesh/Desktop/Passing/train/passing_2.csv
+2025-03-13 19:35:53,411 - INFO - Combined dataframe shape: (515, 36)
+2025-03-13 19:35:53,411 - WARNING - 'play_type' column not found in data. Attempting to infer from directory name.
+2025-03-13 19:35:53,418 - INFO - Preprocessed data shape: (12, 75, 12)
+2025-03-13 19:35:53,418 - INFO - Classes found: ['train']
+2025-03-13 19:35:53,419 - INFO - Training model...
+2025-03-13 19:35:53,421 - INFO - Dataset split: Train=9, Validation=1, Test=2
+2025-03-13 19:35:53,422 - INFO - Building LSTM model
+2025-03-13 19:35:53,435 - INFO - Model built successfully
+2025-03-13 19:35:53,435 - INFO - Model architecture:
+LSTMPlayClassifier(
+  (conv1): Conv1d(12, 32, kernel_size=(3,), stride=(1,), padding=(1,))
+  (relu): ReLU()
+  (lstm): LSTM(32, 64, num_layers=2, batch_first=True, dropout=0.3, bidirectional=True)
+  (attention): Linear(in_features=128, out_features=1, bias=True)
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc1): Linear(in_features=128, out_features=32, bias=True)
+  (fc2): Linear(in_features=32, out_features=1, bias=True)
+)
+2025-03-13 19:35:55,080 - ERROR - Error in __getitem__: can't convert np.ndarray of type numpy.object_. The only supported types are: float64, float32, float16, complex64, complex128, int64, int32, int16, int8, uint64, uint32, uint16, uint8, and bool.
+2025-03-13 19:35:55,080 - ERROR - Error in training model: can't convert np.ndarray of type numpy.object_. The only supported types are: float64, float32, float16, complex64, complex128, int64, int32, int16, int8, uint64, uint32, uint16, uint8, and bool.
+2025-03-13 19:35:55,080 - ERROR - Error in main function: can't convert np.ndarray of type numpy.object_. The only supported types are: float64, float32, float16, complex64, complex128, int64, int32, int16, int8, uint64, uint32, uint16, uint8, and bool.

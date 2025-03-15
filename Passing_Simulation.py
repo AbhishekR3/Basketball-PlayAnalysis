@@ -716,7 +716,7 @@ def initialize_simulation():
 
 
 #%% Configure Docker containerization
-'''
+#'''
 log_dir = os.environ.get('LOG_DIR', '/app/logs')
 video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
 assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
@@ -733,7 +733,7 @@ print('Assets Directory:', assets_dir)
 ensure_dir(video_dir)
 ensure_dir(log_dir)
 ensure_dir(assets_dir)
-'''
+#'''
 
 #%% Set Simulation Parameters
 

@@ -364,7 +364,7 @@ try:
         #cv2.waitKey(1)  # Add a small delay to allow the window to update
 
         # Write the output frame
-        out.write(tracked_frame)
+        #out.write(tracked_frame)
 
         # Increase frame count
         n_frames += 1

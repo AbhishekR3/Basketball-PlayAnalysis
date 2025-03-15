@@ -18,6 +18,7 @@ import ast
 import pandas as pd
 import numpy as np
 import os
+from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -901,11 +902,15 @@ def main():
         # Rank the distance between objects and the basketball
         ranked_distance_dataset = calculate_distances_from_basketball(cleaned_feature_dataset)
  
+        # Generate timestamp for filename
+        current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+        export_filename = f'passing_{current_time}.csv'
+
         # Export the finalized dataset into a csv
         try:
-            processed_feature_dataset_file_path = os.path.join(tracking_dir, 'processed_features.csv')
+            processed_feature_dataset_file_path = os.path.join(tracking_dir, export_filename)
         except Exception as e:
-            processed_feature_dataset_file_path = 'assets/processed_features.csv'
+            processed_feature_dataset_file_path = f'assets/{export_filename}'
 
         try:
             export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)

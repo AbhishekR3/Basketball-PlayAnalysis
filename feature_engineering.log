@@ -1,0 +1,3 @@
+2025-03-13 20:30:02,502 - DEBUG - Error in reading raw dataset: name 'tracking_dir' is not defined
+2025-03-13 20:30:03,125 - DEBUG - DataFrame successfully exported to assets/passing_20250313_203003.csv
+2025-03-13 20:30:03,125 - DEBUG - Feature Engineering succeeded
