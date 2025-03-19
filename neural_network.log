@@ -1,0 +1,39 @@
+2025-03-18 22:18:59,694 - INFO - Neural Network Processing started
+2025-03-18 22:18:59,694 - ERROR - Error in setting up Docker environment: [Errno 30] Read-only file system: '/app'
+2025-03-18 22:18:59,712 - INFO - Using device: mps
+2025-03-18 22:18:59,712 - INFO - Fitting scaler on training data...
+2025-03-18 22:18:59,712 - INFO - Loaded 18 files for train split
+2025-03-18 22:18:59,768 - INFO - Scaler fitted on 7416 samples
+2025-03-18 22:18:59,769 - INFO - Creating data augmentation transforms...
+2025-03-18 22:18:59,772 - INFO - Found pos_x column at index 16: pos_x_rolling_avg
+2025-03-18 22:18:59,772 - INFO - Found vel_x column at index 20: vel_x_rolling_avg
+2025-03-18 22:18:59,772 - INFO - Found vel_x column at index 28: prev_vel_x_rolling_avg
+2025-03-18 22:18:59,772 - INFO - Data augmentation enabled with horizontal flipping only
+2025-03-18 22:18:59,772 - INFO - Loaded 18 files for train split
+2025-03-18 22:18:59,772 - INFO - Loaded 5 files for validation split
+2025-03-18 22:18:59,772 - INFO - Loaded 10 files for test split
+2025-03-18 22:18:59,782 - INFO - Initialized BasketballLSTM model with 35 input features, 192 hidden dim, 2 layers, bidirectional=True
+2025-03-18 22:19:00,182 - INFO - Starting model training...
+2025-03-18 22:19:01,026 - INFO - Epoch 1/15 - Train Loss: 0.6129, Train Acc: 22.22%, Train Precision: 1.0000, Train Recall: 0.1250, Train F1: 0.2222, Val Loss: 0.6789, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.83s
+2025-03-18 22:19:01,045 - INFO - New best model saved with val_loss: 0.6789
+2025-03-18 22:19:01,556 - INFO - Epoch 2/15 - Train Loss: 0.4132, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.6884, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.51s
+2025-03-18 22:19:01,556 - INFO - Early stopping patience: 1/5
+2025-03-18 22:19:02,055 - INFO - Epoch 3/15 - Train Loss: 0.2691, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.7678, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.50s
+2025-03-18 22:19:02,055 - INFO - Early stopping patience: 2/5
+2025-03-18 22:19:02,501 - INFO - Epoch 4/15 - Train Loss: 0.2347, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.8177, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.45s
+2025-03-18 22:19:02,501 - INFO - Early stopping patience: 3/5
+2025-03-18 22:19:03,010 - INFO - Epoch 5/15 - Train Loss: 0.2767, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.7809, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.51s
+2025-03-18 22:19:03,010 - INFO - Early stopping patience: 4/5
+2025-03-18 22:19:03,445 - INFO - Epoch 6/15 - Train Loss: 0.2251, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.7329, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.43s
+2025-03-18 22:19:03,445 - INFO - Early stopping patience: 5/5
+2025-03-18 22:19:03,445 - INFO - Early stopping triggered after 6 epochs
+2025-03-18 22:19:03,445 - INFO - Training completed in 3.25 seconds
+2025-03-18 22:19:03,447 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.csv
+2025-03-18 22:19:03,739 - INFO - Training history plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.png
+2025-03-18 22:19:08,426 - INFO - Model loaded from /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/best_model.pt
+2025-03-18 22:19:08,427 - INFO - Evaluating model on test set...
+2025-03-18 22:19:08,555 - INFO - Test Loss: 0.6377, Test Acc: 80.00%, Test Precision: 0.8000, Test Recall: 1.0000, Test F1: 0.8889
+2025-03-18 22:19:08,556 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/test_metrics.csv
+2025-03-18 22:19:08,608 - INFO - Confusion matrix plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/confusion_matrix.png
+2025-03-18 22:19:09,869 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/basketball_lstm_model.pt
+2025-03-18 22:19:09,870 - INFO - Training and evaluation succeeded!
