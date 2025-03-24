@@ -352,7 +352,7 @@ class MultiHeadAttention(nn.Module):
             self.scale = torch.sqrt(torch.FloatTensor([self.head_dim]))
             
             # Head importance scores (for pruning)
-            self.head_importance = nn.Parameter(torch.ones(num_heads))
+            self.head_importance = nn.Parameter(torch.ones(num_heads, 1))
             
         except Exception as e:
             logger.error(f"Error initializing MultiHeadAttention: {e}")
@@ -383,32 +383,33 @@ class MultiHeadAttention(nn.Module):
             V = self.value(hidden_state)  # (batch_size, seq_len, hidden_dim)
             
             # Reshape for multi-head attention
-            Q = Q.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
-            K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
-            V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
+            Q = Q.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+            K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+            V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
             
             # Calculate attention scores
-            energy = torch.matmul(Q, K.permute(0, 1, 3, 2)) / self.scale  # (batch_size, num_heads, seq_len, seq_len)
+            energy = torch.matmul(Q, K.permute(0, 1, 3, 2)) / self.scale
             
             # Apply softmax to get attention weights
-            attention = torch.softmax(energy, dim=-1)  # (batch_size, num_heads, seq_len, seq_len)
+            attention = torch.softmax(energy, dim=-1)
             
-            # Store attention weights for later use (e.g., visualization)
+            # Store attention weights for later use
             attention_weights = attention
             
-            # Apply head importance (for pruning)
+            # Apply head importance (for pruning) - MODIFIED FOR 2D
+            # Reshape head_importance for broadcasting [num_heads, 1] -> [1, num_heads, 1, 1]
             head_importance = self.head_importance.view(1, self.num_heads, 1, 1)
             attention = attention * head_importance
             
             # Apply attention weights to values
-            weighted_V = torch.matmul(attention, V)  # (batch_size, num_heads, seq_len, head_dim)
+            weighted_V = torch.matmul(attention, V)
             
             # Reshape back to original dimensions
-            weighted_V = weighted_V.permute(0, 2, 1, 3).contiguous()  # (batch_size, seq_len, num_heads, head_dim)
-            weighted_V = weighted_V.view(batch_size, seq_len, self.hidden_dim)  # (batch_size, seq_len, hidden_dim)
+            weighted_V = weighted_V.permute(0, 2, 1, 3).contiguous()
+            weighted_V = weighted_V.view(batch_size, seq_len, self.hidden_dim)
             
             # Apply output projection
-            attended = self.output_projection(weighted_V)  # (batch_size, seq_len, hidden_dim)
+            attended = self.output_projection(weighted_V)
             
             return attended, attention_weights
             
@@ -558,7 +559,8 @@ def prune_attention_heads(model, prune_amount=0.2):
         )
         
         # Log pruning information
-        remaining_heads = torch.sum(attention_module.head_importance != 0).item()
+        # Count non-zero rows in head_importance to determine remaining heads
+        remaining_heads = torch.sum(torch.any(attention_module.head_importance != 0, dim=1)).item()
         total_heads = attention_module.num_heads
         pruned_heads = total_heads - remaining_heads
         
