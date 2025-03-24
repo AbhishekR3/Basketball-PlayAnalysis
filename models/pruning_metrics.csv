@@ -1,0 +1,2 @@
+,original_params,pruned_nonzero_params,size_reduction_percent,original_inference_time_ms,pruned_inference_time_ms,speed_improvement_percent
+0,1832073,1832073,0.0,6.517887115478516,6.412029266357422,1.62411295632453

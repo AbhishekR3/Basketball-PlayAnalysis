@@ -3,11 +3,13 @@ Basketball Neural Network
 This file implements deep learning models for analyzing basketball play patterns.
 
 Key Concepts Implemented:
-- LSTM (Long Short-Term Memory) - Sequence modeling capturing temporal dependencies in player movements
+- LSTM (Long Short-Term Memory) - Sequence modeling capturing temporal dependencies in player movements with recurrent dropout
 - Self-Attention - Mechanism for focusing on relevant parts of the sequence regardless of position
 - Data Augmentation - Techniques like time warping, jittering, and flipping to increase dataset diversity
 - Bi-directional Processing - Forward and backward pass for comprehensive temporal context
-- Metrics Evaluation - Precision, recall, F1 score for comprehensive model assessment
+- Downsampling - Reducing the number of frames to manage computational load
+- Model Pruning - Structured magnitude-based pruning of attention heads to reduce model size
+- Metrics Evaluation - Precision, recall, F1 score, and confusion matrix for model performance assessment
 '''
 
 #%%
@@ -17,6 +19,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.utils.prune as prune
 import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader
@@ -167,6 +170,19 @@ class BasketballPlayDataset(Dataset):
             
             # Sort by Frame to ensure temporal coherence
             df = df.sort_values(by='Frame')
+
+            # Apply regular interval downsampling - select every 3rd frame
+            frame_values = df['Frame'].unique()
+            selected_frames = frame_values[::3]  # Take every 3rd frame
+            
+            # Filter dataframe to only include selected frames
+            df = df[df['Frame'].isin(selected_frames)]
+            
+            # If no frames remain after downsampling, return error
+            if len(df) == 0:
+                logger.error(f"No frames remain after downsampling for file: {csv_path}")
+                print(f"No frames remain after downsampling for file: {csv_path}")
+                raise ValueError(f"No frames remain after downsampling for file: {csv_path}")
             
             # Make sure to include TrackID, Frame, and Rank as specified
             feature_cols = [col for col in df.columns if col not in ['Unnamed: 0']]
@@ -303,80 +319,111 @@ def collate_variable_length_sequences(batch):
 
 #%% Neural Network Components
 
-class SelfAttention(nn.Module):
-    """Self-attention mechanism for sequence modeling"""
+class MultiHeadAttention(nn.Module):
+    """Multi-head self-attention mechanism for sequence modeling with prunable heads"""
     
-    def __init__(self, hidden_dim):
+    def __init__(self, hidden_dim, num_heads=8):
         """
         Objective:
-        Initialize the self-attention module
+        Initialize the multi-head self-attention module with prunable heads
         
         Parameters:
         [int] hidden_dim - Dimension of the hidden state
+        [int] num_heads - Number of attention heads (default: 8)
         """
         try:
-            super(SelfAttention, self).__init__()
+            super(MultiHeadAttention, self).__init__()
             self.hidden_dim = hidden_dim
+            self.num_heads = num_heads
+            self.head_dim = hidden_dim // num_heads
+            
+            # Ensure hidden_dim is divisible by num_heads
+            assert hidden_dim % num_heads == 0, "Hidden dimension must be divisible by number of heads"
             
             # Define the attention components
             self.query = nn.Linear(hidden_dim, hidden_dim)
             self.key = nn.Linear(hidden_dim, hidden_dim)
             self.value = nn.Linear(hidden_dim, hidden_dim)
             
-            self.scale = torch.sqrt(torch.FloatTensor([hidden_dim]))
+            # Output projection
+            self.output_projection = nn.Linear(hidden_dim, hidden_dim)
+            
+            # Scale factor for attention scores
+            self.scale = torch.sqrt(torch.FloatTensor([self.head_dim]))
+            
+            # Head importance scores (for pruning)
+            self.head_importance = nn.Parameter(torch.ones(num_heads))
             
         except Exception as e:
-            logger.error(f"Error initializing SelfAttention: {e}")
+            logger.error(f"Error initializing MultiHeadAttention: {e}")
             raise
     
     def forward(self, hidden_state):
         """
         Objective:
-        Forward pass of the self-attention module
+        Forward pass of the multi-head self-attention module
         
         Parameters:
-        [torch.Tensor] hidden_state - LSTM hidden state (batch_size, seq_len, hidden_dim)
+        [torch.Tensor] hidden_state - Input hidden state (batch_size, seq_len, hidden_dim)
         
         Returns:
-        [torch.Tensor] context - Attention-weighted context vector
-        [torch.Tensor] attention - Attention weights
+        [torch.Tensor] attended - Attention-weighted output
+        [torch.Tensor] attention_weights - Attention weights for all heads
         """
         try:
-            # Get batch size and sequence length
             batch_size = hidden_state.shape[0]
             seq_len = hidden_state.shape[1]
             
             # Move scale to the same device as hidden state
             self.scale = self.scale.to(hidden_state.device)
             
-            # Get query, key, value projections
+            # Linear projections
             Q = self.query(hidden_state)  # (batch_size, seq_len, hidden_dim)
             K = self.key(hidden_state)    # (batch_size, seq_len, hidden_dim)
             V = self.value(hidden_state)  # (batch_size, seq_len, hidden_dim)
             
+            # Reshape for multi-head attention
+            Q = Q.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
+            K = K.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
+            V = V.view(batch_size, seq_len, self.num_heads, self.head_dim).permute(0, 2, 1, 3)  # (batch_size, num_heads, seq_len, head_dim)
+            
             # Calculate attention scores
-            energy = torch.bmm(Q, K.permute(0, 2, 1)) / self.scale  # (batch_size, seq_len, seq_len)
+            energy = torch.matmul(Q, K.permute(0, 1, 3, 2)) / self.scale  # (batch_size, num_heads, seq_len, seq_len)
             
             # Apply softmax to get attention weights
-            attention = torch.softmax(energy, dim=2)  # (batch_size, seq_len, seq_len)
+            attention = torch.softmax(energy, dim=-1)  # (batch_size, num_heads, seq_len, seq_len)
+            
+            # Store attention weights for later use (e.g., visualization)
+            attention_weights = attention
+            
+            # Apply head importance (for pruning)
+            head_importance = self.head_importance.view(1, self.num_heads, 1, 1)
+            attention = attention * head_importance
             
             # Apply attention weights to values
-            context = torch.bmm(attention, V)  # (batch_size, seq_len, hidden_dim)
+            weighted_V = torch.matmul(attention, V)  # (batch_size, num_heads, seq_len, head_dim)
             
-            return context, attention
+            # Reshape back to original dimensions
+            weighted_V = weighted_V.permute(0, 2, 1, 3).contiguous()  # (batch_size, seq_len, num_heads, head_dim)
+            weighted_V = weighted_V.view(batch_size, seq_len, self.hidden_dim)  # (batch_size, seq_len, hidden_dim)
+            
+            # Apply output projection
+            attended = self.output_projection(weighted_V)  # (batch_size, seq_len, hidden_dim)
+            
+            return attended, attention_weights
             
         except Exception as e:
-            logger.error(f"Error in SelfAttention.forward: {e}")
+            logger.error(f"Error in MultiHeadAttention.forward: {e}")
             raise
 
 class BasketballLSTM(nn.Module):
-    """LSTM model for basketball play classification"""
+    """LSTM model for basketball play classification with prunable attention"""
     
     def __init__(self, input_dim, hidden_dim=192, output_dim=1, num_layers=2, 
-                dropout=0.3, recurrent_dropout=0.15, bidirectional=True):
+                dropout=0.3, recurrent_dropout=0.15, bidirectional=True, num_heads=8):
         """
         Objective:
-        Initialize the LSTM model for basketball play classification
+        Initialize the LSTM model for basketball play classification with prunable attention
         
         Parameters:
         [int] input_dim - Dimension of input features
@@ -386,6 +433,7 @@ class BasketballLSTM(nn.Module):
         [float] dropout - Dropout probability (default: 0.3)
         [float] recurrent_dropout - Recurrent dropout probability (default: 0.15)
         [bool] bidirectional - Whether to use bidirectional LSTM (default: True)
+        [int] num_heads - Number of attention heads (default: 8)
         """
         try:
             super(BasketballLSTM, self).__init__()
@@ -408,18 +456,22 @@ class BasketballLSTM(nn.Module):
             # Apply recurrent dropout
             self.recurrent_dropout = nn.Dropout(recurrent_dropout)
             
-            # Self-attention layer
-            self.attention = SelfAttention(hidden_dim * self.num_directions)
+            # Multi-head self-attention layer (prunable)
+            attention_dim = hidden_dim * self.num_directions
+            self.attention = MultiHeadAttention(attention_dim, num_heads=num_heads)
+            
+            # Layer normalization
+            self.layer_norm = nn.LayerNorm(attention_dim)
             
             # Output layer
-            self.fc = nn.Linear(hidden_dim * self.num_directions, output_dim)
+            self.fc = nn.Linear(attention_dim, output_dim)
             
             # Sigmoid activation for binary classification
             self.sigmoid = nn.Sigmoid()
             
             logger.info(f"Initialized BasketballLSTM model with {input_dim} input features, "
                         f"{hidden_dim} hidden dim, {num_layers} layers, "
-                        f"bidirectional={bidirectional}")
+                        f"bidirectional={bidirectional}, attention_heads={num_heads}")
             
         except Exception as e:
             logger.error(f"Error initializing BasketballLSTM: {e}")
@@ -449,16 +501,19 @@ class BasketballLSTM(nn.Module):
                 hidden = (h0, c0)
             
             # LSTM forward
-            lstm_out, hidden = self.lstm(x, hidden)
+            lstm_out, hidden = self.lstm(x, hidden)  # lstm_out: (batch_size, seq_len, hidden_dim * num_directions)
             
             # Apply recurrent dropout to the output
             lstm_out = self.recurrent_dropout(lstm_out)
             
-            # Apply self-attention
-            context, _ = self.attention(lstm_out)
+            # Apply multi-head self-attention
+            attended, _ = self.attention(lstm_out)
             
-            # Use the average of the context across the sequence
-            out = context.mean(dim=1)
+            # Residual connection and layer normalization
+            attended = self.layer_norm(lstm_out + attended)
+            
+            # Use the average of the attended output across the sequence
+            out = attended.mean(dim=1)
             
             # Final prediction
             out = self.fc(out)
@@ -469,6 +524,95 @@ class BasketballLSTM(nn.Module):
         except Exception as e:
             logger.error(f"Error in BasketballLSTM.forward: {e}")
             raise
+
+#%% Model Pruning Functions
+
+def prune_attention_heads(model, prune_amount=0.2):
+    """
+    Objective:
+    Prune attention heads based on their importance scores using structured L1 norm
+    
+    Parameters:
+    [nn.Module] model - The model containing MultiHeadAttention layers to prune
+    [float] prune_amount - Amount of heads to prune (default: 0.2 = 20%)
+    
+    Returns:
+    [nn.Module] model - The pruned model
+    """
+    try:
+        # Verify if the model has the MultiHeadAttention layer
+        if not hasattr(model, 'attention') or not isinstance(model.attention, MultiHeadAttention):
+            logger.warning("Model does not have a compatible MultiHeadAttention layer for pruning")
+            return model
+        
+        # Get the attention module
+        attention_module = model.attention
+        
+        # Apply L1 structured pruning to head_importance
+        prune.ln_structured(
+            attention_module, 
+            name='head_importance', 
+            amount=prune_amount, 
+            n=1,  # L1 norm
+            dim=0  # Prune along dimension 0 (head dimension)
+        )
+        
+        # Log pruning information
+        remaining_heads = torch.sum(attention_module.head_importance != 0).item()
+        total_heads = attention_module.num_heads
+        pruned_heads = total_heads - remaining_heads
+        
+        logger.info(f"Pruned {pruned_heads}/{total_heads} attention heads ({pruned_heads/total_heads:.1%})")
+        
+        # Make pruning permanent (optional for inference performance)
+        prune.remove(attention_module, 'head_importance')
+        
+        return model
+    
+    except Exception as e:
+        logger.error(f"Error in prune_attention_heads: {e}")
+        logger.error(f"Pruning skipped, returning original model")
+        return model
+
+def evaluate_pruned_model(model, test_loader, criterion, device='cpu'):
+    """
+    Objective:
+    Evaluate a pruned model on the test set
+    
+    Parameters:
+    [nn.Module] model - The pruned model to evaluate
+    [DataLoader] test_loader - DataLoader for test data
+    [nn.Module] criterion - Loss function
+    [string] device - Device to evaluate on ('cpu', 'cuda', or 'mps')
+    
+    Returns:
+    [dict] metrics - Evaluation metrics for the pruned model
+    """
+    try:
+        # Log the evaluation start
+        logger.info("Evaluating pruned model on test set...")
+        
+        # First, evaluate the model using the standard evaluation function
+        metrics = evaluate_model(model, test_loader, criterion, device)
+        
+        # Calculate model size before and after pruning
+        total_params = sum(p.numel() for p in model.parameters())
+        nonzero_params = sum(p.nonzero().size(0) for p in model.parameters())
+        sparsity = 1.0 - nonzero_params / total_params
+        
+        logger.info(f"Model parameters: {total_params}, Non-zero parameters: {nonzero_params}")
+        logger.info(f"Model sparsity: {sparsity:.2%}")
+        
+        # Add pruning-specific metrics
+        metrics['sparsity'] = sparsity
+        metrics['total_params'] = total_params
+        metrics['nonzero_params'] = nonzero_params
+        
+        return metrics
+    
+    except Exception as e:
+        logger.error(f"Error in evaluate_pruned_model: {e}")
+        raise
 
 #%% Data Augmentation Functions
 
@@ -700,7 +844,7 @@ def horizontal_flip_transform(flip_probability=0.5, x_position_col=None, x_veloc
 
 #%% Training and Evaluation Functions
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=15, device='cpu', early_stopping_patience=5):
+def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=15, device='cpu', early_stopping_patience=3):
     """
     Objective:
     Train the LSTM model with validation and early stopping
@@ -713,7 +857,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
     [optim.Optimizer] optimizer - Optimizer
     [int] num_epochs - Number of epochs to train (default: 15)
     [string] device - Device to train on ('cpu', 'cuda', or 'mps')
-    [int] early_stopping_patience - Number of epochs to wait for improvement (default: 5)
+    [int] early_stopping_patience - Number of epochs to wait for improvement
     
     Returns:
     [dict] history - Training history
@@ -1099,12 +1243,115 @@ def plot_confusion_matrix(cm, save_path=None):
         logger.error(f"Error in plot_confusion_matrix: {e}")
         raise
 
+def analyze_and_visualize_pruning(original_model, pruned_model, test_loader, device='cpu'):
+    """
+    Objective:
+    Analyze and visualize the effect of pruning on model performance and size
+    
+    Parameters:
+    [nn.Module] original_model - The original model before pruning
+    [nn.Module] pruned_model - The pruned model
+    [DataLoader] test_loader - DataLoader for test data
+    [string] device - Device to use ('cpu', 'cuda', or 'mps')
+    """
+    try:
+        # Set models to evaluation mode
+        original_model.eval()
+        pruned_model.eval()
+        
+        # Move models to device
+        original_model = original_model.to(device)
+        pruned_model = pruned_model.to(device)
+        
+        # Collect inference times
+        original_times = []
+        pruned_times = []
+        
+        # Measure inference time on test set
+        with torch.no_grad():
+            # Original model
+            for features, _, _ in tqdm(test_loader, desc='Original Model Inference'):
+                features = features.to(device)
+                start_time = time.time()
+                original_model(features)
+                original_times.append(time.time() - start_time)
+            
+            # Pruned model
+            for features, _, _ in tqdm(test_loader, desc='Pruned Model Inference'):
+                features = features.to(device)
+                start_time = time.time()
+                pruned_model(features)
+                pruned_times.append(time.time() - start_time)
+        
+        # Calculate average inference times
+        avg_original_time = np.mean(original_times) * 1000  # Convert to ms
+        avg_pruned_time = np.mean(pruned_times) * 1000  # Convert to ms
+        speed_improvement = (avg_original_time - avg_pruned_time) / avg_original_time * 100
+        
+        # Calculate model sizes
+        original_num_params = sum(p.numel() for p in original_model.parameters())
+        pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
+        nonzero_pruned_params = sum(p.nonzero().size(0) for p in pruned_model.parameters())
+        size_reduction = (original_num_params - nonzero_pruned_params) / original_num_params * 100
+        
+        # Log the results
+        logger.info(f"Original model parameters: {original_num_params}")
+        logger.info(f"Pruned model non-zero parameters: {nonzero_pruned_params}")
+        logger.info(f"Model size reduction: {size_reduction:.2f}%")
+        logger.info(f"Original model inference time: {avg_original_time:.2f} ms/batch")
+        logger.info(f"Pruned model inference time: {avg_pruned_time:.2f} ms/batch")
+        logger.info(f"Speed improvement: {speed_improvement:.2f}%")
+        
+        # Visualization
+        # Create a bar chart comparing original and pruned models
+        plt.figure(figsize=(12, 6))
+        
+        # Plot inference time comparison
+        plt.subplot(1, 2, 1)
+        plt.bar(['Original', 'Pruned'], [avg_original_time, avg_pruned_time])
+        plt.ylabel('Inference Time (ms/batch)')
+        plt.title('Inference Time Comparison')
+        
+        # Plot model size comparison
+        plt.subplot(1, 2, 2)
+        plt.bar(['Original', 'Pruned'], [original_num_params, nonzero_pruned_params])
+        plt.ylabel('Number of Parameters')
+        plt.title('Model Size Comparison')
+        
+        plt.tight_layout()
+        
+        # Save the comparison plot
+        comparison_path = os.path.join(model_dir, 'pruning_comparison.png')
+        plt.savefig(comparison_path)
+        logger.info(f"Pruning comparison plot saved to {comparison_path}")
+        
+        # Create a dictionary of pruning metrics
+        pruning_metrics = {
+            'original_params': original_num_params,
+            'pruned_nonzero_params': nonzero_pruned_params,
+            'size_reduction_percent': size_reduction,
+            'original_inference_time_ms': avg_original_time,
+            'pruned_inference_time_ms': avg_pruned_time,
+            'speed_improvement_percent': speed_improvement
+        }
+        
+        # Export pruning metrics to CSV
+        pruning_metrics_df = pd.DataFrame([pruning_metrics])
+        metrics_path = os.path.join(model_dir, 'pruning_metrics.csv')
+        export_dataframe_to_csv(pruning_metrics_df, metrics_path, logger)
+        
+        return pruning_metrics
+    
+    except Exception as e:
+        logger.error(f"Error in analyze_and_visualize_pruning: {e}")
+        raise
+
 #%% Main Function
 
 def main():
     """
     Objective:
-    Main function to run the basketball play classification
+    Main function to run the basketball play classification with model pruning
     """
     try:
         # Set parameters
@@ -1118,13 +1365,17 @@ def main():
         num_epochs = 15
         learning_rate = 0.001
         early_stopping_patience = 5
+        prune_amount = 0.2  # 20% pruning
         
         # Data augmentation parameters
         use_augmentation = True
         time_warp_sigma = 0.2  # Low-medium sigma
-        time_warp_knotsf = 4    # Low knot value
+        time_warp_knots = 4    # Low knot value
         jitter_intensity = 0.05  # Low jittering
         flip_probability = 0.5  # 50% chance of applying horizontal flip
+        
+        # Multi-head attention parameters
+        num_heads = 8  # Number of attention heads
         
         # Check device type
         if torch.cuda.is_available():
@@ -1260,7 +1511,7 @@ def main():
             collate_fn=collate_variable_length_sequences
         )
         
-        # Initialize model
+        # Initialize model with multi-head attention
         model = BasketballLSTM(
             input_dim=input_dim,
             hidden_dim=192,
@@ -1268,7 +1519,8 @@ def main():
             num_layers=2,
             dropout=0.3,
             recurrent_dropout=0.15,
-            bidirectional=True
+            bidirectional=True,
+            num_heads=num_heads
         )
         
         # Initialize loss function and optimizer
@@ -1297,20 +1549,66 @@ def main():
         if os.path.exists(best_model_path):
             model = load_model(model, best_model_path, device)
         
-        # Evaluate on test set
-        logger.info("Evaluating model on test set...")
-        test_metrics = evaluate_model(
-            model=model,
+        # Save a copy of the original (unpruned) model
+        original_model_path = os.path.join(model_dir, 'original_model.pt')
+        save_model(model, original_model_path)
+        logger.info("Original model saved before pruning")
+        
+        # Create a copy of the original model for comparison
+        original_model = BasketballLSTM(
+            input_dim=input_dim,
+            hidden_dim=192,
+            output_dim=1,
+            num_layers=2,
+            dropout=0.3,
+            recurrent_dropout=0.15,
+            bidirectional=True,
+            num_heads=num_heads
+        )
+        original_model.load_state_dict(torch.load(original_model_path, map_location=device))
+        original_model = original_model.to(device)
+        
+        # Evaluate original model on test set
+        logger.info("Evaluating original model on test set...")
+        original_metrics = evaluate_model(
+            model=original_model,
             test_loader=test_loader,
             criterion=criterion,
             device=device
         )
         
-        # Save the final model
-        final_model_path = os.path.join(model_dir, 'basketball_lstm_model.pt')
-        save_model(model, final_model_path)
+        # Apply pruning to the model
+        logger.info(f"Applying structured magnitude-based pruning ({prune_amount:.1%} of attention heads)...")
+        pruned_model = prune_attention_heads(model, prune_amount=prune_amount)
         
-        logger.info("Training and evaluation succeeded!")
+        # Save the pruned model
+        pruned_model_path = os.path.join(model_dir, 'pruned_model.pt')
+        save_model(pruned_model, pruned_model_path)
+        logger.info("Pruned model saved")
+        
+        # Evaluate pruned model on test set
+        logger.info("Evaluating pruned model on test set...")
+        pruned_metrics = evaluate_pruned_model(
+            model=pruned_model,
+            test_loader=test_loader,
+            criterion=criterion,
+            device=device
+        )
+        
+        # Analyze and visualize the effect of pruning
+        logger.info("Analyzing and visualizing pruning effects...")
+        pruning_analysis = analyze_and_visualize_pruning(
+            original_model=original_model,
+            pruned_model=pruned_model,
+            test_loader=test_loader,
+            device=device
+        )
+        
+        # Save the final model (in this case, the pruned model)
+        final_model_path = os.path.join(model_dir, 'basketball_lstm_model.pt')
+        save_model(pruned_model, final_model_path)
+        
+        logger.info("Training, pruning, and evaluation completed successfully!")
         
     except Exception as e:
         logger.error(f"Error in main: {e}")
