@@ -1366,7 +1366,7 @@ def main():
         batch_size = 16
         num_epochs = 15
         learning_rate = 0.001
-        early_stopping_patience = 5
+        early_stopping_patience = 3
         prune_amount = 0.2  # 20% pruning
         
         # Data augmentation parameters

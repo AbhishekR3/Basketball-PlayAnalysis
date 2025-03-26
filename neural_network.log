@@ -1,79 +1,68 @@
-2025-03-24 16:49:49,915 - INFO - Neural Network Processing started
-2025-03-24 16:49:49,915 - ERROR - Error in setting up Docker environment: [Errno 30] Read-only file system: '/app'
-2025-03-24 16:49:49,934 - INFO - Using device: mps
-2025-03-24 16:49:49,934 - INFO - Fitting scaler on training data...
-2025-03-24 16:49:49,934 - INFO - Loaded 18 files for train split
-2025-03-24 16:49:49,993 - INFO - Scaler fitted on 7416 samples
-2025-03-24 16:49:49,994 - INFO - Creating data augmentation transforms...
-2025-03-24 16:49:49,996 - INFO - Found pos_x column at index 16: pos_x_rolling_avg
-2025-03-24 16:49:49,996 - INFO - Found vel_x column at index 20: vel_x_rolling_avg
-2025-03-24 16:49:49,997 - INFO - Found vel_x column at index 28: prev_vel_x_rolling_avg
-2025-03-24 16:49:49,997 - INFO - Data augmentation enabled with horizontal flipping only
-2025-03-24 16:49:49,997 - INFO - Loaded 18 files for train split
-2025-03-24 16:49:49,997 - INFO - Loaded 5 files for validation split
-2025-03-24 16:49:49,997 - INFO - Loaded 10 files for test split
-2025-03-24 16:49:50,007 - INFO - Initialized BasketballLSTM model with 35 input features, 192 hidden dim, 2 layers, bidirectional=True, attention_heads=8
-2025-03-24 16:49:50,410 - INFO - Starting model training...
-2025-03-24 16:49:51,191 - INFO - Epoch 1/15 - Train Loss: 1.6559, Train Acc: 11.11%, Train Precision: 0.5000, Train Recall: 0.0625, Train F1: 0.1111, Val Loss: 1.5309, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.77s
-2025-03-24 16:49:51,213 - INFO - New best model saved with val_loss: 1.5309
-2025-03-24 16:49:51,518 - INFO - Epoch 2/15 - Train Loss: 0.2974, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 1.1558, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.30s
-2025-03-24 16:49:51,539 - INFO - New best model saved with val_loss: 1.1558
-2025-03-24 16:49:51,818 - INFO - Epoch 3/15 - Train Loss: 0.6112, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.7468, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.28s
-2025-03-24 16:49:51,843 - INFO - New best model saved with val_loss: 0.7468
-2025-03-24 16:49:52,159 - INFO - Epoch 4/15 - Train Loss: 0.3122, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.6546, Val Acc: 80.00%, Val Precision: 1.0000, Val Recall: 0.6667, Val F1: 0.8000, Time: 0.32s
-2025-03-24 16:49:52,180 - INFO - New best model saved with val_loss: 0.6546
-2025-03-24 16:49:52,399 - INFO - Epoch 5/15 - Train Loss: 0.2314, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.6216, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.22s
-2025-03-24 16:49:52,415 - INFO - New best model saved with val_loss: 0.6216
-2025-03-24 16:49:52,700 - INFO - Epoch 6/15 - Train Loss: 0.1265, Train Acc: 94.44%, Train Precision: 0.9412, Train Recall: 1.0000, Train F1: 0.9697, Val Loss: 0.5957, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.28s
-2025-03-24 16:49:52,717 - INFO - New best model saved with val_loss: 0.5957
-2025-03-24 16:49:52,932 - INFO - Epoch 7/15 - Train Loss: 0.1304, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.5894, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.22s
-2025-03-24 16:49:52,949 - INFO - New best model saved with val_loss: 0.5894
-2025-03-24 16:49:53,309 - INFO - Epoch 8/15 - Train Loss: 0.1807, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.5994, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.36s
-2025-03-24 16:49:53,309 - INFO - Early stopping patience: 1/5
-2025-03-24 16:49:53,608 - INFO - Epoch 9/15 - Train Loss: 0.1850, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.5523, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.30s
-2025-03-24 16:49:53,624 - INFO - New best model saved with val_loss: 0.5523
-2025-03-24 16:49:53,852 - INFO - Epoch 10/15 - Train Loss: 0.2346, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.5125, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.23s
-2025-03-24 16:49:53,868 - INFO - New best model saved with val_loss: 0.5125
-2025-03-24 16:49:54,079 - INFO - Epoch 11/15 - Train Loss: 0.1070, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.4654, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.21s
-2025-03-24 16:49:54,098 - INFO - New best model saved with val_loss: 0.4654
-2025-03-24 16:49:54,414 - INFO - Epoch 12/15 - Train Loss: 0.2060, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.4009, Val Acc: 80.00%, Val Precision: 1.0000, Val Recall: 0.6667, Val F1: 0.8000, Time: 0.32s
-2025-03-24 16:49:54,433 - INFO - New best model saved with val_loss: 0.4009
-2025-03-24 16:49:55,057 - INFO - Epoch 13/15 - Train Loss: 0.1835, Train Acc: 100.00%, Train Precision: 1.0000, Train Recall: 1.0000, Train F1: 1.0000, Val Loss: 0.4049, Val Acc: 80.00%, Val Precision: 1.0000, Val Recall: 0.6667, Val F1: 0.8000, Time: 0.62s
-2025-03-24 16:49:55,057 - INFO - Early stopping patience: 1/5
-2025-03-24 16:49:55,368 - INFO - Epoch 14/15 - Train Loss: 0.1996, Train Acc: 100.00%, Train Precision: 1.0000, Train Recall: 1.0000, Train F1: 1.0000, Val Loss: 0.4229, Val Acc: 60.00%, Val Precision: 0.6000, Val Recall: 1.0000, Val F1: 0.7500, Time: 0.31s
-2025-03-24 16:49:55,368 - INFO - Early stopping patience: 2/5
-2025-03-24 16:49:55,747 - INFO - Epoch 15/15 - Train Loss: 0.0890, Train Acc: 88.89%, Train Precision: 0.8889, Train Recall: 1.0000, Train F1: 0.9412, Val Loss: 0.3872, Val Acc: 80.00%, Val Precision: 1.0000, Val Recall: 0.6667, Val F1: 0.8000, Time: 0.38s
-2025-03-24 16:49:55,764 - INFO - New best model saved with val_loss: 0.3872
-2025-03-24 16:49:55,764 - INFO - Training completed in 5.34 seconds
-2025-03-24 16:49:55,765 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.csv
-2025-03-24 16:49:56,057 - INFO - Training history plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.png
-2025-03-24 16:50:04,563 - INFO - Model loaded from /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/best_model.pt
-2025-03-24 16:50:04,584 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/original_model.pt
-2025-03-24 16:50:04,584 - INFO - Original model saved before pruning
-2025-03-24 16:50:04,590 - INFO - Initialized BasketballLSTM model with 35 input features, 192 hidden dim, 2 layers, bidirectional=True, attention_heads=8
-2025-03-24 16:50:04,614 - INFO - Evaluating original model on test set...
-2025-03-24 16:50:04,728 - INFO - Test Loss: 0.1633, Test Acc: 90.00%, Test Precision: 1.0000, Test Recall: 0.8750, Test F1: 0.9333
-2025-03-24 16:50:04,729 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/test_metrics.csv
-2025-03-24 16:50:04,782 - INFO - Confusion matrix plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/confusion_matrix.png
-2025-03-24 16:50:06,667 - INFO - Applying structured magnitude-based pruning (20.0% of attention heads)...
-2025-03-24 16:50:06,732 - INFO - Pruned 2/8 attention heads (25.0%)
-2025-03-24 16:50:06,759 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruned_model.pt
-2025-03-24 16:50:06,759 - INFO - Pruned model saved
-2025-03-24 16:50:06,759 - INFO - Evaluating pruned model on test set...
-2025-03-24 16:50:06,759 - INFO - Evaluating pruned model on test set...
-2025-03-24 16:50:06,821 - INFO - Test Loss: 0.1820, Test Acc: 90.00%, Test Precision: 1.0000, Test Recall: 0.8750, Test F1: 0.9333
-2025-03-24 16:50:06,821 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/test_metrics.csv
-2025-03-24 16:50:06,874 - INFO - Confusion matrix plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/confusion_matrix.png
-2025-03-24 16:50:07,884 - INFO - Model parameters: 1832073, Non-zero parameters: 1832071
-2025-03-24 16:50:07,884 - INFO - Model sparsity: 0.00%
-2025-03-24 16:50:07,884 - INFO - Analyzing and visualizing pruning effects...
-2025-03-24 16:50:07,978 - INFO - Original model parameters: 1832073
-2025-03-24 16:50:07,978 - INFO - Pruned model non-zero parameters: 1832071
-2025-03-24 16:50:07,978 - INFO - Model size reduction: 0.00%
-2025-03-24 16:50:07,978 - INFO - Original model inference time: 6.51 ms/batch
-2025-03-24 16:50:07,978 - INFO - Pruned model inference time: 7.00 ms/batch
-2025-03-24 16:50:07,978 - INFO - Speed improvement: -7.53%
-2025-03-24 16:50:08,058 - INFO - Pruning comparison plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruning_comparison.png
-2025-03-24 16:50:08,059 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruning_metrics.csv
-2025-03-24 16:50:08,083 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/basketball_lstm_model.pt
-2025-03-24 16:50:08,083 - INFO - Training, pruning, and evaluation completed successfully!
+2025-03-25 18:12:44,675 - INFO - Neural Network Processing started
+2025-03-25 18:12:44,676 - ERROR - Error in setting up Docker environment: [Errno 30] Read-only file system: '/app'
+2025-03-25 18:12:44,695 - INFO - Using device: mps
+2025-03-25 18:12:44,695 - INFO - Fitting scaler on training data...
+2025-03-25 18:12:44,696 - INFO - Loaded 30 files for train split
+2025-03-25 18:12:44,774 - INFO - Scaler fitted on 11097 samples
+2025-03-25 18:12:44,776 - INFO - Creating data augmentation transforms...
+2025-03-25 18:12:44,779 - INFO - Found pos_x column at index 16: pos_x_rolling_avg
+2025-03-25 18:12:44,779 - INFO - Found vel_x column at index 20: vel_x_rolling_avg
+2025-03-25 18:12:44,779 - INFO - Found vel_x column at index 28: prev_vel_x_rolling_avg
+2025-03-25 18:12:44,779 - INFO - Data augmentation enabled with horizontal flipping only
+2025-03-25 18:12:44,779 - INFO - Loaded 30 files for train split
+2025-03-25 18:12:44,779 - INFO - Loaded 4 files for validation split
+2025-03-25 18:12:44,779 - INFO - Loaded 14 files for test split
+2025-03-25 18:12:44,802 - INFO - Initialized BasketballLSTM model with 35 input features, 192 hidden dim, 2 layers, bidirectional=True, attention_heads=8
+2025-03-25 18:12:45,376 - INFO - Starting model training...
+2025-03-25 18:12:47,286 - INFO - Epoch 1/15 - Train Loss: 1.5874, Train Acc: 40.00%, Train Precision: 0.4000, Train Recall: 0.4000, Train F1: 0.4000, Val Loss: 1.1834, Val Acc: 25.00%, Val Precision: 0.3333, Val Recall: 0.5000, Val F1: 0.4000, Time: 1.90s
+2025-03-25 18:12:47,304 - INFO - New best model saved with val_loss: 1.1834
+2025-03-25 18:12:47,697 - INFO - Epoch 2/15 - Train Loss: 0.9934, Train Acc: 50.00%, Train Precision: 0.5000, Train Recall: 0.6000, Train F1: 0.5455, Val Loss: 1.8449, Val Acc: 50.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.39s
+2025-03-25 18:12:47,697 - INFO - Early stopping patience: 1/5
+2025-03-25 18:12:48,044 - INFO - Epoch 3/15 - Train Loss: 0.8199, Train Acc: 63.33%, Train Precision: 1.0000, Train Recall: 0.2667, Train F1: 0.4211, Val Loss: 1.4681, Val Acc: 50.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.35s
+2025-03-25 18:12:48,044 - INFO - Early stopping patience: 2/5
+2025-03-25 18:12:48,335 - INFO - Epoch 4/15 - Train Loss: 0.5340, Train Acc: 80.00%, Train Precision: 1.0000, Train Recall: 0.6000, Train F1: 0.7500, Val Loss: 1.0523, Val Acc: 25.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.29s
+2025-03-25 18:12:48,353 - INFO - New best model saved with val_loss: 1.0523
+2025-03-25 18:12:48,720 - INFO - Epoch 5/15 - Train Loss: 0.4901, Train Acc: 66.67%, Train Precision: 0.6190, Train Recall: 0.8667, Train F1: 0.7222, Val Loss: 1.0695, Val Acc: 25.00%, Val Precision: 0.3333, Val Recall: 0.5000, Val F1: 0.4000, Time: 0.37s
+2025-03-25 18:12:48,720 - INFO - Early stopping patience: 1/5
+2025-03-25 18:12:49,019 - INFO - Epoch 6/15 - Train Loss: 0.5276, Train Acc: 63.33%, Train Precision: 0.5833, Train Recall: 0.9333, Train F1: 0.7179, Val Loss: 1.1562, Val Acc: 25.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.30s
+2025-03-25 18:12:49,019 - INFO - Early stopping patience: 2/5
+2025-03-25 18:12:49,290 - INFO - Epoch 7/15 - Train Loss: 0.4435, Train Acc: 76.67%, Train Precision: 0.9000, Train Recall: 0.6000, Train F1: 0.7200, Val Loss: 1.3543, Val Acc: 50.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.27s
+2025-03-25 18:12:49,290 - INFO - Early stopping patience: 3/5
+2025-03-25 18:12:49,576 - INFO - Epoch 8/15 - Train Loss: 0.4300, Train Acc: 80.00%, Train Precision: 1.0000, Train Recall: 0.6000, Train F1: 0.7500, Val Loss: 1.3528, Val Acc: 50.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.29s
+2025-03-25 18:12:49,576 - INFO - Early stopping patience: 4/5
+2025-03-25 18:12:49,944 - INFO - Epoch 9/15 - Train Loss: 0.3589, Train Acc: 83.33%, Train Precision: 1.0000, Train Recall: 0.6667, Train F1: 0.8000, Val Loss: 1.1337, Val Acc: 50.00%, Val Precision: 0.0000, Val Recall: 0.0000, Val F1: 0.0000, Time: 0.37s
+2025-03-25 18:12:49,944 - INFO - Early stopping patience: 5/5
+2025-03-25 18:12:49,944 - INFO - Early stopping triggered after 9 epochs
+2025-03-25 18:12:49,944 - INFO - Training completed in 4.55 seconds
+2025-03-25 18:12:49,947 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.csv
+2025-03-25 18:12:50,325 - INFO - Training history plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/training_history.png
+2025-03-25 18:13:02,316 - INFO - Model loaded from /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/best_model.pt
+2025-03-25 18:13:02,334 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/original_model.pt
+2025-03-25 18:13:02,334 - INFO - Original model saved before pruning
+2025-03-25 18:13:02,340 - INFO - Initialized BasketballLSTM model with 35 input features, 192 hidden dim, 2 layers, bidirectional=True, attention_heads=8
+2025-03-25 18:13:02,363 - INFO - Evaluating original model on test set...
+2025-03-25 18:13:02,477 - INFO - Test Loss: 0.7837, Test Acc: 42.86%, Test Precision: 0.4000, Test Recall: 0.2857, Test F1: 0.3333
+2025-03-25 18:13:02,478 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/test_metrics.csv
+2025-03-25 18:13:02,532 - INFO - Confusion matrix plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/confusion_matrix.png
+2025-03-25 18:13:05,486 - INFO - Applying structured magnitude-based pruning (20.0% of attention heads)...
+2025-03-25 18:13:05,558 - INFO - Pruned 2/8 attention heads (25.0%)
+2025-03-25 18:13:05,577 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruned_model.pt
+2025-03-25 18:13:05,577 - INFO - Pruned model saved
+2025-03-25 18:13:05,577 - INFO - Evaluating pruned model on test set...
+2025-03-25 18:13:05,577 - INFO - Evaluating pruned model on test set...
+2025-03-25 18:13:05,649 - INFO - Test Loss: 0.8364, Test Acc: 35.71%, Test Precision: 0.2500, Test Recall: 0.1429, Test F1: 0.1818
+2025-03-25 18:13:05,649 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/test_metrics.csv
+2025-03-25 18:13:05,698 - INFO - Confusion matrix plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/confusion_matrix.png
+2025-03-25 18:13:07,454 - INFO - Model parameters: 1832073, Non-zero parameters: 1832071
+2025-03-25 18:13:07,454 - INFO - Model sparsity: 0.00%
+2025-03-25 18:13:07,454 - INFO - Analyzing and visualizing pruning effects...
+2025-03-25 18:13:07,576 - INFO - Original model parameters: 1832073
+2025-03-25 18:13:07,576 - INFO - Pruned model non-zero parameters: 1832071
+2025-03-25 18:13:07,576 - INFO - Model size reduction: 0.00%
+2025-03-25 18:13:07,576 - INFO - Original model inference time: 6.85 ms/batch
+2025-03-25 18:13:07,576 - INFO - Pruned model inference time: 6.10 ms/batch
+2025-03-25 18:13:07,576 - INFO - Speed improvement: 10.90%
+2025-03-25 18:13:07,658 - INFO - Pruning comparison plot saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruning_comparison.png
+2025-03-25 18:13:07,659 - DEBUG - DataFrame successfully exported to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/pruning_metrics.csv
+2025-03-25 18:13:07,677 - INFO - Model saved to /Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/models/basketball_lstm_model.pt
+2025-03-25 18:13:07,677 - INFO - Training, pruning, and evaluation completed successfully!
