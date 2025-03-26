@@ -10,7 +10,8 @@ COPY requirements.txt .
 COPY run_sequence.sh .
 COPY utils.py .
 # Simulation
-COPY Passing_Simulation.py .
+#COPY Passing_Simulation.py .
+COPY RandomMovement_Simulation.py .
 COPY "assets/Basketball_Court_Diagram.jpg" ./assets/
 # Tracking
 COPY Object_Tracking.py .

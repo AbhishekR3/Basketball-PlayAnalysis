@@ -236,10 +236,13 @@ logger = configure_logger('tracking')
 
 # Path to the video file / basketball court diagram
 try:
-    video_path = os.path.join(video_dir, 'simulation_video.mp4')
+    video_path = os.path.join(video_dir, 'simulation_video.mp4') # Passing simulation video path
+    video_path = os.path.join(video_dir, 'random_movement_video.mp4') # Random movement video path
     basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 except Exception as e:
-    video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4"
+    video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4" # Passing simulation video path
+    script_directory = os.getcwd()
+    video_path = os.path.join(script_directory, 'simulations', 'random_movement_video.mp4') # Random movement video path
     basketball_court_diagram = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/Basketball Court Diagram.jpg"
 
 print(f"Video path: {video_path}")
