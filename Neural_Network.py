@@ -846,7 +846,7 @@ def horizontal_flip_transform(flip_probability=0.5, x_position_col=None, x_veloc
 
 #%% Training and Evaluation Functions
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=15, device='cpu', early_stopping_patience=3):
+def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=10, device='cpu', early_stopping_patience=3):
     """
     Objective:
     Train the LSTM model with validation and early stopping
@@ -857,7 +857,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
     [DataLoader] val_loader - DataLoader for validation data
     [nn.Module] criterion - Loss function
     [optim.Optimizer] optimizer - Optimizer
-    [int] num_epochs - Number of epochs to train (default: 15)
+    [int] num_epochs - Number of epochs to train
     [string] device - Device to train on ('cpu', 'cuda', or 'mps')
     [int] early_stopping_patience - Number of epochs to wait for improvement
     
@@ -1363,11 +1363,11 @@ def main():
         except:
             data_path = '/Users/abhishekramesh/Desktop/Passing'
             
-        batch_size = 16
-        num_epochs = 15
-        learning_rate = 0.001
-        early_stopping_patience = 3
-        prune_amount = 0.2  # 20% pruning
+        batch_size = 32
+        num_epochs = 20
+        learning_rate = 0.0005
+        early_stopping_patience = 2
+        prune_amount = 0.4
         
         # Data augmentation parameters
         use_augmentation = True
@@ -1516,18 +1516,18 @@ def main():
         # Initialize model with multi-head attention
         model = BasketballLSTM(
             input_dim=input_dim,
-            hidden_dim=192,
+            hidden_dim=256,
             output_dim=1,
-            num_layers=2,
-            dropout=0.3,
-            recurrent_dropout=0.15,
+            num_layers=3,
+            dropout=0.5,
+            recurrent_dropout=0.25,
             bidirectional=True,
             num_heads=num_heads
         )
         
         # Initialize loss function and optimizer
         criterion = nn.BCELoss()
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=5e-5)  # L2 regularization
+        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4)  # L2 regularization
         
         # Train the model
         logger.info("Starting model training...")
@@ -1559,14 +1559,15 @@ def main():
         # Create a copy of the original model for comparison
         original_model = BasketballLSTM(
             input_dim=input_dim,
-            hidden_dim=192,
+            hidden_dim=256,
             output_dim=1,
-            num_layers=2,
-            dropout=0.3,
-            recurrent_dropout=0.15,
+            num_layers=3,
+            dropout=0.5,
+            recurrent_dropout=0.25,
             bidirectional=True,
             num_heads=num_heads
         )
+
         original_model.load_state_dict(torch.load(original_model_path, map_location=device))
         original_model = original_model.to(device)
         

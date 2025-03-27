@@ -38,16 +38,16 @@ mkdir -p "$LOG_DIR" /app/output/tracking_data /app/output/simulations
 # Run the scripts in sequence
 
 # Passing Simulation
-log_message "Starting Passing_Simulation.py"
+#log_message "Starting Passing_Simulation.py"
 # The 2>&1 redirects both stdout (1) and stderr (2) to the log file
-python3 Passing_Simulation.py > "$LOG_DIR/Passing_Simulation_output.log" 2>&1
-check_success "Passing_Simulation"
+#python3 Passing_Simulation.py > "$LOG_DIR/Passing_Simulation_output.log" 2>&1
+#check_success "Passing_Simulation"
 
 # Random Movement Simulation
-#log_message "Starting RandomMovement_Simulation.py"
+log_message "Starting RandomMovement_Simulation.py"
 # The 2>&1 redirects both stdout (1) and stderr (2) to the log file
-#python3 RandomMovement_Simulation.py > "$LOG_DIR/RandomMovement_Simulation_output.log" 2>&1
-#check_success "RandomMovement_Simulation"
+python3 RandomMovement_Simulation.py > "$LOG_DIR/RandomMovement_Simulation_output.log" 2>&1
+check_success "RandomMovement_Simulation"
 
 # Object Tracking
 log_message "Starting Object_Tracking.py"
