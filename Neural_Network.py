@@ -721,13 +721,14 @@ def time_warp_transform(sigma=0.2, num_knots=4):
         raise
 
 
-def jitter_transform(intensity=0.05):
+def jitter_transform(intensity=0.05, exclude_columns=None):
     """
     Objective:
-    Create a jitter transform with given intensity that's more robust to different data types
+    Create a more robust jitter transform that selectively adds noise based on feature type and handles edge cases
     
     Parameters:
     [float] intensity - Intensity of jitter as a fraction of feature standard deviation (0.05=low)
+    [list] exclude_columns - Optional list of column indices to exclude from jittering
     
     Returns:
     [callable] transform - A transform function that applies jittering
@@ -736,7 +737,7 @@ def jitter_transform(intensity=0.05):
         def transform(features):
             """
             Objective:
-            Apply jittering to the input features with improved error handling
+            Apply selective jittering to the input features with improved error handling
             
             Parameters:
             [numpy.ndarray] features - Features to transform
@@ -745,44 +746,64 @@ def jitter_transform(intensity=0.05):
             [numpy.ndarray] jittered_features - Features with added noise
             """
             try:
-                # Check if features is empty or has no columns
-                if features.size == 0 or features.shape[1] == 0:
+                # Check if features is empty or has invalid shape
+                if features.size == 0 or features.ndim != 2:
+                    logger.warning("Skipping jitter: Invalid feature shape or empty array")
                     return features
                 
                 # Make a copy to avoid modifying the original
                 jittered_features = features.copy()
                 
-                # Add small amount of noise to each column individually
-                # This avoids the need to compute std across all features
+                # Initialize the exclude_columns set if it's None
+                exclude_cols = set() if exclude_columns is None else set(exclude_columns)
+                
+                # Automatic column exclusion (add categorical/boolean columns)
                 for col_idx in range(features.shape[1]):
+                    # Skip if explicitly excluded
+                    if col_idx in exclude_cols:
+                        continue
+                        
                     # Get the column data
                     column = features[:, col_idx]
                     
                     # Skip if column is empty
                     if len(column) == 0:
                         continue
-                        
+                    
+                    # Skip if all values are the same (likely categorical/boolean)
+                    if np.all(column == column[0]):
+                        continue
+                    
+                    # Skip if column contains only a few unique values (likely categorical)
+                    unique_values = np.unique(column)
+                    if len(unique_values) < 5:
+                        continue
+                    
                     try:
-                        # Try to compute standard deviation for this column
-                        # Use float type to avoid any dtype issues
-                        col_std = float(np.std(column))
+                        # Compute standard deviation for this column
+                        col_std = np.nanstd(column.astype(np.float64))
                         
-                        # If std is valid, add noise
-                        if not np.isnan(col_std) and col_std > 0:
-                            # Generate noise for this column
-                            noise = np.random.normal(0, col_std * intensity, size=len(column))
+                        # If std is valid and non-zero, add noise
+                        if np.isfinite(col_std) and col_std > 1e-10:
+                            # Generate noise for this column - use a smaller multiplier for very large stds
+                            # to prevent extreme values
+                            noise_scale = min(col_std, 1.0) * intensity
+                            noise = np.random.normal(0, noise_scale, size=len(column))
                             
                             # Add noise to column
                             jittered_features[:, col_idx] = column + noise
+                        else:
+                            # For very small std, add minimal noise to avoid unchanged values
+                            tiny_noise = np.random.normal(0, intensity * 0.001, size=len(column))
+                            jittered_features[:, col_idx] = column + tiny_noise
                     except Exception as column_error:
-                        # If there's an error with this column, skip it
                         logger.debug(f"Skipping jitter on column {col_idx}: {column_error}")
                         continue
                 
                 return jittered_features
             
             except Exception as e:
-                logger.error(f"Error in jitter transform: {e}")
+                logger.warning(f"Error in jitter transform: {e}")
                 return features  # Return original features on error
         
         return transform
@@ -1449,16 +1470,15 @@ def main():
                 vel_x_col = 20  # Hardcoded fallback
                 logger.info(f"Using fallback column indices after error: pos_x={pos_x_col}, vel_x={vel_x_col}")
             
-            # Create simpler transforms that are less likely to cause errors
-            # Only apply horizontal flipping for now as it's more robust
+            # Create the transforms
             train_transform = ComposeTransforms([
-                # Skip time warping for now as it may be causing issues
-                # time_warp_transform(sigma=time_warp_sigma, num_knots=time_warp_knots),
+                # Time Warping Transformation
+                #time_warp_transform(sigma=time_warp_sigma, num_knots=time_warp_knots),
                 
-                # Skip jittering for now as it's causing errors
-                # jitter_transform(intensity=jitter_intensity),
+                # Jitter transformation
+                #jitter_transform(intensity=jitter_intensity),
                 
-                # Keep horizontal flip as it's simpler and less error-prone
+                # Horizontal Flip Transformation
                 horizontal_flip_transform(
                     flip_probability=flip_probability, 
                     x_position_col=pos_x_col,
@@ -1469,11 +1489,11 @@ def main():
                 ScaleTransform(scaler)
             ])
     
-            logger.info("Data augmentation enabled with horizontal flipping only")
+            logger.info("Data transformations applied")
 
         else:
             train_transform = ScaleTransform(scaler)
-            logger.info("Data augmentation disabled, using only standard scaling")
+            logger.info("Data transformations disabled, using only standard scaling")
         
         # Validation and test data should not be augmented
         val_test_transform = ScaleTransform(scaler)
