@@ -1,9 +1,10 @@
 Implemeneted features / Theoretical Concepts
 
-These are the implemented features and relevant concepts to read on to understand how everything works.
+These are the implemented features and relevant concepts to read on to understand how the repository works.
 
 Simulation
 - Pygame
+- Alpha Blending
 
 Object Tracking
 - Object Detection / Tracking
@@ -24,10 +25,11 @@ Database
 
 Neural Networks
 - LSTM/RNN
+- Bidirectional Model
 - Model Pruning
 - Downsampling
 
 Additional
 - CI Testing
 - Docker
-- GPU Acceleration
+- GPU Accelerated programming
