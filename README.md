@@ -9,18 +9,18 @@
 
 
 ## Table of Contents
-- [Project Description](#project-description)
+- [Product Description](#product-description)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Dependencies](#dependencies)
 - [Usage](#usage)
-- [Project Structure](#project-structure)
+- [Product Structure](#product-structure)
 - [License](#license)
 
 
-## Project-Description
+## Product-Description
 
-Project Goals:
+Product Goals:
 
 PlayBook AI will help basketball professionals:
 * Analyze offensive and defensive plays executed by teams
@@ -28,13 +28,13 @@ PlayBook AI will help basketball professionals:
 * Understand play patterns in critical game moments
 * Identify a team's most/least successful plays
 
-Project Overview:
+Product Overview:
 1. Simulate basketball plays for training data
 2. Perform multi-object tracking with custom detection model
-3. Apply feature engineering
+3. Optimize dataset using feature engineering techniques 
 4. Leverage spatial databases with ACID and Spatial Index for efficient data management
-5. Create a classification Neural Network
-6. Deploy software on AWS with GPU accelerated libraries, CI testing pipelines, and Docker.
+5. Create a classification Neural Network based on LSTM
+6. Deploy software on AWS with GPU accelerated libraries, CI testing pipelines, and Docker
 
 Object Tracking on a simulation of a player dribbling
 
@@ -70,17 +70,19 @@ cd Basketball-PlayAnalysis
 
 These files are built on Python 3.11-slim.
 Run files in this order
-1. Passing_Simulation.py / RandomMovement_Simulation.py to generate video simulations of passes or random movement (not a pass)
+1. Passing_Simulation.py / RandomMovement_Simulation.py to generate video simulations of passes or random player/ball movement (not a pass)
 2. Object_Tracking.py for object tracking for the relevant video simulation
 3. Feature_Engineering.py for extracting relevant features and optimizing the dataset
+4. Neural_Network.py to create custom LSTM model
 
 ```bash
 python Passing_Simulation.py
 python Object_Tracking.py
 python Feature_Engineering.py
+python Neural_Network.py
 ```
 
-## Project-Structure
+## Product-Structure
 Relevant files
 
 ```bash
@@ -90,11 +92,14 @@ Basketball-PlayAnalysis/
 │   ├── YOLOv10s_custom.pt                          # Custom Object Detection Model based on YOLOv10s
 │   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
 │   ├── LSTM Architecture.png                       # Neural Network LSTM Architecture layout
+│   ├── basketball_lstm_model.pt                    # Best performing LSTM based model
+│   ├── pruned_model.pt                             # Pruned model based on best performing LSTM model
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
-├── References/                                     # References for the development of the project
+├── References/                                     # References for the development of the product
 │   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
 │   ├── Citations                                   # Citations
-│   ├── PlayBookAI-Basketball Features              # Relevant concepts to help understand the code/flow
+│   ├── lstm_training_history.csv                   # LSTM training history metrics
+│   ├── pruning_comparison.png                      # Pruned model compared to oringal model
 ├── Data_Loading.py                                 # Loading extracted object tracking information into database
 ├── dockerfile                                      # File to setup isolated environment to test code
 ├── Feature_Engineering.py                          # Optimizing the raw object tracking dataset for the neural network
@@ -102,12 +107,12 @@ Basketball-PlayAnalysis/
 ├── Object_Tracking.py                              # Script for tracking objects in the simulation
 ├── Passing_Simulation.py                           # Script for simulating passing plays
 ├── RandomMovement_Simulation.py                    # Script for simulating random object movement plays
-├── README.md                                       # Project documentation
-├── Requirements.txt                                # Project library requirements
+├── README.md                                       # Product documentation
+├── requirements.txt                                # Product library requirements
 ├── run_sequence.sh                                 # Sequence on how to execute files for isolated (Docker) environments
 ├── utils.py                                        # Commonly used functions to avoid duplication
 ```
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.
+This product is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.

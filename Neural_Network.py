@@ -9,7 +9,7 @@ Key Concepts Implemented:
 - Bi-directional Processing - Forward and backward pass for comprehensive temporal context
 - Downsampling - Reducing the number of frames to manage computational load
 - Model Pruning - Structured magnitude-based pruning of attention heads to reduce model size
-- Metrics Evaluation - Precision, recall, F1 score, and confusion matrix for model performance assessment
+- Metrics Evaluation - Accuracy, Precision, Recall, F1 score, and confusion matrix for model performance assessment
 '''
 
 #%%
@@ -46,9 +46,6 @@ logger.info("Neural Network Processing started")
 SEED = 42
 torch.manual_seed(SEED)
 np.random.seed(SEED)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(SEED)
-    torch.cuda.manual_seed_all(SEED)
 
 #%% Configure Docker containerization
 try:
@@ -171,9 +168,10 @@ class BasketballPlayDataset(Dataset):
             # Sort by Frame to ensure temporal coherence
             df = df.sort_values(by='Frame')
 
-            # Apply regular interval downsampling - select every 3rd frame
+            # Apply regular interval downsampling - select every nth frame
             frame_values = df['Frame'].unique()
-            selected_frames = frame_values[::3]  # Take every 3rd frame
+            nth_frame_selected = 1 # Select every nth frame, change this to control the downsampling rate
+            selected_frames = frame_values[::nth_frame_selected]
             
             # Filter dataframe to only include selected frames
             df = df[df['Frame'].isin(selected_frames)]
@@ -1387,7 +1385,7 @@ def main():
         batch_size = 32
         num_epochs = 20
         learning_rate = 0.0005
-        early_stopping_patience = 2
+        early_stopping_patience = 4
         prune_amount = 0.4
         
         # Data augmentation parameters
@@ -1473,10 +1471,10 @@ def main():
             # Create the transforms
             train_transform = ComposeTransforms([
                 # Time Warping Transformation
-                #time_warp_transform(sigma=time_warp_sigma, num_knots=time_warp_knots),
+                time_warp_transform(sigma=time_warp_sigma, num_knots=time_warp_knots),
                 
                 # Jitter transformation
-                #jitter_transform(intensity=jitter_intensity),
+                jitter_transform(intensity=jitter_intensity),
                 
                 # Horizontal Flip Transformation
                 horizontal_flip_transform(
@@ -1536,11 +1534,11 @@ def main():
         # Initialize model with multi-head attention
         model = BasketballLSTM(
             input_dim=input_dim,
-            hidden_dim=256,
+            hidden_dim=128,
             output_dim=1,
-            num_layers=3,
-            dropout=0.5,
-            recurrent_dropout=0.25,
+            num_layers=2,
+            dropout=0.6,
+            recurrent_dropout=0.3,
             bidirectional=True,
             num_heads=num_heads
         )
@@ -1579,11 +1577,11 @@ def main():
         # Create a copy of the original model for comparison
         original_model = BasketballLSTM(
             input_dim=input_dim,
-            hidden_dim=256,
+            hidden_dim=128,
             output_dim=1,
-            num_layers=3,
-            dropout=0.5,
-            recurrent_dropout=0.25,
+            num_layers=2,
+            dropout=0.6,
+            recurrent_dropout=0.3,
             bidirectional=True,
             num_heads=num_heads
         )

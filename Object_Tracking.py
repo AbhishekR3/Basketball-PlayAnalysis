@@ -33,12 +33,12 @@ from deep_sort.tools import generate_detections as gdet
 def filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.8):
     '''
     Objective:
-
+    Filter out low confidence detections based on class names and scores.
 
     Parameters:
-    [array] scores
-    [float]
-    [float]
+    [array] scores - Array of confidence scores for each detected object
+    [float] basketball_score - Confidence threshold for basketball
+    [float] player_score - Confidence threshold for players
 
     Returns:
     [array] mask - Array of boolean values on which values to remove 
@@ -48,6 +48,7 @@ def filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score
         mask = []
         result = np.column_stack((class_names, scores)) #Combine into 2D array
 
+        # Go through each element in the result array to filter out low confidence scores
         for ith in result:
             if ith[0] == 'Basketball':
                 if float(ith[1]) > basketball_score:
@@ -90,6 +91,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         with torch.no_grad():
             results = model(frame)
         
+        # For each frame, return information on detected objects/inference information 
         print(results)
 
         # Extract bounding boxes, scores, class_id (Basketball, Team_A, Team_B)
@@ -122,6 +124,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
                 class_name)
             detections.append(detection)
         
+        # If no detections are found, return the frame and log the information
         if detections is None:
             print('No circle features were detected in the frame')
             frame_time = np.float32(n_frames/30)
@@ -182,8 +185,6 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
             # Draw bounding boxes and IDs
             cv2.putText(frame, f"{track.track_id}-{confidence_score:.3f}", (int(bbox[0]), int(bbox[1])-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-        
-        print('frame completed')
 
         return frame, n_missed, detected_objects
     
@@ -237,17 +238,16 @@ logger = configure_logger('tracking')
 # Path to the video file / basketball court diagram
 try:
     # Choose between random movement / passing simulation
-    try:
-        video_path = os.path.join(video_dir, 'random_movement_video.mp4') # Random movement video path
-    except:
-        video_path = os.path.join(video_dir, 'simulation_video.mp4') # Passing simulation video path
+    #video_path = os.path.join(video_dir, 'random_movement_video.mp4') # Random movement video path
+    video_path = os.path.join(video_dir, 'simulation_video.mp4') # Passing simulation video path
+        
     basketball_court_diagram = os.path.join(assets_dir, 'Basketball Court Diagram.jpg')
 except Exception as e:
     script_directory = os.getcwd()
-    try:
-        video_path = os.path.join(script_directory, 'simulations', 'random_movement_video.mp4') # Random movement video path
-    except:
-        video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4" # Passing simulation video path
+    
+    #video_path = os.path.join(script_directory, 'simulations', 'random_movement_video.mp4') # Random movement video path
+    video_path = "/Users/abhishekramesh/Desktop/simulation_video.mp4" # Passing simulation video path
+    
     basketball_court_diagram = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/Basketball Court Diagram.jpg"
 
 print(f"Video path: {video_path}")
@@ -311,7 +311,10 @@ try:
     model_path = os.path.join(assets_dir, 'YOLOv10s_custom.pt')
     print("Model path created")
 except Exception as e:
-    model_path = "/Users/abhishekramesh/Library/Mobile Documents/com~apple~CloudDocs/Basketball-PlayAnalysis/assets/YOLOv10s_custom.pt"
+    print("Model Path not found")
+    logger.error (f"Error: Couldn't find the YOLO model file. {e}")
+    exit()
+
 model = YOLO(model_path)
 model.info() # Model Information
 model.iou = 0.45
@@ -348,8 +351,6 @@ try:
 
     # Loop through each frame in the video
     while cap.isOpened():
-        print('Start processing frame')
-
         # Read a frame from the video
         ret, frame_colored = cap.read()
 
@@ -364,9 +365,6 @@ try:
         tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
         print('Object Tracking completed')
 
-        # Prepare the frame for display
-        #tracked_frame = prepare_frame_for_display(tracked_frame)
-
         # Display Video Frame
         #cv2.imshow('Basketball Object Tracking', tracked_frame)
         #cv2.waitKey(1)  # Add a small delay to allow the window to update
@@ -379,11 +377,6 @@ try:
         print('Frame number:', n_frames)
 
         '''
-        # If 5 frames has been processed and present in Docker Environment, break
-        if n_frames > 5 and os.path.exists('/.dockerenv'):
-            print('Simulation stopped, due to being tested in docker environment')
-            break
-        
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")

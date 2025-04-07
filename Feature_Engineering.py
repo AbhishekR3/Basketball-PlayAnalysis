@@ -753,7 +753,7 @@ def trackid_temporal_encoding(df):
         return df
 
     except Exception as e:
-        logger.error("Error when peforming temporal encoding for an exponential decay on TrackID: %s", e)
+        logger.error("Error when peforming temporal encoding on TrackID: %s", e)
         raise
 
 #%% Perform Normalization
@@ -904,8 +904,8 @@ def main():
  
         # Generate timestamp for filename
         current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
-        #export_filename = f'passing_{current_time}.csv'
-        export_filename = f'not_passing_{current_time}.csv'
+        export_filename = f'passing_{current_time}.csv'
+        #export_filename = f'not_passing_{current_time}.csv'
 
         # Export the finalized dataset into a csv
         try:
