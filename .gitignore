@@ -1,3 +1,10 @@
 simulations/random_movement_video.mp4
 Abhishek Notes
+Development Notes
 models/
+__pycache__/
+feature_engineering.log
+neural_network.log
+random_movement.log
+tracking.log
+simulation.log

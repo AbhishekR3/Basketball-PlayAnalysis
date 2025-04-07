@@ -9,7 +9,6 @@ Simulation
 Object Tracking
 - Object Detection / Tracking
 - YOLO object detection models
-- Data Augmentations
 - DeepSORT Tracking Algorithm
 - Image masking
 
@@ -28,6 +27,7 @@ Neural Networks
 - Bidirectional Model
 - Model Pruning
 - Downsampling
+- Self Attention + Multi Head Attention
 
 Additional
 - CI Testing

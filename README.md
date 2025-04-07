@@ -98,7 +98,6 @@ Basketball-PlayAnalysis/
 ├── References/                                     # References for the development of the product
 │   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
 │   ├── Citations                                   # Citations
-│   ├── lstm_training_history.csv                   # LSTM training history metrics
 │   ├── pruning_comparison.png                      # Pruned model compared to oringal model
 ├── Data_Loading.py                                 # Loading extracted object tracking information into database
 ├── dockerfile                                      # File to setup isolated environment to test code
