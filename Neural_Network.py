@@ -27,7 +27,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from scipy.interpolate import interp1d
 import secrets
-import random
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from collections import defaultdict
@@ -907,7 +906,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             all_train_preds = []
             all_train_labels = []
             
-            for _, (features, labels, lengths) in enumerate(tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Training')):
+            for _, (features, labels, _) in enumerate(tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Training')):
                 # Move data to device
                 features, labels = features.to(device), labels.to(device)
                 
@@ -1309,7 +1308,6 @@ def analyze_and_visualize_pruning(original_model, pruned_model, test_loader, dev
         
         # Calculate model sizes
         original_num_params = sum(p.numel() for p in original_model.parameters())
-        pruned_num_params = sum(p.numel() for p in pruned_model.parameters())
         nonzero_pruned_params = sum(p.nonzero().size(0) for p in pruned_model.parameters())
         size_reduction = (original_num_params - nonzero_pruned_params) / original_num_params * 100
         
@@ -1377,7 +1375,7 @@ def main():
         try:
             # Use environment variables if available
             data_path = os.environ.get('DATA_PATH', '/Users/abhishekramesh/Desktop/Passing')
-        except:
+        except TypeError:
             data_path = '/Users/abhishekramesh/Desktop/Passing'
             
         batch_size = 32
@@ -1517,13 +1515,6 @@ def main():
         
         val_loader = DataLoader(
             val_dataset, 
-            batch_size=batch_size, 
-            shuffle=False, 
-            collate_fn=collate_variable_length_sequences
-        )
-        
-        test_loader = DataLoader(
-            test_dataset, 
             batch_size=batch_size, 
             shuffle=False, 
             collate_fn=collate_variable_length_sequences
