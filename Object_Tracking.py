@@ -376,7 +376,7 @@ try:
         n_frames += 1
         print('Frame number:', n_frames)
 
-        '''
+        """
         # Press 'q' to quit
         if cv2.waitKey(25) & 0xFF == ord('q'):
             logger.debug ("Simulation stopped through manual intervention")
@@ -386,7 +386,7 @@ try:
         if os.getenv('GITHUB_ACTIONS') == 'true' and n_frames > 0:
             logger.debug ("Simulation stopped, due to being tested in github actions")
             break
-        '''
+        """
 
     # If no objects were detected in the video, log an error and exit
     if detected_objects.empty:
@@ -420,4 +420,5 @@ finally:
     try:
         cv2.destroyAllWindows()
     except Exception as e:
+        logger.error (f"Error in closing video windows: {e}")
         pass

@@ -910,12 +910,12 @@ def main():
         # Export the finalized dataset into a csv
         try:
             processed_feature_dataset_file_path = os.path.join(tracking_dir, export_filename)
-        except Exception as e:
+        except TypeError:
             processed_feature_dataset_file_path = f'assets/{export_filename}'
 
         try:
             export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
-        except Exception as e:
+        except TypeError:
             export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")

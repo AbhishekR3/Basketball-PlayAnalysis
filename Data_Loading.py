@@ -241,7 +241,7 @@ def spatial_data_structure(data_row):
 
         return tracking_data
     
-    except:
+    except Exception as e:
         logger.error(f"Failed storing data into tracking_data structure: {e}")
         raise
 

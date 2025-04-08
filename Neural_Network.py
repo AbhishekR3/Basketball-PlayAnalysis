@@ -26,13 +26,12 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from scipy.interpolate import interp1d
+import secrets
 import random
-import math
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import time
-import datetime
 import seaborn as sns
 from utils import export_dataframe_to_csv, configure_logger
 
@@ -491,7 +490,6 @@ class BasketballLSTM(nn.Module):
         """
         try:
             batch_size = x.size(0)
-            seq_len = x.size(1)
             
             # Initialize hidden state if not provided
             if hidden is None:
@@ -837,7 +835,7 @@ def horizontal_flip_transform(flip_probability=0.5, x_position_col=None, x_veloc
             """
             try:
                 # Skip based on probability
-                if random.random() > flip_probability:
+                if secrets.SystemRandom().random() > flip_probability:
                     return features
                 
                 # Make a copy of features to avoid modifying the original
@@ -909,7 +907,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             all_train_preds = []
             all_train_labels = []
             
-            for i, (features, labels, lengths) in enumerate(tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Training')):
+            for _, (features, labels, lengths) in enumerate(tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Training')):
                 # Move data to device
                 features, labels = features.to(device), labels.to(device)
                 
@@ -1014,7 +1012,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
                 # Save the best model
                 try:
                     best_model_path = os.path.join(model_dir, 'best_model.pt')
-                except:
+                except TypeError:
                     best_model_path = 'best_model.pt'
                 torch.save(model.state_dict(), best_model_path)
                 logger.info(f"New best model saved with val_loss: {val_loss:.4f}")
@@ -1069,7 +1067,7 @@ def evaluate_model(model, test_loader, criterion, device='cpu'):
         all_labels = []
         
         with torch.no_grad():
-            for features, labels, lengths in tqdm(test_loader, desc='Testing'):
+            for features, labels, _ in tqdm(test_loader, desc='Testing'):
                 # Move data to device
                 features, labels = features.to(device), labels.to(device)
                 
@@ -1589,15 +1587,6 @@ def main():
         original_model.load_state_dict(torch.load(original_model_path, map_location=device))
         original_model = original_model.to(device)
         
-        # Evaluate original model on test set
-        logger.info("Evaluating original model on test set...")
-        original_metrics = evaluate_model(
-            model=original_model,
-            test_loader=test_loader,
-            criterion=criterion,
-            device=device
-        )
-        
         # Apply pruning to the model
         logger.info(f"Applying structured magnitude-based pruning ({prune_amount:.1%} of attention heads)...")
         pruned_model = prune_attention_heads(model, prune_amount=prune_amount)
@@ -1606,24 +1595,6 @@ def main():
         pruned_model_path = os.path.join(model_dir, 'pruned_model.pt')
         save_model(pruned_model, pruned_model_path)
         logger.info("Pruned model saved")
-        
-        # Evaluate pruned model on test set
-        logger.info("Evaluating pruned model on test set...")
-        pruned_metrics = evaluate_pruned_model(
-            model=pruned_model,
-            test_loader=test_loader,
-            criterion=criterion,
-            device=device
-        )
-        
-        # Analyze and visualize the effect of pruning
-        logger.info("Analyzing and visualizing pruning effects...")
-        pruning_analysis = analyze_and_visualize_pruning(
-            original_model=original_model,
-            pruned_model=pruned_model,
-            test_loader=test_loader,
-            device=device
-        )
         
         # Save the final model (in this case, the pruned model)
         final_model_path = os.path.join(model_dir, 'basketball_lstm_model.pt')

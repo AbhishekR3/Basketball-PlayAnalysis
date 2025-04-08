@@ -9,7 +9,6 @@ Utilizing pygame, simulating random basketball and player movements without stru
 import pygame
 import math
 import time
-import datetime
 import numpy as np
 import os
 import cv2
@@ -521,9 +520,7 @@ def initialize_simulation():
         logger.error("Error in initializing the simulation: %s", e)
         raise
 
-#%%
-
-" Random Movement Simulation "
+#%% Random Movement Simulation
 
 try:
     initialize_simulation()
@@ -534,7 +531,7 @@ try:
     video_format = cv2.VideoWriter_fourcc(*'XVID')
     try:
         video_output_path = os.path.join(video_dir, 'random_movement_video.mp4')
-    except:
+    except TypeError:
         video_output_path = os.path.join(os.getcwd(), 'assets/random_movement_video.mp4')
     out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
@@ -598,6 +595,5 @@ except Exception as e:
     raise
 
 finally:
-    # Clean up
     out.release()
     pygame.quit()
