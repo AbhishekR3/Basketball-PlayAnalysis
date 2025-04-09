@@ -885,7 +885,6 @@ def main():
             raw_dataset_file_path = os.path.join(tracking_dir, 'detected_objects.csv')
         except Exception as e:
             raw_dataset_file_path = 'assets/detected_objects.csv'
-            raw_dataset_file_path = '/Users/abhishekramesh/Desktop/detected_objects.csv'
             logger.debug(f"Error in reading raw dataset: {e}")
 
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
@@ -904,8 +903,8 @@ def main():
  
         # Generate timestamp for filename
         current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
-        export_filename = f'passing_{current_time}.csv'
-        #export_filename = f'not_passing_{current_time}.csv'
+        #export_filename = f'passing_{current_time}.csv'
+        export_filename = f'not_passing_{current_time}.csv'
 
         # Export the finalized dataset into a csv
         try:
