@@ -1,9 +1,9 @@
 # PlayBook AI: Basketball Intelligence
 
+[![CI Testing](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/ci.yml/badge.svg)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/ci.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Release Badge](https://img.shields.io/github/v/release/AbhishekR3/Basketball-PlayAnalysis.svg?color=orange)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/releases)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.3.0-%23EE4C2C.svg?logo=PyTorch&logoColor=white)
 ![AWS](https://img.shields.io/badge/Amazon_AWS-232F3E?style=flat&logo=amazon-web-services&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 

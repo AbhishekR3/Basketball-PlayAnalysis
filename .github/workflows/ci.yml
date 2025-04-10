@@ -1,4 +1,4 @@
-name: Basketball PlayBook AI CI
+name: CI Testing
 
 on:
   push:
