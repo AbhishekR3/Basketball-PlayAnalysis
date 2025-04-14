@@ -1,0 +1,35 @@
+Implemeneted features / Theoretical Concepts
+
+These are the implemented features and relevant concepts to read on to understand how the repository works.
+
+Simulation
+- Pygame
+- Alpha Blending
+
+Object Tracking
+- Object Detection / Tracking
+- YOLO object detection models
+- DeepSORT Tracking Algorithm
+- Image masking
+
+Feature Engineering
+- PCA (Principal Component Analysis)
+- Categorical / One Hot Encoding 
+- Temporal Encoding
+
+Database
+- ACID properties
+- Spatial Databases
+- Spatial Index / Quadtree
+
+Neural Networks
+- LSTM/RNN
+- Bidirectional Model
+- Model Pruning
+- Downsampling
+- Self Attention + Multi Head Attention
+
+Additional
+- CI Testing
+- Docker
+- GPU Accelerated programming

@@ -17,7 +17,7 @@ import cv2
 import secrets
 from utils import configure_logger
 
-#%%
+#%% Class - Player
 
 class Player:
     "Class for players"
@@ -130,7 +130,7 @@ class Player:
             logger.error("Error in drawing player: %s", e)
             raise
 
-#%%
+#%% Class - Basketball 
 
 class Basketball:
     "Class for the Basketball"
@@ -212,7 +212,7 @@ class Basketball:
             raise
 
 
-#%%
+#%% Updating basketball attributes
 
 def update_basketball_position(ball, dribbling_player, basketball_displacement):
     """
@@ -267,7 +267,7 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
         raise
 
 
-#%%
+#%% Basketball - Player positioning
 
 def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomness, ball_offset, ball_angle, dribbling_player, basketball_displacement):
     """
@@ -332,7 +332,7 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
         raise
 
 
-#%%
+#%% Moving basketball
 
 def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None, exclusion_list=None):
     """
@@ -383,7 +383,7 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
         raise
 
 
-#%%
+#%% Check if basketball reached player
 
 def ball_reached_player(ball, target, speed):
     """
@@ -411,7 +411,7 @@ def ball_reached_player(ball, target, speed):
         logger.error("Error in calculating if basketball reached the player: %s", e)
         raise
 
-#%% 
+#%% Calculate reverse RGB color
 
 def reverse_color(circle_color):
     """
@@ -435,14 +435,14 @@ def reverse_color(circle_color):
         logger.error("Error in calculating the inverse of the given color: %s", e)
         raise
 
-#%% 
+#%% Drawing objects
 
 def draw_circle(surface, center, radius, color, thickness=0):
     """
     Objective:
     Draw a circle on a pygame surface, similar to cv2.circle
     
-    Parameters:q
+    Parameters:
     [pygame.Surface] surface - Simulation frame to draw on
     [tuple] center - (x, y) of circle center
     [int] radius - radius of the circle
@@ -460,7 +460,7 @@ def draw_circle(surface, center, radius, color, thickness=0):
         for i in range(thickness):
             pygame.draw.circle(surface, color, (int(x), int(y)), radius - i, 1)
 
-#%%
+#%% Check if basketball reached specific position
 
 def ball_reached_position(ball, target_x, target_y):
     """
@@ -489,7 +489,7 @@ def ball_reached_position(ball, target_x, target_y):
         logger.error("Error in calculating if basketball reached the given coordinate: %s", e)
         raise
 
-#%%
+#%% Cryptographic Normal Distribution
 
 def cryptographic_normal(mu, sigma, radian=False):
     """
@@ -530,7 +530,7 @@ def cryptographic_normal(mu, sigma, radian=False):
         raise
 
 
-#%%
+#%% Adjusting basketball path based on players
 
 def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclusion_list=None):
     """
@@ -574,7 +574,7 @@ def adjust_path_if_needed(ball, target_x, target_y, opposite_players=None, exclu
         logger.error("Error in adjusting basketball movement: %s", e)
         raise
 
-#%%
+#%% Check if placement is valid
 
 def is_valid_placement(new_player, existing_players):
     """
@@ -643,7 +643,7 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         raise
 
 
-#%%
+#%% Check if circles overlap
 
 def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
     """
@@ -675,7 +675,7 @@ def check_circles_overlap(circle1, circle2, minimum_overlap_percentage):
         logger.error("Error in calculating if circles overlapped: %s", e)
         raise
 
-#%%
+#%% Initialize Simulation
 
 def initialize_simulation():
     """
@@ -782,7 +782,7 @@ MOVE_SPEED = cryptographic_normal(5.6, 1) #Speed at which basketball moves to th
 clock = pygame.time.Clock()
 pass_timer = -1
 pass_interval = secrets.SystemRandom().uniform(4, 5)  #How many seconds before the player passes the ball
-reached_player = True #When basketball is with a player
+reached_player = False #When basketball is with a player
 basketball_relative_x = 5 #X-axis displacemnt of the basketball compared to the player
 basketball_relative_y = 5 #Y-axis displacemnt of the basketball compared to the player
 basketball_player_overlap = 0.4 #When basketball and player overlap, set the relative distance between the two to prevent constant change
@@ -793,9 +793,9 @@ dribble_switch_timer = time.time() - dribble_timer
 oscillation_start_time = time.time()
 basketball_displacement = 15 #Basketball displacement from the player
 simulating = True #Set simulation to true to start
-simulation_limit = 3 # stop simulation after x minutes
+simulation_limit = 1 # stop simulation after x minutes
 
-#%%
+#%% Perform Simulation
 
 " Simulate Basketball Game "
 
@@ -807,15 +807,23 @@ start_time_simulation = time.time()
 video_format = cv2.VideoWriter_fourcc(*'XVID')
 try:
     video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
-except:
+except Exception as e:
     video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
+    
 out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
 frames_captured = 0
-simulation_capture_max_time = 15 # x seconds the simulation will run to capture recordings
+# x seconds the simulation will run to capture recordings
+if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
+    simulation_capture_max_time = 5
+else:
+    simulation_capture_max_time = 10
+
 max_frames_caputured = FPS * simulation_capture_max_time
 
 try:
+    current_player = secrets.choice(team_players) # Updated for passing simulation data collection
+
     while simulating and (frames_captured < max_frames_caputured):
         
         elapsed_time_simulation = time.time() - start_time_simulation # Set elapsed time to stop simulation after mentioned time
@@ -873,6 +881,11 @@ try:
                     first_overlap = True
             
             oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
+
+            # Stop if the ball reached the player
+            if reached_player is True:
+                break
+
         
         #current_player dribbles the basketball
         else:
@@ -902,6 +915,7 @@ try:
                 pass_timer = -1  # Reset timer to deactivate
                 first_overlap = False
                 reached_player = False
+                break
 
         basketball.draw()  # Draw the basketball
 

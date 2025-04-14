@@ -24,6 +24,55 @@ DeepSort Implementation
 Modified GitHub Files from DeepSort implementation: https://github.com/nwojke/deep_sort
 
 **************************************************************************************************************************************
+Long Short-Term Memory (LSTM)
+
+@article{hochreiter1997long,
+  title={Long short-term memory},
+  author={Hochreiter, Sepp and Schmidhuber, Jürgen},
+  journal={Neural Computation},
+  volume={9},
+  number={8},
+  pages={1735--1780},
+  year={1997},
+  publisher={MIT Press},
+  doi={10.1162/neco.1997.9.8.1735}
+}
+
+@inproceedings{paszke2019pytorch,
+  title={PyTorch: An Imperative Style, High-Performance Deep Learning Library},
+  author={Paszke, Adam and Gross, Sam and Massa, Francisco and Lerer, Adam and Bradbury, James and Chanan, Gregory and Killeen, Trevor and Lin, Zeming and Gimelshein, Natalia and Antiga, Luca and Desmaison, Alban and Kopf, Andreas and Yang, Edward and DeVito, Zachary and Raison, Martin and Tejani, Alykhan and Chilamkurthy, Sasank and Steiner, Benoit and Fang, Lu and Bai, Junjie and Chintala, Soumith},
+  booktitle={Advances in Neural Information Processing Systems},
+  volume={32},
+  year={2019},
+  url={https://papers.nips.cc/paper_files/paper/2019/file/bdbca288fee7f92f2bfa9f7012727740-Paper.pdf}
+}
+
+@article{vaswani2017attention,
+  title={Attention Is All You Need},
+  author={Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N and Kaiser, Lukasz and Polosukhin, Illia},
+  journal={Advances in Neural Information Processing Systems},
+  volume={30},
+  year={2017}
+}
+
+@article{mitpress2021pruning,
+  title={Differentiable Subset Pruning of Transformer Heads},
+  author={Anonymous (MIT Press Direct)},
+  journal={Transactions of the Association for Computational Linguistics},
+  year={2021},
+  url={https://direct.mit.edu/tacl/article/doi/10.1162/tacl_a_00436/108868/Differentiable-Subset-Pruning-of-Transformer-Heads}
+}
+
+@inproceedings{graves2005bidirectional,
+  title={Framewise Phoneme Classification with Bidirectional LSTM Networks},
+  author={Graves, Alex and Schmidhuber, Jurgen},
+  booktitle={Proceedings of the 2005 IEEE International Joint Conference on Neural Networks},
+  year={2005},
+  url={https://mediatum.ub.tum.de/doc/1290193/file.pdf}
+}
+
+
+**************************************************************************************************************************************
 YOLOv10 - Object Detection Algorithm 
 
 @article{wang2024yolov10,
@@ -46,9 +95,9 @@ Roboflow - Creating image annotations used in custom object detection model
   url = { https://universe.roboflow.com/basketballplayanalysis/customobjectdetection_data },
   journal = { Roboflow Universe },
   publisher = { Roboflow },
-  year = { 2024 },
-  month = { jul },
-  note = { visited on 2024-07-17 },
+  year = { 2025 },
+  month = { march },
+  note = { visited on 2025-03-08 },
   }
   
 **************************************************************************************************************************************

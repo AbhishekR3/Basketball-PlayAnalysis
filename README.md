@@ -1,24 +1,27 @@
 # PlayBook AI: Basketball Intelligence
 
+[![CI Testing](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/ci.yml/badge.svg)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/actions/workflows/ci.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/caa2d542ea8e47b597b3712cbc4236cb)](https://app.codacy.com/gh/AbhishekR3/Basketball-PlayAnalysis/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 [![Release Badge](https://img.shields.io/github/v/release/AbhishekR3/Basketball-PlayAnalysis.svg?color=orange)](https://github.com/AbhishekR3/Basketball-PlayAnalysis/releases)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![AWS](https://img.shields.io/badge/Amazon_AWS-232F3E?style=flat&logo=amazon-web-services&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+
+
 
 ## Table of Contents
-- [Project Description](#project-description)
+- [Description](#description)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Dependencies](#dependencies)
 - [Usage](#usage)
-- [Project Structure](#project-structure)
+- [File Structure](#file-structure)
 - [License](#license)
 
 
-## Project-Description
+## Description
 
-Project Goals:
+Product Goals:
 
 PlayBook AI will help basketball professionals:
 * Analyze offensive and defensive plays executed by teams
@@ -26,44 +29,40 @@ PlayBook AI will help basketball professionals:
 * Understand play patterns in critical game moments
 * Identify a team's most/least successful plays
 
-Project Overview:
-1. Simulate basketball plays with Pygame for training data
-2. Implementing computer vision techniques for multi-object tracking
-3. Leveraging spatial databases for efficient data management
-4. Applying feature engineering for ML model optimization
-5. Using Neural Networks (LSTM, TCN, C3D) and Transformers (TimeSformer, STN)
-6. Enhancing model efficiency through quantization and pruning 
-7. Deploying the software on AWS with GPU accelerated libraries and CI testing pipelines, and Docker for containerization
+Product Overview:
+1. Simulate basketball plays for training data
+2. Perform multi-object tracking with custom detection model
+3. Optimize dataset using feature engineering techniques 
+4. Leverage spatial databases with ACID and Spatial Index for efficient data management
+5. Create a classification Neural Network based on LSTM
+6. Deploy software on AWS with GPU accelerated libraries, CI testing pipelines, and Docker
 
-The movement of players and objects is similar to the data displayed on CourtVision by the LA Clippers.
-
-CourtVision Sample Frame
-
-![CourtVision Sample Frame](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/assets/Clippers%20CourtVision.png)
-
-Object Tracking on a Basketball Simulation created with Pygame
+Object Tracking on a simulation of a player dribbling
 
 ![ObjectTracking_Demo](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/DEV_Code/assets/ObjectTracking%20Demo.gif)
 
-Data Flow Diagram
+Product Data Flow Diagram
 
 ![DataFlowDiagram](assets/PlayBook-AI%20Data%20Flow%20Diagram.png)
 
-I have a project outline containing detailed information on the relevant concepts/algorithms planned for this project
+LSTM Model Architecture
 
-[Refer the following](https://github.com/AbhishekR3/Basketball-PlayAnalysis/blob/main/PlayBook%20AI%3A%20Basketball%20Intelligence%20Outline)
+![LSTMModelArchitecture](assets/LSTM%20Architecture.png)
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.x (latest version recommended)
+- Python 3.11
 
 ### Dependencies
 
 Ensure you have the following installed:
 
-1. Refer Requirements.txt file and install the libraries mentioned
+1. Install the libraries mentioned in requirements.txt file
+```bash
+pip install -r requirements.txt
+```
 
 2. Clone the Repository
 ```bash
@@ -73,42 +72,63 @@ cd Basketball-PlayAnalysis
 
 ## Usage
 
-These files were built on a MacOS build. 
-First run Basketball_Passing_Simulation.py to generate video simulations of passes
-Next run Basketball_Object_Tracking.py for object tracking for the relevant video simulation
+These files are built on Python 3.11-slim.
+Run files in this order
+1. Passing_Simulation.py / RandomMovement_Simulation.py to generate video simulations of passes or random player/ball movement (not a pass)
+2. Object_Tracking.py for object tracking for the relevant video simulation
+3. Feature_Engineering.py for extracting relevant features and optimizing the dataset
+4. Neural_Network.py to create custom LSTM model
 
 ```bash
-python Basketball_Passing_Simulation.py
-python Basketball_Object_Tracking.py
+python Passing_Simulation.py
+python Object_Tracking.py
+python Feature_Engineering.py
+python Neural_Network.py
 ```
 
-## Project-Structure
-Important files for this project
+If the user would like to levarege Docker containerization, run the following after downloading the code.
+
+```bash
+# Navigate to the project directory (use your actual path)
+cd "/Basketball-PlayAnalysis" 
+
+# Build the Docker image
+docker build -t basketball-analysis . 
+
+# Run container
+docker run -v basketball_data:/app/data basketball-analysis 
+```
+
+## File Structure
+Relevant files
 
 ```bash
 Basketball-PlayAnalysis/
 ├── assets/                                         # Containing referenced images and diagrams
-│   ├── simulation.mp4
-│   ├── simulation_tracked.mp4
-│   ├── detected_objects.csv                        # Features of the detected objects in the simulation
+│   ├── Basketball_Court_Diagram.jpg                # Basketball Court Diagram
+│   ├── YOLOv10s_custom.pt                          # Custom Object Detection Model based on YOLOv10s
 │   ├── PlayBook-AI Data Flow Diagram.png           # PlayBook-AI Data Flow Diagram
-├── Custom_Detection_Model/                         # Custom Model related files such as training/validation
-│   ├── CustomObjectDetection_Data/                 # Training data and Validation Results for custom YOLO object detection model
-│   ├── Object Tracking Metrics/                    # Multi-Object Tracking (DeepSORT) validation metrics and relevant video
+│   ├── LSTM Architecture.png                       # Neural Network LSTM Architecture layout
+│   ├── basketball_lstm_model.pt                    # Best performing LSTM based model
+│   ├── pruned_model.pt                             # Pruned model based on best performing LSTM model
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
-│   ├── deep_sort/
-│   ├── tools/
-│   ├── model_data/
-├── References/                                     # References for the development of the project
-├── Basketball_Passing_Simulation.py                # Script for simulating basketball plays
-├── Basketball_Object_Tracking.py                   # Script for tracking objects in the simulation
-├── object_tracking_output.log                      # Object Tracking Log Details containing relevant metrics
-├── PlayBook AI: Basketball Intelligence Outline    # Project Outline
-├── README.md                                       # Project documentation
-├── Requirements.txt                                # Project library requirements
-├── YOLOv10m_custom.pt                              # Custom YOLO detection model based on YOLOv10m
+├── References/                                     # References for the development of the product
+│   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
+│   ├── Citations                                   # Citations 
+│   ├── pruning_comparison.png                      # Pruned model compared to oringal model
+├── Data_Loading.py                                 # Loading extracted object tracking information into database
+├── dockerfile                                      # File to setup isolated environment to test code
+├── Feature_Engineering.py                          # Optimizing the raw object tracking dataset for the neural network
+├── Neural_Network.py                               # Script for performing LSTM model training
+├── Object_Tracking.py                              # Script for tracking objects in the simulation
+├── Passing_Simulation.py                           # Script for simulating passing plays
+├── RandomMovement_Simulation.py                    # Script for simulating random object movement plays
+├── README.md                                       # Product documentation
+├── requirements.txt                                # Product library requirements
+├── run_sequence.sh                                 # Sequence on how to execute files for isolated (Docker) environments
+├── utils.py                                        # Commonly used functions to avoid duplication
 ```
 
 ## License
 
-This project is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.
+This product is licensed under the Creative Commons Attribution-NonCommercial (CC BY-NC) License - see the LICENSE file for details.

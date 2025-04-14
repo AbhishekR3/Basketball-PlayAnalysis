@@ -12,20 +12,20 @@ Key Concepts Implemented:
 '''
 
 
-#%%
+#%% Import libraries
 
-# Import libraries
 import ast
 import pandas as pd
 import numpy as np
 import os
+from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
 
-#%%
+#%% One Hot Encoding for Class type
 
 def one_hot_encode_class_id(df):
     """
@@ -40,8 +40,8 @@ def one_hot_encode_class_id(df):
     """
         
     try:
-        df['is_Team_A'] = (df['ClassID'] == 'Player_A').astype(bool)
-        df['is_Team_B'] = (df['ClassID'] == 'Player_B').astype(bool)
+        df['is_Team_A'] = (df['ClassID'] == 'Team_A').astype(bool)
+        df['is_Team_B'] = (df['ClassID'] == 'Team_B').astype(bool)
         df['is_Basketball'] = (df['ClassID'] == 'Basketball').astype(bool)
         return df
 
@@ -49,7 +49,7 @@ def one_hot_encode_class_id(df):
         logger.error("Error in performing one hot encoding for ClassID: %s", e) 
         raise   
 
-#%%
+#%% Extract Mean Values
 
 def extract_mean_values(df):
     """
@@ -72,7 +72,7 @@ def extract_mean_values(df):
         logger.error("Error in extracing object's position: %s", e)    
         raise
 
-#%%
+#%% Transform State type
 
 def transform_state(df):
     """
@@ -95,7 +95,7 @@ def transform_state(df):
         logger.error("Error in performing features transformation: %s", e)    
         raise
 
-#%%
+#%% Optimize temporal features
 
 def process_temporal_features(df, fps=30):
     """ 
@@ -113,14 +113,13 @@ def process_temporal_features(df, fps=30):
     try:
         df['time_since_start'] = df['Frame'] / fps
         df['delta_time'] = df.groupby('TrackID')['time_since_start'].diff()
-        df['key_frame_s'] = (df['Frame'] % 30 == 0).astype(bool)
         return df
 
     except Exception as e:
         logger.error("Error in performing features transformation: %s", e)    
         raise
 
-#%%
+#%% Feature Statistics Calculations
 
 def extract_feature_statistics(df):
     """ 
@@ -144,8 +143,6 @@ def extract_feature_statistics(df):
     except Exception as e:
         logger.error("Error in performing features transformation: %s", e)    
         raise
-
-#%%
 
 def calculate_feature_stats(feature_series):
     """ 
@@ -196,7 +193,29 @@ def calculate_feature_stats(feature_series):
             'feature_max': 0
         })
 
-#%%
+def prep_feature_transformation(dataset):
+    """ 
+    Objective: 
+    Prepares the dataset for transformation by converting the 'Features' column from a string to an array.
+
+    Parameters: 
+    [pandas DataFrame] dataset - The dataset to prepare for transformation.
+
+    Returns: 
+    [pandas DataFrame] dataset - The dataset after the 'Features' column has been converted. 
+    """
+
+    try:
+        # Convert features column from string to array
+        dataset['Features'] = dataset['Features'].apply(convert_string_to_array)
+
+        return dataset
+
+    except Exception as e:
+        logger.error(f"Error in performing features transformation: %s", e)
+        raise
+
+#%% Convert string array to numpy array
 
 def convert_string_array(cov_str):
     """ 
@@ -227,7 +246,7 @@ def convert_string_array(cov_str):
     except Exception as e:
         logger.error(f"Error in converting covariance matrix to arrays: {e}")
 
-#%%
+#%% Calculate Covariance Statistics
 
 def covariance_stats_calculation(pre_covariance):
     """ 
@@ -264,7 +283,7 @@ def covariance_stats_calculation(pre_covariance):
         logger.error(f"Error in calculating co-variance statistics: %s", e)
         raise
 
-#%%
+#%% Process covariance statistics
 
 def process_covariance(df):
     """ 
@@ -314,7 +333,7 @@ def process_covariance(df):
         logger.error(f"Error in performing features transformation: %s", e)
         raise
 
-#%%
+#%% Log Transformation
 
 def log_transformation(df, column_names):
     """ 
@@ -337,7 +356,7 @@ def log_transformation(df, column_names):
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
-#%%
+#%% Rolling average
 
 def rolling_average_calculation(group, window_size = 30, rolling_column = None):
     '''
@@ -432,6 +451,8 @@ def rolling_average(df, window_size=30, rolling_column = None):
         logger.error(f"Error in calculating rolling detection consistency: %s", e)
         raise
 
+#%% Correct Recent Reliability based on Age
+
 def recent_reliability_correction(row):
     """ 
     Objective: 
@@ -455,7 +476,7 @@ def recent_reliability_correction(row):
         logger.error(f"Error in calculating correcting rolling detection: %s", e)
         raise
         
-#%%
+#%% Hits/Age based calculation
 
 def hits_age(df):
     """ 
@@ -485,6 +506,8 @@ def hits_age(df):
     except Exception as e:
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
+
+#%% Calculate Acceleration
 
 def extract_acceleration(df):
     """ 
@@ -523,7 +546,7 @@ def extract_acceleration(df):
         logger.error(f"Error in performing log transformation on dataset: %s", e)
         raise
 
-#%%
+#%% Perform feature extractions
 
 def feature_extraction(dataset):
     """ 
@@ -555,7 +578,7 @@ def feature_extraction(dataset):
         logger.error(f"Error in performing features transformation: %s", e)
         raise
 
-#%%
+#%% Convert string to array
 
 def convert_string_to_array(string_data):
     """ 
@@ -585,31 +608,7 @@ def convert_string_to_array(string_data):
         logger.error(f"Error in converting features from string to array: %s", e)
         raise 
 
-#%%
-
-def prep_transformation(dataset):
-    """ 
-    Objective: 
-    Prepares the dataset for transformation by converting the 'Features' column from a string to an array.
-
-    Parameters: 
-    [pandas DataFrame] dataset - The dataset to prepare for transformation.
-
-    Returns: 
-    [pandas DataFrame] dataset - The dataset after the 'Features' column has been converted. 
-    """
-
-    try:
-        # Convert features column from string to array
-        dataset['Features'] = dataset['Features'].apply(convert_string_to_array)
-
-        return dataset
-
-    except Exception as e:
-        logger.error(f"Error in performing features transformation: %s", e)
-        raise
-
-#%%
+#%% Final optimization of dataset
 
 def optimize_dataset(dataset):
     """ 
@@ -636,9 +635,9 @@ def optimize_dataset(dataset):
         dataset = normalize_numerical_columns(dataset)
 
         # Perform PCA
-        perform_pca(dataset, n_components=16, variance_threshold=0.85)
+        #perform_pca(dataset, n_components=16, variance_threshold=0.85) # Uncomment to perform PCA
 
-        # Remove unecessary columns (Including information from PCA analysis)
+        # Remove unecessary columns (Based on information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
                             'RecentReliability', 'Hits', 'delta_time', 'feature_min',
                             'cov_trace', 'cov_pos_variance_y', 'cov_pos_variance_x', 'cov_pos_variance_height',
@@ -646,10 +645,11 @@ def optimize_dataset(dataset):
                             ]
         dataset = dataset.drop(columns=columns_dropped)
 
+        # Remove rows where all class columns are False
         dataset = dataset[dataset[['is_Team_A', 'is_Team_B', 'is_Basketball']].any(axis=1)]
 
-        # Check the most common class type of each track_id, update the entire track to that specific class type
-        dataset = update_track_class(dataset)
+        # Remove duplicate rows based on TrackID and Frame
+        dataset = dataset.drop_duplicates(subset=['TrackID', 'Frame'], keep='first')
 
         return dataset
 
@@ -657,56 +657,7 @@ def optimize_dataset(dataset):
         logger.error("Error in optimizing/cleaning dataset: %s", e)
         raise
 
-#%%
-
-def update_track_class(dataframe):
-    """
-    Objective:
-    Check the most common class type for each TrackID and update all rows of the specific TrackID to the most common class in the group.
-
-    Parameters:
-    [pandas DataFrame] dataframe - The input dataframe containing tracking data
-
-    Returns:
-    [pandas DataFrame] updated_dataframe - The dataframe with updated class types for each track
-    """
-    try:
-        # Create a copy of the dataframe to avoid modifying the original
-        updated_dataframe = dataframe.copy()
-
-        # Define the class columns
-        class_columns = ['is_Team_A', 'is_Team_B', 'is_Basketball']
-
-        # Ensure class columns are boolean type
-        for col in class_columns:
-            updated_dataframe[col] = updated_dataframe[col].astype(bool)
-
-        # Group by TrackID and find the most common class for each track
-        def get_most_common_class(group):
-            class_counts = group[class_columns].sum()
-            if class_counts.max() == 0:
-                # If all classes are False, keep it as is
-                return pd.Series({col: False for col in class_columns})
-            most_common_class = class_counts.idxmax()
-            return pd.Series({col: (col == most_common_class) for col in class_columns})
-
-        # Use include_groups=False to exclude grouping columns from the operation
-        most_common_classes = updated_dataframe.groupby('TrackID', group_keys=False).apply(
-            get_most_common_class)
-
-        # Update the class columns for each TrackID
-        for track_id, common_class in most_common_classes.iterrows():
-            mask = updated_dataframe['TrackID'] == track_id
-            for col in class_columns:
-                updated_dataframe.loc[mask, col] = common_class[col]
-
-        return updated_dataframe
-
-    except Exception as e:
-        logger.error("Error in update_track_class: %s", e)
-        raise
-
-#%%
+#%% PCA Calculation 
 
 def perform_pca(df, n_components=20, variance_threshold=0.9):
     """
@@ -775,7 +726,7 @@ def perform_pca(df, n_components=20, variance_threshold=0.9):
         logger.error("Error in performing PCA: %s", e)
         raise
     
-#%%
+#%% Temporal Encoding for TrackID
 
 def trackid_temporal_encoding(df):
     """ 
@@ -802,10 +753,10 @@ def trackid_temporal_encoding(df):
         return df
 
     except Exception as e:
-        logger.error("Error when peforming temporal encoding for an exponential decay on TrackID: %s", e)
+        logger.error("Error when peforming temporal encoding on TrackID: %s", e)
         raise
 
-#%%
+#%% Perform Normalization
 
 def normalize_numerical_columns(df):
     """
@@ -829,7 +780,7 @@ def normalize_numerical_columns(df):
 
         #Don't normalize these columns
         non_normalized_columns = ['Frame', 'Age', 'is_Team_A', 'is_Team_B', 'is_Basketball', 'state_tentative', 'state_confirmed',
-                                  'time_since_start', 'key_frame_s', 'OcclusionFrequency', 'DetectionConsistency']
+                                  'time_since_start', 'OcclusionFrequency', 'DetectionConsistency']
         
         numerical_columns = numerical_columns.difference(non_normalized_columns)
         
@@ -842,9 +793,69 @@ def normalize_numerical_columns(df):
         print(f"An error occurred during normalization: {e}")
         raise
 
-#%%
+#%% Calculate distance from basketball
+
+def calculate_distances_from_basketball(df):
+    """
+    Objective:
+    Calculate the distance between each object and the basketball for each frame,
+    and rank the objects based on their proximity to the basketball. Include basketball data.
+
+    Parameters:
+    [pandas.DataFrame] df - DataFrame containing tracking data
+
+    Returns:
+    [pandas.DataFrame] result_df - DataFrame with new columns 'distance' and 'rank', including basketball data
+    """
+    try:
+        # Get the position of the basketball for each frame
+        basketball_positions = df[df['is_Basketball'] == True][['Frame', 'pos_x_rolling_avg', 'pos_y_rolling_avg']]
+
+        # Merge basketball positions with all objects (including basketball)
+        merged_df = df.merge(
+            basketball_positions,
+            on='Frame',
+            suffixes=('', '_basketball')
+        )
+
+        # Vectorized distance calculation
+        merged_df['distance'] = np.where(
+            merged_df['is_Basketball'],
+            0,  # Distance is 0 for basketball itself
+            np.sqrt(
+                (merged_df['pos_x_rolling_avg'] - merged_df['pos_x_rolling_avg_basketball'])**2 +
+                (merged_df['pos_y_rolling_avg'] - merged_df['pos_y_rolling_avg_basketball'])**2
+            )
+        )
+
+        # Rank the distances within each Frame
+        merged_df['rank'] = merged_df.groupby('Frame')['distance'].rank(method='min').astype(int)
+
+        # Ensure basketball always has rank 0
+        merged_df.loc[merged_df['is_Basketball'], 'rank'] = 0
+
+        # Sort the results by frame and rank
+        result_df = merged_df.sort_values(['Frame', 'rank'])
+
+        # Round the distance to 8 decimal places
+        result_df['distance'] = result_df['distance'].round(8)
+
+        # Remove the basketball position columns
+        result_df = result_df.drop(['pos_x_rolling_avg_basketball', 'pos_y_rolling_avg_basketball'], axis=1)
+
+        # Rest Index
+        result_df = result_df.reset_index(drop=True)
+
+        return result_df
+
+    except Exception as e:
+        print(f"An error occurred in calculate_distances_from_basketball: {e}")
+        raise
+
+#%% Docker Setup
 # Setting up the environment for Docker containers
-# '''
+
+#'''
 try:
     log_dir = os.environ.get('LOG_DIR', '/app/logs')
     tracking_dir = os.environ.get('TRACKING_DIR', '/app/tracking_data')
@@ -865,7 +876,7 @@ except Exception as e:
     raise
 #'''
 
-#%% Main Function for Feature Engineering of the assets 
+#%% Main Function
 
 def main():
     try:
@@ -879,21 +890,32 @@ def main():
         raw_dataset = read_dataframe_to_csv(raw_dataset_file_path, logger)
 
         # Prep dataset for feature extraction
-        prepped_dataset = prep_transformation(raw_dataset)
+        prepped_dataset = prep_feature_transformation(raw_dataset)
 
         # Extracting features from the dataset
         extracted_feature_dataset = feature_extraction(prepped_dataset)
 
         # Optimize / Clean up the dataset with all the extracted features
         cleaned_feature_dataset = optimize_dataset(extracted_feature_dataset)
+
+        # Rank the distance between objects and the basketball
+        ranked_distance_dataset = calculate_distances_from_basketball(cleaned_feature_dataset)
  
+        # Generate timestamp for filename
+        current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+        #export_filename = f'passing_{current_time}.csv'
+        export_filename = f'not_passing_{current_time}.csv'
+
         # Export the finalized dataset into a csv
         try:
-            processed_feature_dataset_file_path = os.path.join(tracking_dir, 'processed_features.csv')
-        except:
-            processed_feature_dataset_file_path = 'assets/processed_features.csv'
+            processed_feature_dataset_file_path = os.path.join(tracking_dir, export_filename)
+        except TypeError:
+            processed_feature_dataset_file_path = f'assets/{export_filename}'
 
-        export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
+        try:
+            export_dataframe_to_csv(ranked_distance_dataset ,processed_feature_dataset_file_path, logger)
+        except TypeError:
+            export_dataframe_to_csv(cleaned_feature_dataset ,processed_feature_dataset_file_path, logger)
         
         print("Feature Engineering succeeded")
         logger.debug("Feature Engineering succeeded")

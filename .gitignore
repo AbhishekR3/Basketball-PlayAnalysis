@@ -1,0 +1,31 @@
+# Notes
+Abhishek Notes
+Development Notes
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Logs
+*.log
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Models directory
+models/
+
+# OS specific files
+.DS_Store
+**/.DS_Store

@@ -1,8 +1,10 @@
 boto3==1.35.4
+datetime==4.5
 defusedxml==0.7.1
 GeoAlchemy2==0.15.2
 geopandas==1.0.1
 matplotlib==3.8.0
+memory_profiler==0.61.0
 motmetrics==1.4.0
 numpy==1.23.5
 opencv-python-headless==4.9.0.80
