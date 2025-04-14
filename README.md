@@ -10,16 +10,16 @@
 
 
 ## Table of Contents
-- [Product Description](#product-description)
+- [Description](#description)
 - [Installation](#installation)
 - [Prerequisites](#prerequisites)
 - [Dependencies](#dependencies)
 - [Usage](#usage)
-- [Product Structure](#product-structure)
+- [File Structure](#file-structure)
 - [License](#license)
 
 
-## Product-Description
+## Description
 
 Product Goals:
 
@@ -59,7 +59,10 @@ LSTM Model Architecture
 
 Ensure you have the following installed:
 
-1. Refer Requirements.txt file and install the libraries mentioned
+1. Install the libraries mentioned in requirements.txt file
+```bash
+pip install -r requirements.txt
+```
 
 2. Clone the Repository
 ```bash
@@ -83,7 +86,20 @@ python Feature_Engineering.py
 python Neural_Network.py
 ```
 
-## Product-Structure
+If the user would like to levarege Docker containerization, run the following after downloading the code.
+
+```bash
+# Navigate to the project directory (use your actual path)
+cd "/Basketball-PlayAnalysis" 
+
+# Build the Docker image
+docker build -t basketball-analysis . 
+
+# Run container
+docker run -v basketball_data:/app/data basketball-analysis 
+```
+
+## File Structure
 Relevant files
 
 ```bash
@@ -98,7 +114,7 @@ Basketball-PlayAnalysis/
 ├── deep_sort/                                      # DeepSORT related files (Mutli-Object Tracking)
 ├── References/                                     # References for the development of the product
 │   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
-│   ├── Citations                                   # Citations
+│   ├── Citations                                   # Citations 
 │   ├── pruning_comparison.png                      # Pruned model compared to oringal model
 ├── Data_Loading.py                                 # Loading extracted object tracking information into database
 ├── dockerfile                                      # File to setup isolated environment to test code
