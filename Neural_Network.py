@@ -951,7 +951,7 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             all_val_labels = []
             
             with torch.no_grad():
-                for features, labels, lengths in tqdm(val_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Validation'):
+                for features, labels, _ in tqdm(val_loader, desc=f'Epoch {epoch+1}/{num_epochs} - Validation'):
                     # Move data to device
                     features, labels = features.to(device), labels.to(device)
                     
@@ -1495,7 +1495,6 @@ def main():
         # Create datasets
         train_dataset = BasketballPlayDataset(data_path, split='train', transform=train_transform)
         val_dataset = BasketballPlayDataset(data_path, split='validation', transform=val_test_transform)
-        test_dataset = BasketballPlayDataset(data_path, split='test', transform=val_test_transform)
         
         # Calculate input dimension from an example
         if len(train_dataset) > 0:
