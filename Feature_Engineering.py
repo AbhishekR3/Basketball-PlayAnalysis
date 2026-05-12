@@ -23,6 +23,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+import config
 from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
 
 #%% One Hot Encoding for Class type
@@ -97,7 +98,7 @@ def transform_state(df):
 
 #%% Optimize temporal features
 
-def process_temporal_features(df, fps=30):
+def process_temporal_features(df, fps=config.FPS):
     """ 
     Objective: 
     Processes temporal features in a given dataset.
