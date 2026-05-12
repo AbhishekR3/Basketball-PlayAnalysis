@@ -16,6 +16,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy import Column, Integer, Float, Boolean, text
 from sqlalchemy.orm import declarative_base, sessionmaker
+
+import config
 from sqlalchemy.exc import SQLAlchemyError
 
 #%% Create a base class
@@ -86,7 +88,7 @@ def create_sqlalchemy_engine():
 
         # Create the connection string
         #connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
-        connection_string = 'postgresql://postgres:password@localhost:5432/postgres'
+        connection_string = config.DB_URL
         
         try:
             # Create the SQLAlchemy engine

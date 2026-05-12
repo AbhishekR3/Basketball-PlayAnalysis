@@ -20,6 +20,7 @@ import torch
 import torchvision.transforms as transforms
 from ultralytics import YOLO
 import pandas as pd
+import config
 from utils import export_dataframe_to_csv, configure_logger
 
 # DeepSORT code from local files
@@ -30,7 +31,7 @@ from deep_sort.tools import generate_detections as gdet
 
 #%% Filter Low Confidence Detections
 
-def filter_lowconfidence(class_names, scores, basketball_score=0.5, player_score=0.8):
+def filter_lowconfidence(class_names, scores, basketball_score=config.YOLO_BASKETBALL_SCORE, player_score=config.YOLO_PLAYER_SCORE):
     '''
     Objective:
     Filter out low confidence detections based on class names and scores.
