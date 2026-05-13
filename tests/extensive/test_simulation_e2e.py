@@ -17,11 +17,12 @@ pytestmark = pytest.mark.extensive
 
 
 def test_random_movement_simulation_produces_mp4(tmp_pipeline_dirs, repo_root):
+    """RandomMovement_Simulation.py writes an MP4 with at least 10 frames in CI mode."""
     cv2 = pytest.importorskip('cv2')
     env = os.environ.copy()
     env.update({
         'SDL_VIDEODRIVER': 'dummy',
-        'GITHUB_ACTIONS': 'true',  # caps simulation duration to ~1s in the script
+        'GITHUB_ACTIONS': 'true',
         'LOG_DIR': str(tmp_pipeline_dirs['LOG_DIR']),
         'VIDEO_DIR': str(tmp_pipeline_dirs['VIDEO_DIR']),
         'ASSETS_DIR': str(repo_root / 'assets'),
@@ -35,6 +36,7 @@ def test_random_movement_simulation_produces_mp4(tmp_pipeline_dirs, repo_root):
         capture_output=True,
         text=True,
         timeout=120,
+        check=False,
     )
 
     mp4 = tmp_pipeline_dirs['VIDEO_DIR'] / 'random_movement_video.mp4'
@@ -48,7 +50,6 @@ def test_random_movement_simulation_produces_mp4(tmp_pipeline_dirs, repo_root):
     try:
         assert cap.isOpened()
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        # CI mode caps at ~30 frames; allow a small lower bound for jitter.
         assert frame_count >= 10, f'expected >= 10 frames, got {frame_count}'
     finally:
         cap.release()

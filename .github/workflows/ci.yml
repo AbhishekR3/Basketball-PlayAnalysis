@@ -168,6 +168,7 @@ jobs:
       with:
         python-version: '3.11'
         cache: 'pip'
+        cache-dependency-path: Requirements.txt
 
     - name: Install system dependencies
       run: |
@@ -205,6 +206,7 @@ jobs:
       with:
         python-version: '3.11'
         cache: 'pip'
+        cache-dependency-path: Requirements.txt
 
     - name: Install system dependencies
       run: |

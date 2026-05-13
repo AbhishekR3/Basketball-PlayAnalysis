@@ -18,7 +18,8 @@ pytestmark = pytest.mark.quick
 
 @pytest.fixture(scope='module')
 def filter_lowconfidence():
-    import config
+    """Return the AST-extracted filter_lowconfidence callable."""
+    import config  # pylint: disable=import-outside-toplevel
     return load_callable_from_source(
         REPO_ROOT / 'Object_Tracking.py',
         'filter_lowconfidence',
@@ -33,18 +34,21 @@ def filter_lowconfidence():
 
 
 def test_basketball_above_threshold_is_kept(filter_lowconfidence):
+    """A basketball detection above the threshold should be retained."""
     mask = filter_lowconfidence(np.array(['Basketball']), np.array([0.6]),
                                 basketball_score=0.5, player_score=0.8)
     assert mask == [True]
 
 
 def test_basketball_below_threshold_is_dropped(filter_lowconfidence):
+    """A basketball detection below the threshold should be filtered out."""
     mask = filter_lowconfidence(np.array(['Basketball']), np.array([0.4]),
                                 basketball_score=0.5, player_score=0.8)
     assert mask == [False]
 
 
 def test_player_above_threshold_is_kept(filter_lowconfidence):
+    """Player detections above the threshold should be retained."""
     mask = filter_lowconfidence(np.array(['Team_A', 'Team_B']),
                                 np.array([0.9, 0.85]),
                                 basketball_score=0.5, player_score=0.8)
@@ -52,12 +56,14 @@ def test_player_above_threshold_is_kept(filter_lowconfidence):
 
 
 def test_player_below_threshold_is_dropped(filter_lowconfidence):
+    """A player detection below the threshold should be filtered out."""
     mask = filter_lowconfidence(np.array(['Team_A']), np.array([0.7]),
                                 basketball_score=0.5, player_score=0.8)
     assert mask == [False]
 
 
 def test_mixed_classes_filtered_by_per_class_thresholds(filter_lowconfidence):
+    """Each class is filtered using its own threshold independently."""
     class_names = np.array(['Basketball', 'Team_A', 'Team_B', 'Basketball'])
     scores = np.array([0.6, 0.85, 0.5, 0.3])
     mask = filter_lowconfidence(class_names, scores,
@@ -66,13 +72,14 @@ def test_mixed_classes_filtered_by_per_class_thresholds(filter_lowconfidence):
 
 
 def test_empty_arrays_return_empty_mask(filter_lowconfidence):
+    """Empty input arrays produce an empty mask."""
     mask = filter_lowconfidence(np.array([]), np.array([]),
                                 basketball_score=0.5, player_score=0.8)
     assert mask == []
 
 
-def test_default_thresholds_come_from_config(filter_lowconfidence):
-    import config
-    # Sanity: defaults match config (regression guard against the docstring drift)
+def test_default_thresholds_come_from_config():
+    """Confidence-threshold defaults must come from the config module."""
+    import config  # pylint: disable=import-outside-toplevel
     assert config.YOLO_BASKETBALL_SCORE == 0.5
     assert config.YOLO_PLAYER_SCORE == 0.8

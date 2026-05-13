@@ -2,10 +2,8 @@
 Smoke test for the LSTM training loop.
 
 Creates a tiny synthetic dataset directory layout, trains BasketballLSTM for
-2 epochs, and asserts the loss decreases and the checkpoint is written.
+a few epochs, and asserts the loss decreases and the checkpoint round-trips.
 '''
-
-import os
 
 import numpy as np
 import pandas as pd
@@ -22,8 +20,8 @@ FEATURE_DIM = 6
 
 
 def _make_synthetic_csv(path, label, seed):
+    """Write a synthetic per-sample CSV: label=1 follows a sinusoid; label=0 is noise."""
     rng = np.random.default_rng(seed)
-    # Pass samples (label=1) follow a sinusoidal pattern; not-pass samples are noise.
     if label == 1:
         signal = np.sin(np.linspace(0, 4 * np.pi, SEQ_LEN)).reshape(-1, 1)
         features = signal + 0.1 * rng.standard_normal((SEQ_LEN, FEATURE_DIM))
@@ -35,6 +33,7 @@ def _make_synthetic_csv(path, label, seed):
 
 
 def _build_dataset_dir(root, n_per_class=4):
+    """Build a tmp dataset root with train/validation/test x pass/not-pass splits."""
     for split in ('train', 'validation', 'test'):
         for label_name, label in (('pass', 1), ('not-pass', 0)):
             split_dir = root / split / label_name
@@ -45,27 +44,28 @@ def _build_dataset_dir(root, n_per_class=4):
 
 
 def test_lstm_training_loss_decreases_and_saves_checkpoint(tmp_path, monkeypatch):
+    """A few epochs of training reduce loss, and save/load round-trips parameters."""
     monkeypatch.setenv('MODEL_DIR', str(tmp_path / 'models'))
     (tmp_path / 'models').mkdir()
 
-    import importlib
-    import config
+    import importlib  # pylint: disable=import-outside-toplevel
+    import config  # pylint: disable=import-outside-toplevel
     importlib.reload(config)
-    from nn import dataset as nn_dataset, model as nn_model, io as nn_io
+    from nn import dataset as nn_dataset, model as nn_model, io as nn_io  # pylint: disable=import-outside-toplevel
 
     data_root = tmp_path / 'data'
     _build_dataset_dir(data_root, n_per_class=4)
 
     train_ds = nn_dataset.BasketballPlayDataset(str(data_root), split='train')
-    val_ds = nn_dataset.BasketballPlayDataset(str(data_root), split='validation')
 
-    # Each CSV has FEATURE_DIM + 1 (Frame) columns -> input_dim = FEATURE_DIM + 1
     input_dim = FEATURE_DIM + 1
 
     train_loader = DataLoader(train_ds, batch_size=2, shuffle=True,
                               collate_fn=nn_dataset.collate_variable_length_sequences)
-    val_loader = DataLoader(val_ds, batch_size=2, shuffle=False,
-                            collate_fn=nn_dataset.collate_variable_length_sequences)
+    # Deterministic eval loader -- shuffle=False so initial/final losses
+    # are measured on the same batches and the comparison is meaningful.
+    eval_loader = DataLoader(train_ds, batch_size=2, shuffle=False,
+                             collate_fn=nn_dataset.collate_variable_length_sequences)
 
     torch.manual_seed(0)
     model = nn_model.BasketballLSTM(
@@ -75,16 +75,21 @@ def test_lstm_training_loss_decreases_and_saves_checkpoint(tmp_path, monkeypatch
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
 
-    # Measure loss before training
-    model.eval()
-    with torch.no_grad():
-        feats, labels, _ = next(iter(train_loader))
-        out, _ = model(feats)
-        initial_loss = criterion(out, labels).item()
+    def _avg_loss():
+        """Mean BCE loss across the deterministic eval loader."""
+        model.eval()
+        total, count = 0.0, 0
+        with torch.no_grad():
+            for batch_feats, batch_labels, _ in eval_loader:
+                out, _ = model(batch_feats)
+                total += criterion(out, batch_labels).item()
+                count += 1
+        return total / max(count, 1)
 
-    # Train 5 epochs
+    initial_loss = _avg_loss()
+
     model.train()
-    for _ in range(5):
+    for _ in range(10):
         for feats, labels, _lengths in train_loader:
             optimizer.zero_grad()
             out, _ = model(feats)
@@ -92,18 +97,18 @@ def test_lstm_training_loss_decreases_and_saves_checkpoint(tmp_path, monkeypatch
             loss.backward()
             optimizer.step()
 
-    # Measure loss after training (on same batch)
-    model.eval()
-    with torch.no_grad():
-        feats, labels, _ = next(iter(train_loader))
-        out, _ = model(feats)
-        final_loss = criterion(out, labels).item()
+    final_loss = _avg_loss()
 
     assert final_loss < initial_loss, (
         f'expected loss to decrease, but got initial={initial_loss:.4f} final={final_loss:.4f}'
     )
 
-    # Save/load roundtrip
+    # Capture deterministic output for the save/load roundtrip assertion.
+    model.eval()
+    with torch.no_grad():
+        feats, labels, _ = next(iter(eval_loader))
+        out, _ = model(feats)
+
     ckpt = tmp_path / 'models' / 'basketball_lstm_model.pt'
     nn_io.save_model(model, str(ckpt))
     assert ckpt.exists() and ckpt.stat().st_size > 0
@@ -120,7 +125,8 @@ def test_lstm_training_loss_decreases_and_saves_checkpoint(tmp_path, monkeypatch
 
 
 def test_prune_attention_heads_zeros_out_lowest_importance():
-    from nn import model as nn_model, pruning as nn_pruning
+    """prune_attention_heads with prune_amount=0.5 zeros the lowest-importance heads."""
+    from nn import model as nn_model, pruning as nn_pruning  # pylint: disable=import-outside-toplevel
 
     torch.manual_seed(0)
     model = nn_model.BasketballLSTM(
@@ -128,7 +134,6 @@ def test_prune_attention_heads_zeros_out_lowest_importance():
         dropout=0.0, recurrent_dropout=0.0, bidirectional=True, num_heads=4,
     )
 
-    # Set head importance to known values so pruning is deterministic
     with torch.no_grad():
         model.attention.head_importance.data = torch.tensor(
             [[1.0], [0.1], [0.9], [0.05]]
@@ -136,4 +141,4 @@ def test_prune_attention_heads_zeros_out_lowest_importance():
 
     pruned = nn_pruning.prune_attention_heads(model, prune_amount=0.5)
     nonzero = (pruned.attention.head_importance.data != 0).sum().item()
-    assert nonzero == 2  # 4 heads, prune 50% -> 2 remaining
+    assert nonzero == 2
