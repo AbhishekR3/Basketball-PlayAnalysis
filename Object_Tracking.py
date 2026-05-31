@@ -140,16 +140,12 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
         n_missed += abs((len(tracker.tracks))-11)
 
         # Verify the tracks
-        for ith_value, track in enumerate(tracker.tracks):
-            try:
-                # Calculate the object's detection confidence score
-                confidence_score = scores[ith_value]
-
-            except Exception as e:
-                # Calculate the object's detection confidence score
-                logger.debug("Error in calculating confidence score: %s", e)
-                confidence_score = 0.0
-
+        for track in tracker.tracks:
+            # #12 fix: read the confidence carried on the track from its matched
+            # detection (set in Track.update). Coasting/unconfirmed tracks have no
+            # current detection, so log NaN rather than a bogus 0.0 or a
+            # positionally misaligned score.
+            confidence_score = track.confidence if track.confidence is not None else np.nan
 
             # Add a new detected object to the detected_objects dataframe
             ith_object_details = [

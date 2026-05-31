@@ -71,6 +71,10 @@ class Track:
         self.hits = 1
         self.age = 1
         self.time_since_update = 0
+        # #12 fix: detector confidence is carried from the matched detection in
+        # update(); None while coasting/unconfirmed (no current detection). Note:
+        # this attribute lives in vendored deep_sort and won't survive a re-vendor.
+        self.confidence = None
 
         self.state = TrackState.Tentative
         self.features = []
@@ -141,6 +145,10 @@ class Track:
         self.features.append(detection.feature)
 
         self.class_id = detection.class_id
+        # #12 fix: carry the matched detection's confidence onto the track so the
+        # logged ConfidenceScore reflects this object (not a positionally
+        # misaligned entry from the detections score array).
+        self.confidence = detection.confidence
 
         self.hits += 1
         self.time_since_update = 0
