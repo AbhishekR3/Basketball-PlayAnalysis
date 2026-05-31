@@ -26,6 +26,15 @@ ENV/
 # Models directory
 models/
 
+# Generated simulation / pipeline output (created when sims/tracking run or are imported)
+simulations/
+tracking_data/
+output/
+
+# iCloud Drive sync-conflict copies ("<name> 2.py", etc.)
+* [0-9].py
+* [0-9].*
+
 # OS specific files
 .DS_Store
 **/.DS_Store

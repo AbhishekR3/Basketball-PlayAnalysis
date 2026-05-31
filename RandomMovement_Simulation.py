@@ -12,7 +12,27 @@ import time
 import numpy as np
 import os
 import cv2
-import secrets
+# Seeded RNG for reproducible simulations (replaces the stdlib secret-random
+# draws). Seed via the SIM_SEED env var (default 42); call seed_rng(...) to
+# reproduce a run exactly.
+_rng = np.random.default_rng(int(os.environ.get('SIM_SEED', 42)))
+
+
+def seed_rng(seed):
+    "Reseed the module RNG so a simulation run can be reproduced bit-for-bit."
+    global _rng
+    _rng = np.random.default_rng(seed)
+
+
+def _rng_choice(seq):
+    "Deterministic replacement for a random choice over a sequence."
+    seq = list(seq)
+    return seq[int(_rng.integers(len(seq)))]
+
+
+def _rng_below(n):
+    "Deterministic replacement for a random integer in [0, n)."
+    return int(_rng.integers(n))
 from utils import configure_logger
 
 #%%
@@ -36,11 +56,11 @@ class Player:
         self.y = y #set y-coordinate
         self.radius = radius #set radius
         self.color = color #set player color
-        self.speed = secrets.SystemRandom().uniform(0.2, 2.5) #set random speed (slightly higher than original)
-        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
+        self.speed = _rng.uniform(0.2, 2.5) #set random speed (slightly higher than original)
+        self.angle = _rng.uniform(0, 2 * math.pi) #set random angle
         self.next_angle = self.angle + cryptographic_normal(90, 1.5, True) #set next angle
         self.last_update_time = time.time() #set last update time
-        self.change_direction_time_limit = secrets.SystemRandom().uniform(2, 5) #Set time limit for direction change
+        self.change_direction_time_limit = _rng.uniform(2, 5) #Set time limit for direction change
 
     def update_speed_angle(self):
         """
@@ -55,7 +75,7 @@ class Player:
             # Current time - last updated time < Change time
             if time.time() - self.last_update_time >= self.change_direction_time_limit:
                 # Change speed
-                self.speed = secrets.SystemRandom().uniform(0.2, 2.5)
+                self.speed = _rng.uniform(0.2, 2.5)
 
                 # Change angle
                 self.angle = self.next_angle
@@ -64,7 +84,7 @@ class Player:
                 self.last_update_time = time.time()
 
                 # Update when direction should change
-                self.change_direction_time_limit = secrets.SystemRandom().uniform(2, 5)
+                self.change_direction_time_limit = _rng.uniform(2, 5)
 
                 # Update the angle randomly
                 if int(time.time()%60)%2 == 0:
@@ -145,10 +165,10 @@ class Basketball:
         self.y = y #set y-coordinate
         self.radius = radius #set basketball radius
         self.color = color #set basketball color
-        self.speed = secrets.SystemRandom().uniform(0.5, 3.0) #set random speed (faster than players)
-        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
+        self.speed = _rng.uniform(0.5, 3.0) #set random speed (faster than players)
+        self.angle = _rng.uniform(0, 2 * math.pi) #set random angle
         self.last_update_time = time.time() #set last update time
-        self.change_direction_time_limit = secrets.SystemRandom().uniform(1, 4) #shorter time for more changes
+        self.change_direction_time_limit = _rng.uniform(1, 4) #shorter time for more changes
 
     def update_movement(self):
         """
@@ -161,16 +181,16 @@ class Basketball:
         try:
             if time.time() - self.last_update_time >= self.change_direction_time_limit:
                 # Change speed
-                self.speed = secrets.SystemRandom().uniform(0.5, 3.0)
+                self.speed = _rng.uniform(0.5, 3.0)
                 
                 # Change angle more randomly than players
-                self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi)
+                self.angle = _rng.uniform(0, 2 * math.pi)
                 
                 # Update last update time
                 self.last_update_time = time.time()
                 
                 # Update when direction should change
-                self.change_direction_time_limit = secrets.SystemRandom().uniform(1, 4)
+                self.change_direction_time_limit = _rng.uniform(1, 4)
         except Exception as e:
             logger.error("Error in updating basketball movement: %s", e)
             raise
@@ -239,8 +259,8 @@ def cryptographic_normal(mu, sigma, radian=False):
     """
     try:
         # Generate two uniform random integers
-        raw1 = secrets.randbits(64)
-        raw2 = secrets.randbits(64)
+        raw1 = int(_rng.integers(0, 2**64, dtype=np.uint64))
+        raw2 = int(_rng.integers(0, 2**64, dtype=np.uint64))
 
         # Convert to floats in the range [0, 1)
         u1 = raw1 / 2**64
@@ -367,8 +387,8 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         attempts = 0
         while attempts < 1000:  # Limit attempts to prevent infinite loop
             new_player = Player(
-                radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
-                radius + secrets.randbelow(simulation_height - (3 * radius) + 1),
+                radius + _rng_below(simulation_width - (3 * radius) + 1),
+                radius + _rng_below(simulation_height - (3 * radius) + 1),
                 radius,
                 color)
             
@@ -491,8 +511,8 @@ def initialize_simulation():
         # Initialize basketball at a random position
         attempts = 0
         while attempts < 1000:
-            ball_x = BALL_RADIUS + secrets.randbelow(SCREEN_WIDTH - (2 * BALL_RADIUS))
-            ball_y = BALL_RADIUS + secrets.randbelow(SCREEN_HEIGHT - (2 * BALL_RADIUS))
+            ball_x = BALL_RADIUS + _rng_below(SCREEN_WIDTH - (2 * BALL_RADIUS))
+            ball_y = BALL_RADIUS + _rng_below(SCREEN_HEIGHT - (2 * BALL_RADIUS))
             
             # Check if the basketball is not too close to any player
             valid_position = True
@@ -522,78 +542,79 @@ def initialize_simulation():
 
 #%% Random Movement Simulation
 
-try:
-    initialize_simulation()
-
-    start_time_simulation = time.time()
-
-    # Define the codec and create VideoWriter object
-    video_format = cv2.VideoWriter_fourcc(*'XVID')
+if __name__ == "__main__":
     try:
-        video_output_path = os.path.join(video_dir, 'random_movement_video.mp4')
-    except TypeError:
-        video_output_path = os.path.join(os.getcwd(), 'assets/random_movement_video.mp4')
-    out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
+        initialize_simulation()
 
-    frames_captured = 0
-    # Define how long the simulation will run
-    if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
-        simulation_capture_max_time = 1
-    else:
-        simulation_capture_max_time = 10  # 10 seconds for local development
+        start_time_simulation = time.time()
 
-    max_frames_captured = FPS * simulation_capture_max_time
-    simulating = True
+        # Define the codec and create VideoWriter object
+        video_format = cv2.VideoWriter_fourcc(*'XVID')
+        try:
+            video_output_path = os.path.join(video_dir, 'random_movement_video.mp4')
+        except TypeError:
+            video_output_path = os.path.join(os.getcwd(), 'assets/random_movement_video.mp4')
+        out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
-    # Pygame clock for maintaining frame rate
-    clock = pygame.time.Clock()
+        frames_captured = 0
+        # Define how long the simulation will run
+        if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
+            simulation_capture_max_time = 1
+        else:
+            simulation_capture_max_time = 10  # 10 seconds for local development
 
-    while simulating and (frames_captured < max_frames_captured):
+        max_frames_captured = FPS * simulation_capture_max_time
+        simulating = True
+
+        # Pygame clock for maintaining frame rate
+        clock = pygame.time.Clock()
+
+        while simulating and (frames_captured < max_frames_captured):
         
-        elapsed_time_simulation = time.time() - start_time_simulation
+            elapsed_time_simulation = time.time() - start_time_simulation
         
-        # Create screen with basketball court as the background
-        screen.blit(background_image, (0,0))
+            # Create screen with basketball court as the background
+            screen.blit(background_image, (0,0))
 
-        # Check for quit events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                simulating = False
-            # Press 'q' to quit
-            elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
-                simulating = False
+            # Check for quit events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    simulating = False
+                # Press 'q' to quit
+                elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
+                    simulating = False
 
-        # Update and draw players
-        for player in players:
-            player.move()
-            player.draw()
+            # Update and draw players
+            for player in players:
+                player.move()
+                player.draw()
             
-        # Update and draw basketball (independent movement)
-        basketball.move()
-        basketball.draw()
+            # Update and draw basketball (independent movement)
+            basketball.move()
+            basketball.draw()
 
-        pygame.display.flip()  # Update pygame simulation frame
-        clock.tick(FPS)  # Maintain frame rate
+            pygame.display.flip()  # Update pygame simulation frame
+            clock.tick(FPS)  # Maintain frame rate
 
-        # Capture frame
-        frame = pygame.surfarray.array3d(pygame.display.get_surface())
-        frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
+            # Capture frame
+            frame = pygame.surfarray.array3d(pygame.display.get_surface())
+            frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
 
-        # Skip the first frame to allow simulation to stabilize
-        if frames_captured > 0:
-            # Write the output frame
-            out.write(frame)
-        frames_captured += 1
+            # Skip the first frame to allow simulation to stabilize
+            if frames_captured > 0:
+                # Write the output frame
+                out.write(frame)
+            frames_captured += 1
 
-    logger.debug("Random Movement Simulation succeeded")
-    print("Random Movement Simulation succeeded")
+        logger.debug("Random Movement Simulation succeeded")
+        print("Random Movement Simulation succeeded")
 
-except Exception as e:
-    logger.error("Error during simulation: %s", e)
-    print("Random Movement Simulation failed")
-    raise
+    except Exception as e:
+        logger.error("Error during simulation: %s", e)
+        print("Random Movement Simulation failed")
+        raise
 
-finally:
-    out.release()
-    pygame.quit()
+    finally:
+        out.release()
+        pygame.quit()

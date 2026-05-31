@@ -17,3 +17,8 @@ _tmp = tempfile.mkdtemp(prefix="bball_test_")
 os.environ.setdefault("LOG_DIR", _tmp)
 os.environ.setdefault("VIDEO_DIR", _tmp)
 os.environ.setdefault("TRACKING_DIR", _tmp)
+
+# This repo lives in iCloud Drive, which can spawn sync-conflict copies named
+# "<name> 2.py", "<name> 3.py", ... Skip them during collection so they can't
+# pollute or break the test run (they are also gitignored).
+collect_ignore_glob = ["* [0-9].py", "*/* [0-9].py"]

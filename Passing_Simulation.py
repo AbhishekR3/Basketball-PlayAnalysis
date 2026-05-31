@@ -14,7 +14,27 @@ import datetime
 import numpy as np
 import os
 import cv2
-import secrets
+# Seeded RNG for reproducible simulations (replaces the stdlib secret-random
+# draws). Seed via the SIM_SEED env var (default 42); call seed_rng(...) to
+# reproduce a run exactly.
+_rng = np.random.default_rng(int(os.environ.get('SIM_SEED', 42)))
+
+
+def seed_rng(seed):
+    "Reseed the module RNG so a simulation run can be reproduced bit-for-bit."
+    global _rng
+    _rng = np.random.default_rng(seed)
+
+
+def _rng_choice(seq):
+    "Deterministic replacement for a random choice over a sequence."
+    seq = list(seq)
+    return seq[int(_rng.integers(len(seq)))]
+
+
+def _rng_below(n):
+    "Deterministic replacement for a random integer in [0, n)."
+    return int(_rng.integers(n))
 from utils import configure_logger
 
 #%% Class - Player
@@ -34,12 +54,12 @@ class Player:
         self.initial_y = y #set first y-coordinate after received by player
         self.radius = radius #set radius
         self.color = color #set player color
-        self.speed = secrets.SystemRandom().uniform(0.2, 1.7) #set random speed
-        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
+        self.speed = _rng.uniform(0.2, 1.7) #set random speed
+        self.angle = _rng.uniform(0, 2 * math.pi) #set random angle
         self.next_angle = self.angle + cryptographic_normal(90, 1.5, True) #set next angle
         self.last_update_time = time.time() #set last update time
         self.angle_update = False #Set angle update for basketball displacement
-        self.change_ball_time_limit = secrets.SystemRandom().uniform(3, 6) #Set time limit when ball should update
+        self.change_ball_time_limit = _rng.uniform(3, 6) #Set time limit when ball should update
 
     def update_speed_angle(self, basketball):
         """
@@ -60,7 +80,7 @@ class Player:
                 basketball.change_displacement = False
 
                 #Change speed
-                self.speed = secrets.SystemRandom().uniform(0.2, 1.7)
+                self.speed = _rng.uniform(0.2, 1.7)
 
                 #Change angle
                 self.angle = self.next_angle
@@ -69,7 +89,7 @@ class Player:
                 self.last_update_time = time.time()
 
                 #Update when ball update should change
-                self.change_ball_time_limit = secrets.SystemRandom().uniform(3,6)
+                self.change_ball_time_limit = _rng.uniform(3,6)
 
                 self.initial_x = self.x #set first x-coordinate after received by player
                 self.initial_y = self.y #set first y-coordinate after received by player
@@ -97,14 +117,26 @@ class Player:
         try:
             self.update_speed_angle(basketball)
 
-            self.x += self.speed * math.cos(self.angle)
-            self.y += self.speed * math.sin(self.angle)
+            vx = self.speed * math.cos(self.angle)
+            vy = self.speed * math.sin(self.angle)
+            self.x += vx
+            self.y += vy
 
-            # Prevent wall collision
-            if self.x + self.radius > SCREEN_WIDTH-15 or self.x - self.radius < 0:
+            # Valid interior bounds (single margin constant)
+            min_x, max_x = self.radius, SCREEN_WIDTH - WALL_MARGIN - self.radius
+            min_y, max_y = self.radius, SCREEN_HEIGHT - WALL_MARGIN - self.radius
+
+            # #13 fix: reflect only when the player is heading further out of
+            # bounds, so a player at the edge can't oscillate (reflect-step-still
+            # outside-reflect) and get stuck. Then clamp back inside so the test
+            # can't re-trigger next frame.
+            if (self.x > max_x and vx > 0) or (self.x < min_x and vx < 0):
                 self.angle = math.pi - self.angle
-            if self.y + self.radius > SCREEN_HEIGHT-15 or self.y - self.radius < 0:
+            if (self.y > max_y and vy > 0) or (self.y < min_y and vy < 0):
                 self.angle = -self.angle
+
+            self.x = min(max(self.x, min_x), max_x)
+            self.y = min(max(self.y, min_y), max_y)
 
         except Exception as e:
             logger.error("Error in moving player: %s", e)
@@ -145,13 +177,13 @@ class Basketball:
         self.y = y #set y-coordinate
         self.radius = radius #set basketball radius
         self.color = color #set basketball color
-        self.speed = secrets.SystemRandom().uniform(0.2, 1.7) #set random speed
-        self.angle = secrets.SystemRandom().uniform(0, 2 * math.pi) #set random angle
+        self.speed = _rng.uniform(0.2, 1.7) #set random speed
+        self.angle = _rng.uniform(0, 2 * math.pi) #set random angle
         self.last_update_time = time.time()  #set last update time
         self.history = [] # To store positions for fluctuation effect
         self.offset = 0 #Offset refers to the displacment of basketball from the player. Initialize at 0, since this will update later.
         self.change_displacement = False #To prevent constant change in displacment from the player
-        self.displacement_randomness = secrets.choice([True, False]) #Displacement randomness to choose a side for a player
+        self.displacement_randomness = bool(_rng.integers(2)) #Displacement randomness to choose a side for a player
         self.dribble_switch = False #When dribble switch is false, do not update position through basketball class
         self.stabalize_dribble_switch_x = None #Set the x starting value of the next side of the dribble switch
         self.stabalize_dribble_switch_y = None #Set the y starting value of the next side of the dribble switch
@@ -251,7 +283,7 @@ def update_basketball_position(ball, dribbling_player, basketball_displacement):
 
             change_displacement_value = True
             angle_update_value = True
-            displacement_randomness = secrets.choice([True, False])
+            displacement_randomness = bool(_rng.integers(2))
         
         else:
             x_coordinate = dribbling_player.x + basketball_displacement + ball.offset * math.cos(ball.angle)
@@ -356,11 +388,13 @@ def move_basketball_to_location(ball, target_x, target_y, avoiding_players=None,
             # Calculate the direct path vector
             dx, dy = target_x - ball.x, target_y - ball.y
 
-            #If movement is less than 7 pixels, stabalize the movement so we need to return the same ball.x, ball.y value.
-            #Set diplsacement to 0
-            if dx <= 7 or dy <= 7:
-                displacement_x, displacement_y = 0,0
-            
+            # #15 fix: snap based on Euclidean distance, not signed component
+            # deltas. The old `dx <= 7 or dy <= 7` was true for any leftward/upward
+            # move (negative delta), zeroing displacement and making the ball jerk
+            # to a stop. Now we step at MOVE_SPEED until genuinely close, then snap.
+            if math.hypot(dx, dy) <= BALL_SNAP_THRESHOLD:
+                displacement_x, displacement_y = 0, 0
+
             else:
                 path_vector = pygame.math.Vector2(dx, dy)
                 path_vector = path_vector.normalize() * MOVE_SPEED
@@ -505,8 +539,8 @@ def cryptographic_normal(mu, sigma, radian=False):
     """
     try:
         # Generate two uniform random integers
-        raw1 = secrets.randbits(64)
-        raw2 = secrets.randbits(64)
+        raw1 = int(_rng.integers(0, 2**64, dtype=np.uint64))
+        raw2 = int(_rng.integers(0, 2**64, dtype=np.uint64))
 
         # Convert to floats in the range [0, 1)
         u1 = raw1 / 2**64
@@ -629,8 +663,8 @@ def place_circle_with_constraints(existing_players, radius, color, simulation_wi
         attempts = 0
         while attempts < 1000:  # Limit attempts to prevent infinite loop
             new_player = Player(
-                radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
-                radius + secrets.randbelow(simulation_width - (3 * radius) + 1),
+                radius + _rng_below(simulation_width - (3 * radius) + 1),
+                radius + _rng_below(simulation_width - (3 * radius) + 1),
                 radius,
                 color)
             
@@ -702,7 +736,7 @@ def initialize_simulation():
 
         # Choose a random blue player to place the basketball with
         team_players = [player for player in players if player.color == COLOR_BLUE]
-        current_player = secrets.choice(team_players)
+        current_player = _rng_choice(team_players)
 
         basketball = Basketball(
             current_player.x - basketball_relative_x,
@@ -783,12 +817,14 @@ COLOR_RED = (255, 0, 0)
 COLOR_ORANGE = (255, 165, 0)
 COLOR_WHITE = (255, 255, 255)
 FPS = 30
+WALL_MARGIN = 15 #Single boundary margin used by the wall-collision handler
 MOVE_SPEED = cryptographic_normal(5.6, 1) #Speed at which basketball moves to the next player
+BALL_SNAP_THRESHOLD = 7 #Distance under which the ball snaps to its target instead of stepping
 
 # Simulation Variables
 clock = pygame.time.Clock()
 pass_timer = -1
-pass_interval = secrets.SystemRandom().uniform(4, 5)  #How many seconds before the player passes the ball
+pass_interval = _rng.uniform(4, 5)  #How many seconds before the player passes the ball
 reached_player = False #When basketball is with a player
 basketball_relative_x = 5 #X-axis displacemnt of the basketball compared to the player
 basketball_relative_y = 5 #Y-axis displacemnt of the basketball compared to the player
@@ -830,7 +866,7 @@ if __name__ == "__main__":
     max_frames_caputured = FPS * simulation_capture_max_time
 
     try:
-        current_player = secrets.choice(team_players) # Updated for passing simulation data collection
+        current_player = _rng_choice(team_players) # Updated for passing simulation data collection
 
         while simulating and (frames_captured < max_frames_caputured):
         
@@ -864,7 +900,7 @@ if __name__ == "__main__":
             
                 # Create a new list excluding the current player and randomly choose a player to pass to
                 team_players_excluding_current = [player for player in team_players if player != current_player]
-                new_random_player = secrets.choice(team_players_excluding_current)
+                new_random_player = _rng_choice(team_players_excluding_current)
             
                 pass_players = [current_player, new_random_player] #Both players the ball is being passed between
                 basketball.x, basketball.y = move_basketball_to_location(
