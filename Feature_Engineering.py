@@ -22,9 +22,38 @@ from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import logging
 import matplotlib.pyplot as plt
 import config
 from utils import export_dataframe_to_csv, read_dataframe_to_csv, configure_logger
+
+# Module-level logger so the helper functions below are importable/testable
+# without running main(); main() reconfigures this via configure_logger().
+logger = logging.getLogger('feature_engineering')
+
+# Columns the raw tracking CSV must contain before feature extraction can run.
+REQUIRED_TRACKING_COLUMNS = [
+    'TrackID', 'ClassID', 'Mean', 'Co-Variance', 'ConfidenceScore',
+    'State', 'Hits', 'Age', 'Features', 'Frame',
+]
+
+
+def validate_tracking_schema(df):
+    """
+    Objective:
+    Assert the raw tracking DataFrame exposes every column the feature pipeline
+    depends on, failing fast with a clear message instead of a deep KeyError.
+
+    Parameters:
+    [pandas DataFrame] df - Raw tracking data to validate
+
+    Returns:
+    [pandas DataFrame] df - The same DataFrame, unchanged, when valid
+    """
+    missing = [col for col in REQUIRED_TRACKING_COLUMNS if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required tracking columns: {missing}")
+    return df
 
 #%% One Hot Encoding for Class type
 
@@ -533,11 +562,17 @@ def extract_acceleration(df):
 
         df = df.fillna(0)
 
-        # Calculate acceleration
-        df['accel_x'] = ((df['vel_x']-df['prev_vel_x'])/df['vel_x'])/df['delta_time']
-        df['accel_y'] = ((df['vel_x']-df['prev_vel_y'])/df['vel_y'])/df['delta_time']
-        df['accel_aspect'] = ((df['vel_aspect']-df['prev_vel_aspect'])/df['vel_aspect'])/df['delta_time']
-        df['accel_height'] = ((df['vel_height']-df['prev_vel_height'])/df['vel_height'])/df['delta_time']
+        # Guard divide-by-zero: each track's first frame has delta_time == 0, and
+        # velocities can also be 0 -- both previously yielded inf/NaN acceleration.
+        safe_delta = df['delta_time'].replace(0, np.nan)
+        df['accel_x'] = ((df['vel_x']-df['prev_vel_x'])/df['vel_x'].replace(0, np.nan))/safe_delta
+        df['accel_y'] = ((df['vel_x']-df['prev_vel_y'])/df['vel_y'].replace(0, np.nan))/safe_delta
+        df['accel_aspect'] = ((df['vel_aspect']-df['prev_vel_aspect'])/df['vel_aspect'].replace(0, np.nan))/safe_delta
+        df['accel_height'] = ((df['vel_height']-df['prev_vel_height'])/df['vel_height'].replace(0, np.nan))/safe_delta
+
+        # Any remaining inf/NaN from a zero denominator -> 0 acceleration
+        accel_cols = ['accel_x', 'accel_y', 'accel_aspect', 'accel_height']
+        df[accel_cols] = df[accel_cols].replace([np.inf, -np.inf], np.nan).fillna(0)
 
         df = df.sort_values(['TrackID', 'Frame'], ascending=[True, True])
 
@@ -562,6 +597,7 @@ def feature_extraction(dataset):
     """
 
     try:
+        validate_tracking_schema(dataset)
         transformed_dataset = one_hot_encode_class_id(dataset)
         transformed_dataset = extract_mean_values(transformed_dataset)
         transformed_dataset = transform_state(transformed_dataset)
@@ -611,16 +647,18 @@ def convert_string_to_array(string_data):
 
 #%% Final optimization of dataset
 
-def optimize_dataset(dataset):
-    """ 
-    Objective: 
-    Optimizes the dataset by filling NaN values, normalizing numerical columns, performing PCA, and dropping unnecessary columns.
+def optimize_dataset(dataset, use_pca=False, n_pca_components=16):
+    """
+    Objective:
+    Optimizes the dataset by filling NaN values, normalizing numerical columns, optionally performing PCA, and dropping unnecessary columns.
 
-    Parameters: 
+    Parameters:
     [pandas DataFrame] dataset - The dataset to optimize.
+    [bool] use_pca - When True, replace the numeric feature columns with their top principal components.
+    [int] n_pca_components - Number of principal components to keep when use_pca is True.
 
-    Returns: 
-    [pandas DataFrame] dataset - The optimized dataset. 
+    Returns:
+    [pandas DataFrame] dataset - The optimized dataset.
     """
 
     try:
@@ -634,9 +672,6 @@ def optimize_dataset(dataset):
 
         # Normalize data
         dataset = normalize_numerical_columns(dataset)
-
-        # Perform PCA
-        #perform_pca(dataset, n_components=16, variance_threshold=0.85) # Uncomment to perform PCA
 
         # Remove unecessary columns (Based on information from PCA analysis)
         columns_dropped = ['Mean', 'Unnamed: 0', 'ConfidenceScore', 'State', 'Features', 'ClassID',
@@ -652,13 +687,60 @@ def optimize_dataset(dataset):
         # Remove duplicate rows based on TrackID and Frame
         dataset = dataset.drop_duplicates(subset=['TrackID', 'Frame'], keep='first')
 
+        # Optional dimensionality reduction behind a flag
+        if use_pca:
+            dataset = apply_pca_transform(dataset, n_components=n_pca_components)
+
         return dataset
 
     except Exception as e:
         logger.error("Error in optimizing/cleaning dataset: %s", e)
         raise
 
-#%% PCA Calculation 
+#%% PCA Calculation
+
+def apply_pca_transform(df, n_components=16):
+    """
+    Objective:
+    Replace the numeric feature columns with their top-n principal components,
+    preserving identity/categorical columns. This is the transform invoked by the
+    optimize_dataset PCA flag (perform_pca below is the analysis/plot helper).
+
+    Parameters:
+    [pandas DataFrame] df - Dataset whose numeric feature columns to reduce
+    [int] n_components - Number of principal components to keep
+
+    Returns:
+    [pandas DataFrame] reduced - Dataset with numeric features replaced by PCs
+    """
+    try:
+        # Identity/categorical columns to keep out of PCA and carry through as-is
+        preserved = ['Frame', 'TrackID', 'is_Team_A', 'is_Team_B', 'is_Basketball',
+                     'state_tentative', 'state_confirmed']
+        numeric_columns = df.select_dtypes(include=[np.number]).columns.difference(preserved)
+
+        # Nothing to reduce if we already have <= n_components numeric features
+        if len(numeric_columns) <= n_components:
+            return df
+
+        X_scaled = StandardScaler().fit_transform(df[numeric_columns])
+        components = PCA(n_components=n_components).fit_transform(X_scaled)
+
+        pc_df = pd.DataFrame(
+            components,
+            columns=[f'PC{i+1}' for i in range(n_components)],
+            index=df.index,
+        )
+
+        kept_columns = [col for col in df.columns if col not in numeric_columns]
+        reduced = pd.concat([df[kept_columns], pc_df], axis=1)
+
+        return reduced
+
+    except Exception as e:
+        logger.error("Error in applying PCA transform: %s", e)
+        raise
+
 
 def perform_pca(df, n_components=20, variance_threshold=0.9):
     """
