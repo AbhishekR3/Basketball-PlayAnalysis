@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import torch.nn as nn
 import torch.nn.utils.prune as prune
 from tqdm import tqdm
 
@@ -30,14 +31,21 @@ from .training import evaluate_model
 def prune_attention_heads(model, prune_amount=0.2):
     """
     Objective:
-    Prune attention heads based on their importance scores using structured L1 norm
+    Structurally prune the least-important attention heads and PHYSICALLY rebuild
+    the Q/K/V/output projections at the reduced head count, so the parameter and
+    FLOP reduction is real (materialized) rather than just a zero-mask.
+
+    Importance per head combines the learned head_importance scores with the L2
+    norm of that head's Q/K/V projection slices (magnitude-based). The lowest-
+    scoring heads are dropped and the projection matrices are sliced down to the
+    surviving heads. Any pre-existing prune mask is baked in first.
 
     Parameters:
-    [nn.Module] model - The model containing MultiHeadAttention layers to prune
-    [float] prune_amount - Amount of heads to prune (default: 0.2 = 20%)
+    [nn.Module] model - The model containing a MultiHeadAttention layer to prune
+    [float] prune_amount - Fraction of heads to prune (default: 0.2 = 20%)
 
     Returns:
-    [nn.Module] model - The pruned model
+    [nn.Module] model - The pruned model with materially fewer parameters
     """
     try:
         # Verify if the model has the MultiHeadAttention layer
@@ -45,34 +53,82 @@ def prune_attention_heads(model, prune_amount=0.2):
             logger.warning("Model does not have a compatible MultiHeadAttention layer for pruning")
             return model
 
-        # Get the attention module
-        attention_module = model.attention
+        attention = model.attention
+        num_heads = attention.num_heads
+        head_dim = attention.head_dim
 
-        # Apply L1 structured pruning to head_importance
-        prune.ln_structured(
-            attention_module,
-            name='head_importance',
-            amount=prune_amount,
-            n=1,  # L1 norm
-            dim=0  # Prune along dimension 0 (head dimension)
+        # Number of heads to keep (always keep at least one)
+        n_prune = int(round(num_heads * prune_amount))
+        keep_heads = max(1, num_heads - n_prune)
+        if keep_heads >= num_heads:
+            logger.info("Prune amount rounds to 0 heads; model left unchanged")
+            return model
+
+        # Bake any pre-existing head_importance mask into the parameter, then drop
+        # the reparametrization so we operate on plain weights below.
+        if prune.is_pruned(attention):
+            prune.remove(attention, 'head_importance')
+
+        # Per-head importance: learned score * (||Q_h|| + ||K_h|| + ||V_h||)
+        with torch.no_grad():
+            learned = attention.head_importance.detach().abs().view(-1)  # (num_heads,)
+            q = attention.query.weight.detach().view(num_heads, head_dim, -1)
+            k = attention.key.weight.detach().view(num_heads, head_dim, -1)
+            v = attention.value.weight.detach().view(num_heads, head_dim, -1)
+            weight_norm = q.norm(dim=(1, 2)) + k.norm(dim=(1, 2)) + v.norm(dim=(1, 2))
+            score = learned * weight_norm
+
+            # Indices of the heads to keep, in ascending order so the head layout
+            # stays contiguous after slicing.
+            keep_idx = torch.sort(torch.topk(score, keep_heads).indices).values
+
+            # Expand kept-head indices into the row indices of the projection
+            # weights (each head owns head_dim contiguous output rows).
+            row_idx = torch.cat([
+                torch.arange(h * head_dim, (h + 1) * head_dim) for h in keep_idx
+            ])
+
+            new_dim = keep_heads * head_dim
+            in_dim = attention.query.in_features  # unchanged (== attention_dim)
+
+            # Rebuild Q/K/V with fewer output rows (the dropped heads' rows removed)
+            for name in ('query', 'key', 'value'):
+                old = getattr(attention, name)
+                new = nn.Linear(in_dim, new_dim)
+                new.weight = nn.Parameter(old.weight.data[row_idx].clone())
+                new.bias = nn.Parameter(old.bias.data[row_idx].clone())
+                setattr(attention, name, new)
+
+            # Rebuild output projection: input shrinks to new_dim, output stays at
+            # attention_dim so the residual connection still lines up.
+            old_out = attention.output_projection
+            new_out = nn.Linear(new_dim, attention.hidden_dim)
+            new_out.weight = nn.Parameter(old_out.weight.data[:, row_idx].clone())
+            new_out.bias = nn.Parameter(old_out.bias.data.clone())
+            attention.output_projection = new_out
+
+            # Shrink the head-importance vector to the surviving heads
+            attention.head_importance = nn.Parameter(
+                attention.head_importance.data[keep_idx].clone()
+            )
+
+        # Update bookkeeping the forward pass relies on. head_dim (and thus scale)
+        # is unchanged; attention.hidden_dim is the flattened multi-head width used
+        # when reshaping weighted values, so it shrinks to new_dim.
+        attention.num_heads = keep_heads
+        attention.hidden_dim = new_dim
+
+        logger.info(
+            f"Pruned {num_heads - keep_heads}/{num_heads} attention heads "
+            f"({(num_heads - keep_heads)/num_heads:.1%}); attention width "
+            f"{num_heads * head_dim} -> {new_dim}"
         )
-
-        # Log pruning information
-        # Count non-zero rows in head_importance to determine remaining heads
-        remaining_heads = torch.sum(torch.any(attention_module.head_importance != 0, dim=1)).item()
-        total_heads = attention_module.num_heads
-        pruned_heads = total_heads - remaining_heads
-
-        logger.info(f"Pruned {pruned_heads}/{total_heads} attention heads ({pruned_heads/total_heads:.1%})")
-
-        # Make pruning permanent (optional for inference performance)
-        prune.remove(attention_module, 'head_importance')
 
         return model
 
     except Exception as e:
         logger.error(f"Error in prune_attention_heads: {e}")
-        logger.error(f"Pruning skipped, returning original model")
+        logger.error("Pruning skipped, returning original model")
         return model
 
 

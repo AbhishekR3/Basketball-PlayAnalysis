@@ -15,6 +15,7 @@ from collections import defaultdict
 
 import pandas as pd
 import torch
+import torch.optim as optim
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from tqdm import tqdm
 
@@ -26,10 +27,10 @@ from .plots import plot_confusion_matrix
 
 #%% Training
 
-def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=10, device='cpu', early_stopping_patience=3):
+def train_model(model, train_loader, val_loader, criterion, optimizer, num_epochs=10, device='cpu', early_stopping_patience=3, scheduler=None):
     """
     Objective:
-    Train the LSTM model with validation and early stopping
+    Train the LSTM model with validation, early stopping, and optional LR scheduling
 
     Parameters:
     [nn.Module] model - The LSTM model to train
@@ -40,6 +41,9 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
     [int] num_epochs - Number of epochs to train
     [string] device - Device to train on ('cpu', 'cuda', or 'mps')
     [int] early_stopping_patience - Number of epochs to wait for improvement
+    [lr_scheduler] scheduler - Optional LR scheduler stepped once per epoch. If it
+        is a ReduceLROnPlateau it is stepped with the validation loss, otherwise
+        it is stepped unconditionally.
 
     Returns:
     [dict] history - Training history
@@ -143,6 +147,16 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             val_precision = precision_score(all_val_labels, all_val_preds, zero_division=0)
             val_recall = recall_score(all_val_labels, all_val_preds, zero_division=0)
             val_f1 = f1_score(all_val_labels, all_val_preds, zero_division=0)
+
+            # Step the LR scheduler once per epoch (plateau schedulers need the
+            # validation loss; others step unconditionally). Record the LR so the
+            # schedule is visible in the training history.
+            if scheduler is not None:
+                if isinstance(scheduler, optim.lr_scheduler.ReduceLROnPlateau):
+                    scheduler.step(val_loss)
+                else:
+                    scheduler.step()
+            history['learning_rate'].append(optimizer.param_groups[0]['lr'])
 
             # Calculate epoch time
             epoch_time = time.time() - epoch_start_time

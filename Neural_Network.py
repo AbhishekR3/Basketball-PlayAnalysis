@@ -220,6 +220,10 @@ def main():
         criterion = nn.BCELoss()
         optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=config.WEIGHT_DECAY)  # L2 regularization
 
+        # Cosine-annealing LR schedule over the full run (replaces the previous
+        # fixed LR for all epochs)
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_epochs)
+
         # Train the model
         logger.info("Starting model training...")
         history = train_model(
@@ -230,7 +234,8 @@ def main():
             optimizer=optimizer,
             num_epochs=num_epochs,
             device=device,
-            early_stopping_patience=early_stopping_patience
+            early_stopping_patience=early_stopping_patience,
+            scheduler=scheduler
         )
 
         # Plot and save training history
