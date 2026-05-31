@@ -9,6 +9,7 @@ Key Concepts Implemented:
 '''
 
 #%% Import Libraries
+import math
 import numpy as np
 import pandas as pd
 import logging
@@ -19,6 +20,12 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 import config
 from sqlalchemy.exc import SQLAlchemyError
+from geoalchemy2 import Geometry
+from geoalchemy2.elements import WKTElement
+
+# Module-level log directory so the logging block below has a defined value
+# (it previously referenced an undefined `log_dir`); respects LOG_DIR in CI/Docker.
+log_dir = os.environ.get('LOG_DIR', os.getcwd())
 
 #%% Create a base class
 
@@ -63,8 +70,24 @@ class TrackingData(Base):
     accel_y_rolling_avg = Column(Float, nullable=False)
     accel_aspect_rolling_avg = Column(Float, nullable=False)
     accel_height_rolling_avg = Column(Float, nullable=False)
+    # PostGIS point built from the rolling-average position; GIST-indexed for
+    # spatial proximity queries (see run_commit_query).
+    point_geom = Column(Geometry(geometry_type='POINT', srid=0), nullable=True)
 
 #%% Create connection to database
+
+def get_connection_string():
+    """
+    Objective:
+    Resolve the PostgreSQL connection string. Honors the DATABASE_URL env var
+    first, then falls back to the centralized config.DB_URL (which itself reads
+    the DB_URL env var / project default). Kept separate from engine creation so
+    the env-driven selection is unit-testable without a live database.
+
+    Returns:
+    [str] connection_string - SQLAlchemy database URL
+    """
+    return os.environ.get('DATABASE_URL', config.DB_URL)
 
 def create_sqlalchemy_engine():
     """ 
@@ -79,17 +102,10 @@ def create_sqlalchemy_engine():
     """
 
     try:
-        # Use environment variables for security
-        #db_username = ''
-        #db_password = ''
-        #db_host = ''
-        #db_port = 5432
-        #db_name = 'postgres'
+        # Connection string is sourced from the DATABASE_URL env var (no hardcoded
+        # credentials); see get_connection_string for the default fallback.
+        connection_string = get_connection_string()
 
-        # Create the connection string
-        #connection_string = f"postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}"
-        connection_string = config.DB_URL
-        
         try:
             # Create the SQLAlchemy engine
             engine = create_engine(connection_string, pool_pre_ping=True)
@@ -238,7 +254,12 @@ def spatial_data_structure(data_row):
             accel_x_rolling_avg=data_row["accel_x_rolling_avg"],
             accel_y_rolling_avg=data_row["accel_y_rolling_avg"],
             accel_aspect_rolling_avg=data_row["accel_aspect_rolling_avg"],
-            accel_height_rolling_avg=data_row["accel_height_rolling_avg"]
+            accel_height_rolling_avg=data_row["accel_height_rolling_avg"],
+            # Spatial point from the rolling-average position for PostGIS queries
+            point_geom=WKTElement(
+                f"POINT({data_row['pos_x_rolling_avg']} {data_row['pos_y_rolling_avg']})",
+                srid=0,
+            ),
         )
 
         return tracking_data
@@ -305,9 +326,11 @@ def run_commit_query(engine):
     """
 
     try:
-        # SQL command to create the spatial index
+        # SQL command to create the GIST spatial index on the PostGIS point column
         sql_command = text("""
-
+            CREATE INDEX IF NOT EXISTS idx_tracking_data_point_geom
+            ON public.tracking_data
+            USING GIST (point_geom);
         """)
 
         # Execute the SQL command
@@ -354,9 +377,30 @@ def get_basketball_for_frame(engine, frame):
         logging.error(f"Error occurred while getting basketball for frame {frame}: {str(e)}")
         raise
 
+#%% Pure distance helper
+
+def calculate_point_distances(basketball_xy, player_rows):
+    """
+    Objective:
+    Compute Euclidean distances from the basketball to each player and return
+    them ranked nearest-first. Pure function (no DB) so it is unit-testable.
+
+    Parameters:
+    [tuple] basketball_xy - (x, y) of the basketball
+    [list] player_rows - list of (player_id, x, y) tuples
+
+    Returns:
+    [list] ranked - list of (player_id, distance) sorted ascending by distance
+    """
+    bx, by = basketball_xy
+    distances = [
+        (player_id, math.hypot(px - bx, py - by)) for player_id, px, py in player_rows
+    ]
+    return sorted(distances, key=lambda item: item[1])
+
 #%% Calculate basketball distance within database
 
-def calculate_basketball_distances(engine):
+def calculate_basketball_distances(engine, n_closest=3):
     """ 
     Objective: 
     Calculates the distances between basketball and players in a given dataset.
@@ -370,30 +414,43 @@ def calculate_basketball_distances(engine):
 
     try:
         # Collect the distinct frame_ids
-        sql_command = text("""
-        SELECT DISTINCT frame FROM public.tracking_data ORDER BY frame;
+        frames_list = run_select_query(
+            engine,
+            text("SELECT DISTINCT frame FROM public.tracking_data ORDER BY frame;"),
+        )
+
+        # Per-frame query: id, x, y (extracted from the PostGIS point) and class
+        objects_sql = text("""
+            SELECT id, ST_X(point_geom), ST_Y(point_geom), is_basketball
+            FROM public.tracking_data
+            WHERE frame = :frame;
         """)
 
-        frames_list = run_select_query(engine, sql_command)
+        results = {}
+        for (frame_id,) in frames_list:
+            rows = run_select_query(engine, objects_sql, frame_id)
 
-        for (frame_id, ) in frames_list:
-            basketball_data = get_basketball_for_frame(engine, frame_id)
-            
-            # Find the basketball info for this frame
-            
-            if basketball_data is not None:
-                basketball_id, basketball_geom = basketball_data
-                print(basketball_id, basketball_geom)
+            # Split the frame's objects into the basketball and the players
+            basketball_xy = None
+            player_rows = []
+            for obj_id, x, y, is_basketball in rows:
+                if is_basketball:
+                    basketball_xy = (x, y)
+                else:
+                    player_rows.append((obj_id, x, y))
 
-                # Calculate/Insert distances to 3 closest players to the basketball in the same frame
+            # No basketball detected in this frame -> nothing to rank
+            if basketball_xy is None:
+                continue
+
+            # Rank players by proximity and keep the n closest
+            ranked = calculate_point_distances(basketball_xy, player_rows)[:n_closest]
+            results[frame_id] = ranked
+
+        return results
 
     except SQLAlchemyError as e:
-        logging.error(f"SQLAlchemy error occurred while committing the query: {str(e)}")
-        raise
-
-    except:
-        print('Messed up the commit statement')
-        logger.error(f"Error in committing the above query: {e}")
+        logging.error(f"SQLAlchemy error occurred while calculating distances: {str(e)}")
         raise
 
 #%% Configuring logging
