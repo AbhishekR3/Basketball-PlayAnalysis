@@ -291,38 +291,38 @@ def new_relative_basketball_position(ball_x, ball_y, ball_displacement_randomnes
     
     try:
         # Determine the side the basketball should move relative to the current player's coordinates
-        right_side = math.cos(current_player.x) > math.sin(current_player.y)
-        left_side = math.cos(current_player.x) < -(math.sin(current_player.y))
+        right_side = math.cos(dribbling_player.x) > math.sin(dribbling_player.y)
+        left_side = math.cos(dribbling_player.x) < -(math.sin(dribbling_player.y))
 
         # Calculate new position based on the conditions provided
         if right_side and left_side:
             if ball_displacement_randomness is True:
-                x_coordinate = current_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
+                x_coordinate = dribbling_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
                 y_coordinate = ball_y
             else:
-                x_coordinate = current_player.x - basketball_displacement + ball_offset * math.cos(ball_angle)
+                x_coordinate = dribbling_player.x - basketball_displacement + ball_offset * math.cos(ball_angle)
                 y_coordinate = ball_y
 
         elif right_side and not left_side:
             if ball_displacement_randomness is True:
                 x_coordinate = ball_x
-                y_coordinate = current_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
+                y_coordinate = dribbling_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
             else:
                 x_coordinate = ball_x
-                y_coordinate = current_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
+                y_coordinate = dribbling_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
         elif not right_side and left_side:
             if ball_displacement_randomness is True:
                 x_coordinate = ball_x
-                y_coordinate = current_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
+                y_coordinate = dribbling_player.y + basketball_displacement + ball_offset * math.sin(ball_angle)
             else:
                 x_coordinate = ball_x
-                y_coordinate = current_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
+                y_coordinate = dribbling_player.y - basketball_displacement + ball_offset * math.sin(ball_angle)
         else:
             if ball_displacement_randomness is True:
-                x_coordinate = current_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
+                x_coordinate = dribbling_player.x + basketball_displacement + ball_offset * math.cos(ball_angle)
                 y_coordinate = ball_y
             else:
-                x_coordinate = current_player.x - basketball_displacement + ball_offset * math.cos(ball_angle)
+                x_coordinate = dribbling_player.x - basketball_displacement + ball_offset * math.cos(ball_angle)
                 y_coordinate = ball_y
 
         return x_coordinate, y_coordinate
@@ -717,9 +717,16 @@ def initialize_simulation():
 
 #%% Configure Docker containerization
 #'''
-log_dir = os.environ.get('LOG_DIR', '/app/logs')
-video_dir = os.environ.get('VIDEO_DIR', '/app/simulations')
-assets_dir = os.environ.get('ASSETS_DIR', '/app/assets')
+def _default_dir(name):
+    # In Docker/CI use the container's /app paths; otherwise fall back to a
+    # writable dir under the cwd so the module can be imported (e.g. by the
+    # test suite) on a normal workstation instead of failing on /app.
+    in_container = os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true'
+    return os.path.join('/app', name) if in_container else os.path.join(os.getcwd(), name)
+
+log_dir = os.environ.get('LOG_DIR', _default_dir('logs'))
+video_dir = os.environ.get('VIDEO_DIR', _default_dir('simulations'))
+assets_dir = os.environ.get('ASSETS_DIR', _default_dir('assets'))
 
 def ensure_dir(directory):
     if not os.path.exists(directory):
@@ -799,148 +806,149 @@ simulation_limit = 1 # stop simulation after x minutes
 
 " Simulate Basketball Game "
 
-initialize_simulation()
+if __name__ == "__main__":
+    initialize_simulation()
 
-start_time_simulation = time.time()
+    start_time_simulation = time.time()
 
-# Define the codec and create VideoWriter object
-video_format = cv2.VideoWriter_fourcc(*'XVID')
-try:
-    video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
-except Exception as e:
-    video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
+    # Define the codec and create VideoWriter object
+    video_format = cv2.VideoWriter_fourcc(*'XVID')
+    try:
+        video_output_path = os.path.join(video_dir, 'simulation_video.mp4')
+    except Exception as e:
+        video_output_path = os.path.join(script_directory, 'assets/simulation_video.mp4')
     
-out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
+    out = cv2.VideoWriter(video_output_path, video_format, FPS, SCREEN_DIMENSIONS)
 
-frames_captured = 0
-# x seconds the simulation will run to capture recordings
-if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
-    simulation_capture_max_time = 5
-else:
-    simulation_capture_max_time = 10
+    frames_captured = 0
+    # x seconds the simulation will run to capture recordings
+    if os.path.exists('/.dockerenv') or os.getenv('GITHUB_ACTIONS') == 'true': # If running in Docker or GitHub Actions
+        simulation_capture_max_time = 5
+    else:
+        simulation_capture_max_time = 10
 
-max_frames_caputured = FPS * simulation_capture_max_time
+    max_frames_caputured = FPS * simulation_capture_max_time
 
-try:
-    current_player = secrets.choice(team_players) # Updated for passing simulation data collection
+    try:
+        current_player = secrets.choice(team_players) # Updated for passing simulation data collection
 
-    while simulating and (frames_captured < max_frames_caputured):
+        while simulating and (frames_captured < max_frames_caputured):
         
-        elapsed_time_simulation = time.time() - start_time_simulation # Set elapsed time to stop simulation after mentioned time
+            elapsed_time_simulation = time.time() - start_time_simulation # Set elapsed time to stop simulation after mentioned time
         
-        #Create screen with basketball court as the background
-        screen.blit(background_image, (0,0))
+            #Create screen with basketball court as the background
+            screen.blit(background_image, (0,0))
 
-        #Stop simulation
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                simulating = False
-            # Press 'q' to quit
-            elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
-                simulating = False
+            #Stop simulation
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    simulating = False
+                # Press 'q' to quit
+                elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_q):
+                    simulating = False
 
-        # Update and draw players
-        for player in players:
-            player.move(basketball)
-            player.draw()
+            # Update and draw players
+            for player in players:
+                player.move(basketball)
+                player.draw()
             
-        time_elapsed = time.time() - oscillation_start_time # Time elapsed since ball reached the player
+            time_elapsed = time.time() - oscillation_start_time # Time elapsed since ball reached the player
 
-        # Move basketball towards the current player
-        if reached_player is False:
+            # Move basketball towards the current player
+            if reached_player is False:
             
-            #Restart the following variables
-            current_player.angle_update = False
-            basketball.change_displacement = False
-            basketball.stabalize_dribble_switch_check = False
+                #Restart the following variables
+                current_player.angle_update = False
+                basketball.change_displacement = False
+                basketball.stabalize_dribble_switch_check = False
             
-            # Create a new list excluding the current player and randomly choose a player to pass to
-            team_players_excluding_current = [player for player in team_players if player != current_player]
-            new_random_player = secrets.choice(team_players_excluding_current)
+                # Create a new list excluding the current player and randomly choose a player to pass to
+                team_players_excluding_current = [player for player in team_players if player != current_player]
+                new_random_player = secrets.choice(team_players_excluding_current)
             
-            pass_players = [current_player, new_random_player] #Both players the ball is being passed between
-            basketball.x, basketball.y = move_basketball_to_location(
-                basketball,
-                current_player.x,
-                current_player.y,
-                players,
-                pass_players
-            )  # Move basketball closer to player
-            reached_player = ball_reached_player(basketball, current_player, MOVE_SPEED) #Stop if ball reached player
+                pass_players = [current_player, new_random_player] #Both players the ball is being passed between
+                basketball.x, basketball.y = move_basketball_to_location(
+                    basketball,
+                    current_player.x,
+                    current_player.y,
+                    players,
+                    pass_players
+                )  # Move basketball closer to player
+                reached_player = ball_reached_player(basketball, current_player, MOVE_SPEED) #Stop if ball reached player
             
-            #Calculate the distance between the basketball and the receiving player.
-            #This dictates which relative position the basketball should be from the player
-            if first_overlap is False:
-                if check_circles_overlap(basketball, current_player, basketball_player_overlap):
+                #Calculate the distance between the basketball and the receiving player.
+                #This dictates which relative position the basketball should be from the player
+                if first_overlap is False:
+                    if check_circles_overlap(basketball, current_player, basketball_player_overlap):
                     
-                    #Calculate x, y displacement relative to player
-                    basketball_relative_x = basketball.x - current_player.x
-                    basketball_relative_y = basketball.y - current_player.y
+                        #Calculate x, y displacement relative to player
+                        basketball_relative_x = basketball.x - current_player.x
+                        basketball_relative_y = basketball.y - current_player.y
                     
-                    last_update_time = datetime.datetime.now() #set update time
-                    first_overlap = True
+                        last_update_time = datetime.datetime.now() #set update time
+                        first_overlap = True
             
-            oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
-
-            # Stop if the ball reached the player
-            if reached_player is True:
-                break
-
-        
-        #current_player dribbles the basketball
-        else:
-            MOVE_SPEED = cryptographic_normal(5.6, 1) #Update move_speed
-            player_pass_time = player.last_update_time + player.change_ball_time_limit
-
-            # Check if basketball should switch to another side of the player
-            if basketball.dribble_switch is False:
-                basketball.update_position(current_player, time_elapsed)
-                basketball.speed = current_player.speed
-                basketball.angle = current_player.angle
-                basketball.stabalize_dribble_switch_check = False #Restart the stabalizing dribble switch check
-
-            # Start timer once basketball reaches player
-            if pass_timer < 0:
-                pass_timer = 0  # Activate timer
                 oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
-            pass_timer += clock.get_time() / 1000.0  # Convert milliseconds to seconds
 
-            # If pass_time greater or equal to when the ball should be passed
-            if pass_timer >= player.change_ball_time_limit:
-                # Time to pass the basketball to the next blue player
-                current_index = team_players.index(current_player) + 1
-                if current_index >= len(team_players):
-                    current_index = 0
-                current_player = team_players[current_index] #set a new player to control the basketball
-                pass_timer = -1  # Reset timer to deactivate
-                first_overlap = False
-                reached_player = False
-                break
+                # Stop if the ball reached the player
+                if reached_player is True:
+                    break
 
-        basketball.draw()  # Draw the basketball
+        
+            #current_player dribbles the basketball
+            else:
+                MOVE_SPEED = cryptographic_normal(5.6, 1) #Update move_speed
+                player_pass_time = player.last_update_time + player.change_ball_time_limit
 
-        pygame.display.flip() #Update pygame simulation frame
-        clock.tick(FPS) # Maintain frame rate (FPS)
+                # Check if basketball should switch to another side of the player
+                if basketball.dribble_switch is False:
+                    basketball.update_position(current_player, time_elapsed)
+                    basketball.speed = current_player.speed
+                    basketball.angle = current_player.angle
+                    basketball.stabalize_dribble_switch_check = False #Restart the stabalizing dribble switch check
 
-        # Capture frame
-        frame = pygame.surfarray.array3d(pygame.display.get_surface())
-        frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
+                # Start timer once basketball reaches player
+                if pass_timer < 0:
+                    pass_timer = 0  # Activate timer
+                    oscillation_start_time = time.time() #Set the oscillation start time to current time to reset the timer
+                pass_timer += clock.get_time() / 1000.0  # Convert milliseconds to seconds
 
-        # Do not include the first frame so the simulation could stabalize for effective analysis 
-        if frames_captured > 0:
-            # Write the output frame
-            out.write(frame)
-        frames_captured += 1
+                # If pass_time greater or equal to when the ball should be passed
+                if pass_timer >= player.change_ball_time_limit:
+                    # Time to pass the basketball to the next blue player
+                    current_index = team_players.index(current_player) + 1
+                    if current_index >= len(team_players):
+                        current_index = 0
+                    current_player = team_players[current_index] #set a new player to control the basketball
+                    pass_timer = -1  # Reset timer to deactivate
+                    first_overlap = False
+                    reached_player = False
+                    break
 
-    logger.debug("Game Simulation succeeded")
-    print("Game Simulation succeeded")
+            basketball.draw()  # Draw the basketball
 
-except Exception as e:
-    logger.error("Error during simulation: %s", e)
-    print("Game Simulation failed")
-    raise
+            pygame.display.flip() #Update pygame simulation frame
+            clock.tick(FPS) # Maintain frame rate (FPS)
 
-finally:
-    out.release()
-    pygame.quit()
+            # Capture frame
+            frame = pygame.surfarray.array3d(pygame.display.get_surface())
+            frame = frame.transpose([1, 0, 2])  # transpose to the correct shape
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
+
+            # Do not include the first frame so the simulation could stabalize for effective analysis 
+            if frames_captured > 0:
+                # Write the output frame
+                out.write(frame)
+            frames_captured += 1
+
+        logger.debug("Game Simulation succeeded")
+        print("Game Simulation succeeded")
+
+    except Exception as e:
+        logger.error("Error during simulation: %s", e)
+        print("Game Simulation failed")
+        raise
+
+    finally:
+        out.release()
+        pygame.quit()
