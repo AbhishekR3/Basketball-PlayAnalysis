@@ -33,6 +33,10 @@ def helpers():
     extra = {
         'secrets': secrets, 'math': math, 'time': time, 'np': np,
         'logger': logger,
+        # P0-H replaced the stdlib secret-random draws with a seeded module-level
+        # _rng (np.random.default_rng). AST extraction runs these callables in an
+        # isolated namespace, so inject a seeded _rng to satisfy that dependency.
+        '_rng': np.random.default_rng(42),
     }
     cryptographic_normal = load_callable_from_source(
         SIM_PATH, 'cryptographic_normal', extra_globals=extra)
