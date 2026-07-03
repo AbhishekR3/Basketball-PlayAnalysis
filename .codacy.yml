@@ -1,0 +1,7 @@
+---
+# Exclude the pytest suite from static analysis. Codacy's rules target
+# production code and misfire on test code — e.g. "assert in non-test code"
+# (asserts are how pytest tests assert) and strict pydocstyle nitpicks on
+# short test docstrings. Analyzing tests/ adds noise without catching real bugs.
+exclude_paths:
+  - 'tests/**'
