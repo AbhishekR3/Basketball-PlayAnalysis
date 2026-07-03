@@ -82,6 +82,56 @@ def setup_pipeline_dirs(logger=None):
         print(f"Error in creating environment for containers: {e}")
 
 
+#%% Device selection (GPU acceleration)
+
+# Compute device for torch training and ultralytics/YOLO inference. 'auto'
+# resolves at runtime through CUDA (NVIDIA) -> MPS (Apple Silicon) -> CPU; set
+# DEVICE to 'cpu', 'cuda', or 'mps' to force a backend (e.g. 'cpu' in CI).
+DEVICE = os.environ.get('DEVICE', 'auto')
+
+
+def get_device(logger=None):
+    """
+    Objective:
+    Resolve the torch device to run on. Honors the DEVICE env var and, when it
+    is 'auto', cascades CUDA -> MPS -> CPU. Enables the MPS CPU fallback so
+    unsupported kernels degrade gracefully rather than crashing on Apple Silicon.
+
+    Parameters:
+    [logging.Logger] logger - Optional logger to record the resolved device
+
+    Returns:
+    [torch.device] device - Resolved compute device
+    """
+    # Imported lazily so lightweight stages (e.g. simulations) that import config
+    # don't pay torch's import cost.
+    import torch
+
+    choice = DEVICE.lower()
+
+    if choice == 'auto':
+        if torch.cuda.is_available():
+            resolved = 'cuda'
+        elif torch.backends.mps.is_built() and torch.backends.mps.is_available():
+            resolved = 'mps'  # Apple Silicon GPU
+        else:
+            resolved = 'cpu'
+    else:
+        resolved = choice
+
+    # Route unsupported MPS ops to CPU instead of raising. Checked lazily by the
+    # MPS backend on first miss, so setting it before any op runs is sufficient.
+    if resolved == 'mps':
+        os.environ.setdefault('PYTORCH_ENABLE_MPS_FALLBACK', '1')
+
+    device = torch.device(resolved)
+
+    if logger is not None:
+        logger.info(f"Using device: {device}")
+
+    return device
+
+
 #%% Object_Tracking - YOLO confidence thresholds
 
 # filter_lowconfidence defaults from Object_Tracking.py

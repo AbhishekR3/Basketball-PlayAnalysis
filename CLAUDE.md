@@ -25,6 +25,7 @@ All stages read paths from env vars with `/app/...` defaults (Docker-oriented). 
 - `OUTPUT_DIR` — root for any other outputs
 - `LOG_DIR` — per-script logs (also where `run_sequence.sh` writes stdout/stderr)
 - `DeepSORT_DIR` — only Object_Tracking.py reads this
+- `DEVICE` — compute device for torch training + YOLO inference. `auto` (default) cascades CUDA → MPS → CPU; set to `cpu`/`cuda`/`mps` to force. Resolved by `config.get_device()`, which also enables `PYTORCH_ENABLE_MPS_FALLBACK` on Apple Silicon. Set `DEVICE=cpu` in CI.
 - `ANTHROPIC_API_KEY` — only `implementation_agent.py` reads this
 
 ## Common commands

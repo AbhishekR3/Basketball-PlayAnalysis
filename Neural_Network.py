@@ -78,15 +78,8 @@ def main():
         # Multi-head attention parameters
         num_heads = config.NUM_HEADS
 
-        # Check device type
-        if torch.cuda.is_available():
-            device = torch.device('cuda')
-        elif torch.backends.mps.is_built() and torch.backends.mps.is_available():
-            device = torch.device('mps')  # Apple Silicon GPU
-        else:
-            device = torch.device('cpu')
-
-        logger.info(f"Using device: {device}")
+        # Resolve compute device (CUDA -> MPS -> CPU, or DEVICE override)
+        device = config.get_device(logger)
 
         # Fit scaler on training data
         logger.info("Fitting scaler on training data...")
