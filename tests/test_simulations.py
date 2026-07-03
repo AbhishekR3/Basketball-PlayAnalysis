@@ -117,3 +117,53 @@ def test_ball_approaches_smoothly_with_negative_dx():
     assert all(abs(s - move_speed) < 1e-6 for s in nonzero)
     # Reached the snap vicinity of the target
     assert math.hypot(target_x - ball.x, target_y - ball.y) <= ps.BALL_SNAP_THRESHOLD
+
+
+def test_random_player_does_not_stick_to_wall():
+    """#13: the RandomMovement player has the same wall handler as Passing and must
+    stay in-bounds every frame and escape the edge band instead of orbiting it."""
+    rm.seed_rng(0)
+    player = rm.Player(0, 0, rm.PLAYER_RADIUS, rm.COLOR_BLUE)
+
+    max_x = rm.SCREEN_WIDTH - rm.WALL_MARGIN - player.radius
+    max_y = rm.SCREEN_HEIGHT - rm.WALL_MARGIN - player.radius
+
+    # Start adjacent to the right wall, heading outward (angle 0 -> +x)
+    player.x = max_x - 1
+    player.y = rm.SCREEN_HEIGHT / 2
+    player.angle = 0.0
+    player.speed = 2.0
+
+    xs = []
+    for _ in range(120):
+        player.move()
+        xs.append(player.x)
+        assert player.radius <= player.x <= max_x
+        assert player.radius <= player.y <= max_y
+
+    assert min(xs) < max_x - 50
+
+
+def test_random_basketball_does_not_stick_to_wall():
+    """#13: the RandomMovement basketball uses the same wall handler and must not
+    orbit the edge either."""
+    rm.seed_rng(0)
+    ball = rm.Basketball(0, 0, rm.BALL_RADIUS, rm.COLOR_ORANGE)
+
+    max_x = rm.SCREEN_WIDTH - rm.WALL_MARGIN - ball.radius
+    max_y = rm.SCREEN_HEIGHT - rm.WALL_MARGIN - ball.radius
+
+    # Start adjacent to the right wall, heading outward (angle 0 -> +x)
+    ball.x = max_x - 1
+    ball.y = rm.SCREEN_HEIGHT / 2
+    ball.angle = 0.0
+    ball.speed = 2.0
+
+    xs = []
+    for _ in range(120):
+        ball.move()
+        xs.append(ball.x)
+        assert ball.radius <= ball.x <= max_x
+        assert ball.radius <= ball.y <= max_y
+
+    assert min(xs) < max_x - 50

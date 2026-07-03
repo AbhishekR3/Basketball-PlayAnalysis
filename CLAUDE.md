@@ -45,7 +45,9 @@ docker run -v basketball_data:/app/data basketball-analysis
 ANTHROPIC_API_KEY=sk-... python implementation_agent.py "Add acceleration features to Feature_Engineering.py"
 ```
 
-There are no pytest tests in the repo despite `pytest` being in `Requirements.txt`. The CI workflow (`.github/workflows/ci.yml`) only smoke-tests Docker by building a **simplified** Dockerfile inline (not the real `dockerfile`) and grepping for "All scripts completed successfully" in a stubbed log — it does not exercise any pipeline code. Do not rely on it to catch real regressions.
+The repo has a pytest suite under `tests/` (config in `pytest.ini`, `testpaths = tests`). Two markers split it: `quick` (fast unit tests, no models / no heavy I/O) and `extensive` (full-pipeline integration against the real YOLO model, ~3-5 min). Behavioral tests for the simulations live in `tests/test_simulations.py`. Several `quick` tests — notably `tests/quick/test_simulation_math.py` — AST-extract the sim `Player`/`Basketball` classes via `tests/conftest.load_callable_from_source` and run them in an isolated namespace; when you add a **module-level constant** that a sim class references (e.g. `WALL_MARGIN`), you must also inject it into that test's `class_extra` namespace or the extracted method raises `NameError`. The `extensive` pipeline/tracking tests need `assets/YOLOv10s_custom.pt` and a real simulation video present; without those assets they fail independently of any code change.
+
+The CI workflow (`.github/workflows/ci.yml`) does **not** run pytest — it only smoke-tests Docker by building a **simplified** Dockerfile inline (not the real `dockerfile`) and grepping for "All scripts completed successfully" in a stubbed log. It does not exercise pipeline code, so run pytest locally; do not rely on CI to catch real regressions.
 
 ## Conventions worth following
 
