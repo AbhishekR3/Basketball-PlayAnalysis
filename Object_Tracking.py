@@ -68,18 +68,19 @@ def filter_lowconfidence(class_names, scores, basketball_score=config.YOLO_BASKE
 
 #%% Object Tracking with DeepSORT
 
-def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
+def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects, device='cpu'):
     """
     Objective:
     Perform deepsort object tracking on each video frame.
-    
+
     Parameters:
     [array] frame - video frame before object tracking
     [class model] model - YOLO detection with the custom model
     [class deepsort] tracker - DeepSORT Tracker
-    [function] encoder - Extracts relevant information (features) from the given frame 
+    [function] encoder - Extracts relevant information (features) from the given frame
     [int] n_missed - number of objects that are tracked (debugging purposes)
     [dataframe] detected_objects - pandas dataframe to store information on detected objects
+    [torch.device] device - Compute device for YOLO inference ('cpu', 'cuda', or 'mps')
 
     Returns:
     [array] frame - video frame after object tracking
@@ -90,7 +91,7 @@ def object_tracking(frame, model, tracker, encoder, n_missed, detected_objects):
     try:
         # Process the current frame with the YOLO model without gradient computation
         with torch.no_grad():
-            results = model(frame)
+            results = model(frame, device=device)
         
         # For each frame, return information on detected objects/inference information 
         print(results)
@@ -311,7 +312,12 @@ except Exception as e:
     logger.error (f"Error: Couldn't find the YOLO model file. {e}")
     exit()
 
+# Resolve compute device (CUDA -> MPS -> CPU, or DEVICE override) and pin the
+# YOLO model to it so detection runs on the GPU when one is available.
+device = config.get_device(logger)
+
 model = YOLO(model_path)
+model.to(device)
 model.info() # Model Information
 model.iou = 0.45
 max_cosine_distance = 0.4
@@ -358,7 +364,7 @@ try:
             break
         
         # Perform DeepSort (Object Tracking)
-        tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects)
+        tracked_frame, n_missed, detected_objects = object_tracking(frame_colored, model, tracker, encoder, n_missed, detected_objects, device)
         print('Object Tracking completed')
 
         # Display Video Frame

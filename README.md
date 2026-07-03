@@ -86,6 +86,19 @@ python Feature_Engineering.py
 python Neural_Network.py
 ```
 
+### GPU acceleration
+
+Object tracking (YOLO detection) and neural network training run on the GPU automatically when one is available. The device is resolved by `config.get_device()`, which cascades **CUDA (NVIDIA) → MPS (Apple Silicon) → CPU**. On Apple Silicon it also enables `PYTORCH_ENABLE_MPS_FALLBACK` so unsupported ops fall back to CPU rather than crashing.
+
+Override the default with the `DEVICE` environment variable:
+
+```bash
+DEVICE=cpu python Neural_Network.py     # force CPU (e.g. in CI)
+DEVICE=cuda python Object_Tracking.py   # force a specific backend
+```
+
+The DeepSORT feature encoder (TensorFlow frozen graph) and feature-engineering PCA (scikit-learn) remain CPU-bound.
+
 If the user would like to levarege Docker containerization, run the following after downloading the code.
 
 ```bash
@@ -116,6 +129,7 @@ Basketball-PlayAnalysis/
 │   ├── Custom_DetectionModel.txt                   # Info / Metrics on custom object detection model
 │   ├── Citations                                   # Citations 
 │   ├── pruning_comparison.png                      # Pruned model compared to oringal model
+├── config.py                                       # Centralized env-var config, hyperparameters, and device selection
 ├── Data_Loading.py                                 # Loading extracted object tracking information into database
 ├── dockerfile                                      # File to setup isolated environment to test code
 ├── Feature_Engineering.py                          # Optimizing the raw object tracking dataset for the neural network
