@@ -45,6 +45,8 @@ def helpers():
     class_extra = dict(extra)
     class_extra['SCREEN_WIDTH'] = 470
     class_extra['SCREEN_HEIGHT'] = 500
+    class_extra['WALL_MARGIN'] = 15  # #13 wall handler references this module constant
+
     class_extra['cryptographic_normal'] = cryptographic_normal
     player_cls = load_callable_from_source(SIM_PATH, 'Player', extra_globals=class_extra)
     basketball_cls = load_callable_from_source(SIM_PATH, 'Basketball', extra_globals=class_extra)

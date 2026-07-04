@@ -107,14 +107,25 @@ class Player:
         try:
             self.update_speed_angle()
 
-            self.x += self.speed * math.cos(self.angle)
-            self.y += self.speed * math.sin(self.angle)
+            vx = self.speed * math.cos(self.angle)
+            vy = self.speed * math.sin(self.angle)
+            self.x += vx
+            self.y += vy
 
-            # Prevent wall collision
-            if self.x + self.radius > SCREEN_WIDTH-15 or self.x - self.radius < 0:
+            # Valid interior bounds (single margin constant)
+            min_x, max_x = self.radius, SCREEN_WIDTH - WALL_MARGIN - self.radius
+            min_y, max_y = self.radius, SCREEN_HEIGHT - WALL_MARGIN - self.radius
+
+            # #13 fix: reflect only when heading further out of bounds, so a
+            # wall-adjacent player can't oscillate and stick, then clamp back
+            # inside so the check can't re-trigger next frame.
+            if (self.x > max_x and vx > 0) or (self.x < min_x and vx < 0):
                 self.angle = math.pi - self.angle
-            if self.y + self.radius > SCREEN_HEIGHT-15 or self.y - self.radius < 0:
+            if (self.y > max_y and vy > 0) or (self.y < min_y and vy < 0):
                 self.angle = -self.angle
+
+            self.x = min(max(self.x, min_x), max_x)
+            self.y = min(max(self.y, min_y), max_y)
 
         except Exception as e:
             logger.error("Error in moving player: %s", e)
@@ -205,16 +216,25 @@ class Basketball:
         """
         try:
             self.update_movement()
-            
-            self.x += self.speed * math.cos(self.angle)
-            self.y += self.speed * math.sin(self.angle)
-            
-            # Prevent wall collision
-            if self.x + self.radius > SCREEN_WIDTH-15 or self.x - self.radius < 0:
+
+            vx = self.speed * math.cos(self.angle)
+            vy = self.speed * math.sin(self.angle)
+            self.x += vx
+            self.y += vy
+
+            # Valid interior bounds (single margin constant)
+            min_x, max_x = self.radius, SCREEN_WIDTH - WALL_MARGIN - self.radius
+            min_y, max_y = self.radius, SCREEN_HEIGHT - WALL_MARGIN - self.radius
+
+            # #13 fix: reflect only when heading further out, then clamp inside.
+            if (self.x > max_x and vx > 0) or (self.x < min_x and vx < 0):
                 self.angle = math.pi - self.angle
-            if self.y + self.radius > SCREEN_HEIGHT-15 or self.y - self.radius < 0:
+            if (self.y > max_y and vy > 0) or (self.y < min_y and vy < 0):
                 self.angle = -self.angle
-                
+
+            self.x = min(max(self.x, min_x), max_x)
+            self.y = min(max(self.y, min_y), max_y)
+
         except Exception as e:
             logger.error("Error in moving basketball: %s", e)
             raise
@@ -474,6 +494,7 @@ except Exception as e:
 NUM_PLAYERS = 10
 BALL_RADIUS = 10
 PLAYER_RADIUS = BALL_RADIUS*2
+WALL_MARGIN = 15 #Single boundary margin used by the wall-collision handler
 COLOR_BLUE = (0, 0, 255)    # Team A
 COLOR_RED = (255, 0, 0)     # Team B
 COLOR_ORANGE = (255, 165, 0)  # Basketball

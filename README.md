@@ -137,6 +137,8 @@ Basketball-PlayAnalysis/
 ├── Object_Tracking.py                              # Script for tracking objects in the simulation
 ├── Passing_Simulation.py                           # Script for simulating passing plays
 ├── RandomMovement_Simulation.py                    # Script for simulating random object movement plays
+├── tests/                                          # pytest suite (quick unit + extensive integration; run `pytest`)
+├── pytest.ini                                      # pytest config and quick/extensive markers
 ├── README.md                                       # Product documentation
 ├── requirements.txt                                # Product library requirements
 ├── run_sequence.sh                                 # Sequence on how to execute files for isolated (Docker) environments
